@@ -23,3 +23,4 @@ paper/*.fdb_latexmk
 camera_check*.jpg
 *.synctex.gz
 paper/main_anon.*
+*.out

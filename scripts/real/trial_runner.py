@@ -126,7 +126,7 @@ def main():
     suffix = "_resume_" + datetime.now().strftime("%Y%m%dT%H%M%S%f") if args.resume else ""
     out.with_name(out.stem + "_" + session.replace(":", "") + suffix + "_manifest.json").write_text(
         json.dumps(provenance, indent=2))
-    traj_dir = REPO / "results" / "real_trial_traj"
+    traj_dir = REPO / "results" / "hardware" / "real_trial_traj"
     traj_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"{args.trials} trials, arms {arms}, paired={args.paired}, jumpstart {args.jumpstart} frames.")
