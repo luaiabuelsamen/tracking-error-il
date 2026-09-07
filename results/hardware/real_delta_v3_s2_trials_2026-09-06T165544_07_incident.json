@@ -5,6 +5,6 @@
   "arm": "base_s2",
   "returncode": -6,
   "rollout_complete": true,
-  "trajectory": "/home/jetson3/projects/so101-bench/results/real_trial_traj/2026-09-06T165544_07_base_s2.npz",
+  "trajectory": "<repo>/results/real_trial_traj/2026-09-06T165544_07_base_s2.npz",
   "reason": "rollout subprocess failed"
 }

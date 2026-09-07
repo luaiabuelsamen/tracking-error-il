@@ -163,7 +163,7 @@ def main():
                     complete = bool(z.get("rollout_complete", False))
             incident = dict(session=session, trial=t, pair=t // 2 if args.paired else None,
                             arm=arm, returncode=completed.returncode, rollout_complete=complete,
-                            trajectory=str(trajectory), reason="rollout subprocess failed")
+                            trajectory=str(trajectory.relative_to(REPO)), reason="rollout subprocess failed")
             pending_path.write_text(json.dumps(incident, indent=2))
             if not complete:
                 raise SystemExit("rollout interrupted; incident saved, stop and inspect before resuming")
