@@ -1,5 +1,19 @@
 window.robotGallery = [
   {
+    "src": "media/20260907T112348_delta_s1.mp4",
+    "poster": "media/20260907T112348_delta_s1.jpg",
+    "title": "Tracking error \u00b7 physical rollout",
+    "type": "Hardware policy",
+    "description": "Selected seed-1 checkpoint. Autonomous control after a fixed demonstration replay. Showcase recording; outcome has not been annotated and this run is not included in the evaluation counts."
+  },
+  {
+    "src": "media/20260907T112302_delta_s1.mp4",
+    "poster": "media/20260907T112302_delta_s1.jpg",
+    "title": "Tracking error \u00b7 physical rollout",
+    "type": "Hardware policy",
+    "description": "Selected seed-1 checkpoint. Autonomous control after a fixed demonstration replay. Showcase recording; outcome has not been annotated and this run is not included in the evaluation counts."
+  },
+  {
     "src": "media/teleoperation.mp4",
     "poster": "media/teleoperation.jpg",
     "title": "The task, demonstrated",
