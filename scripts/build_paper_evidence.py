@@ -103,6 +103,29 @@ def main():
     axes[1].set_ylabel("Placement success (%)")
     axes[1].set_title("Hardware: gray base, teal tracking error", fontsize=10)
     fig.tight_layout(pad=.7)
+    # Qualitative real rollout plus the completed quantitative hardware comparisons.
+    from PIL import Image
+    teaser = Image.open(ROOT / "figures/paper/fig_real_teaser.png").convert("RGB")
+    fig2 = plt.figure(figsize=(8.1, 4.8))
+    ax_top = fig2.add_axes([0.04, 0.47, 0.92, 0.48])
+    ax_top.imshow(teaser); ax_top.axis("off")
+    ax_top.set_title("Physical rollout: frames after policy handoff", loc="left", fontsize=10, pad=4)
+    ax_bot = fig2.add_axes([0.12, 0.12, 0.78, 0.25])
+    completed = [r for r in data["hardware"] if r["pairs"] == 20]
+    xs = np.arange(len(completed))
+    base_rates = [100*r["base"]/r["pairs"] for r in completed]
+    delta_rates = [100*r["delta"]/r["pairs"] for r in completed]
+    ax_bot.bar(xs-.18, base_rates, .36, color="#777777", label="Position only")
+    ax_bot.bar(xs+.18, delta_rates, .36, color="#167e83", label="Tracking error")
+    for x, r in zip(xs, completed):
+        ax_bot.text(x-.18, 100*r["base"]/r["pairs"]+3, f"{r['base']}/{r['pairs']}", ha="center", fontsize=8)
+        ax_bot.text(x+.18, 100*r["delta"]/r["pairs"]+3, f"{r['delta']}/{r['pairs']}", ha="center", fontsize=8)
+    ax_bot.set_xticks(xs, ["Seed 0", "Seed 1"]); ax_bot.set_ylim(0, 85)
+    ax_bot.set_ylabel("Placement success (%)"); ax_bot.legend(frameon=False, ncol=2, loc="upper left")
+    ax_bot.set_title("Completed paired hardware evaluations", loc="left", fontsize=10)
+    fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.pdf", bbox_inches="tight")
+    fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.png", dpi=200, bbox_inches="tight")
+    plt.close(fig2)
     path = ROOT / "figures/paper/fig_observation_evidence.pdf"
     fig.savefig(path, bbox_inches="tight")
     fig.savefig(path.with_suffix(".png"), dpi=200, bbox_inches="tight")

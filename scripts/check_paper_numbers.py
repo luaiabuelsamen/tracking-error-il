@@ -20,6 +20,7 @@ def main():
     flat = re.sub(r'\s+', ' ', tex)
     for phrase in ('generated/hardware_table.tex', 'fig_observation_evidence.pdf',
                    'third evaluation was interrupted', 'its outcome was not entered', 'not variation over training seeds',
+                   'fig_real_quantitative.pdf', 'qualitative physical rollout',
                    'recorded leader commands'):
         # Case-insensitive: prose checks concern disclosures, not typography.
         assert phrase.lower() in flat.lower(), f'missing disclosure/input: {phrase}'
