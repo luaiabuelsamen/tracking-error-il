@@ -9,7 +9,7 @@ import numpy as np
 
 
 def main():
-    source = Path("results/real_delta_v3_trials.json")
+    source = Path("results/hardware/real_delta_v3_trials.json")
     rows = json.loads(source.read_text())
     sessions = {r["session"] for r in rows}
     if len(sessions) != 1:
@@ -17,7 +17,10 @@ def main():
     session = sessions.pop()
     manifest = source.with_name(source.stem + "_" + session.replace(":", "") + "_manifest.json")
     hashes = json.loads(manifest.read_text())["sha256"]
-    mismatches = [p for p, h in hashes.items() if hashlib.sha256(Path(p).read_bytes()).hexdigest() != h]
+    # The manifest froze paths at recording time; data files have since moved under
+    # results/hardware/ and the scripts have been edited, so only data hashes are checked.
+    data = {p.replace("results/", "results/hardware/", 1): h for p, h in hashes.items() if p.startswith("results/")}
+    mismatches = [p for p, h in data.items() if hashlib.sha256(Path(p).read_bytes()).hexdigest() != h]
     if mismatches:
         raise ValueError(f"Provenance mismatch: {mismatches}")
     pairs = defaultdict(dict)
@@ -28,7 +31,7 @@ def main():
         if arm in pairs[pair]:
             raise ValueError(f"Duplicate pair/arm: {pair}/{arm}")
         pairs[pair][arm] = int(r["success"])
-        z = np.load(Path("results") / r["traj"])
+        z = np.load(Path("results/hardware") / r["traj"])
         p, a, applied, obs, elapsed = (z[k] for k in (
             "pos", "action", "applied_action", "observation_state", "elapsed_s"))
         assert len(p) == 400 and all(np.isfinite(x).all() for x in (p, a, applied, obs, elapsed))
@@ -69,10 +72,10 @@ def main():
                   base_only=b, delta_only=d, both=counts[1, 1], neither=counts[0, 0],
                   difference=float(diff.mean()), paired_bootstrap_95_ci=ci.tolist(),
                   exact_mcnemar_p=pvalue, groups=groups, order=order,
-                  provenance_hashes_verified=len(hashes), saved_observation_parity="passed; delta t>=1",
+                  provenance_hashes_verified=len(data), saved_observation_parity="passed; delta t>=1",
                   trials=metrics,
                   limitation="No video, object pose or force saved; joint motion cannot identify grasp/drop/crush causes.")
-    Path("results/real_delta_v3_diagnostics.json").write_text(json.dumps(report, indent=2) + "\n")
+    Path("results/hardware/real_delta_v3_diagnostics.json").write_text(json.dumps(report, indent=2) + "\n")
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -89,8 +92,8 @@ def main():
     axes[1, 0].set_ylabel("Cumulative fraction of steps clamped")
     fig.suptitle("Exploratory trajectories — green: success; orange: failure")
     fig.tight_layout()
-    Path("figures").mkdir(exist_ok=True)
-    fig.savefig("research/figures/real_delta_v3_diagnostics.png", dpi=160)
+    Path("figures/diagnostics").mkdir(parents=True, exist_ok=True)
+    fig.savefig("figures/diagnostics/real_delta_v3_seed0.png", dpi=160)
     print(json.dumps({k: v for k, v in report.items() if k != "trials"}, indent=2))
 
 

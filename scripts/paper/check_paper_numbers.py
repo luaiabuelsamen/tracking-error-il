@@ -9,7 +9,7 @@ from pathlib import Path
 
 from build_paper_evidence import collect
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def main():
@@ -43,20 +43,20 @@ def main():
         vals = actual['simulation'][name]
         assert len(vals) == seeds and round(sum(vals)/len(vals), 1) == expected_mean
         assert f'{expected_mean:.1f}\\%' in tex, f'missing simulation value: {name}'
-    corpus = [r for r in json.loads((ROOT/'results/corpus_delta_outcome.json').read_text()) if r.get('cohen_d') is not None]
+    corpus = [r for r in json.loads((ROOT/'results/corpus/corpus_delta_outcome.json').read_text()) if r.get('cohen_d') is not None]
     assert len(corpus) == 16 and sum(r['episodes'] for r in corpus) == 546
     assert sum(r['cohen_d'] > .5 for r in corpus) == 2
     assert '546 episodes' in flat and '$d=-0.39$' in tex
-    pending = json.loads((ROOT/'results/real_delta_v3_s2_trials_pending.json').read_text())
+    pending = json.loads((ROOT/'results/hardware/real_delta_v3_s2_trials_pending.json').read_text())
     assert pending['trial'] == 12 and pending['rollout_complete']
-    assert Path(pending['trajectory']).exists()
-    guards = json.loads((ROOT/'results/guard_ab.json').read_text())
+    assert (ROOT / 'results/hardware/real_trial_traj' / Path(pending['trajectory']).name).exists()
+    guards = json.loads((ROOT/'results/simulation/guard_ab.json').read_text())
     assert sum(r['crushed'] for r in guards if r['crush']>0 and not r['guarded']) == 85
     assert sum(r['crushed'] for r in guards if r['crush']>0 and r['guarded']) == 3
     assert sum(r['success'] for r in guards if not r['guarded']) == 12
     assert sum(r['success'] for r in guards if r['guarded']) == 0
     for arm, n in (('P_base', 3), ('Q_excess', 3)):
-        files = list((ROOT/'results').glob(f'grid600_{arm}_s*.json'))
+        files = list((ROOT/'results/simulation').glob(f'grid600_{arm}_s*.json'))
         assert len(files) == n, 'scale screen changed; update appendix'
         for p in files:
             record = json.loads(p.read_text())

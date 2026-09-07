@@ -31,7 +31,7 @@ reaching would be a good outcome; completed pick-and-place would be surprising.
 A policy that does nothing, or drifts to one pose and stays, is the expected
 failure and is informative about the chain rather than about the method.
 
-    python scripts/run_policy_real.py --checkpoint checkpoints/real50_base_s0 \
+    python scripts/real/run_policy_real.py --checkpoint checkpoints/real50_base_s0 \
         --arm base --max-steps 300
 """
 
@@ -41,13 +41,13 @@ import sys
 # Re-exec under the project venv if launched with another interpreter. The
 # system python has NumPy 2.x and cannot import this pipeline's cv2/torch build,
 # which fails deep in an import with a message that does not name the cause.
-_VENV = "/home/jetson3/projects/clean_env/venv/bin/python"
+_VENV = os.environ.get("SO101_VENV_PYTHON", os.path.expanduser("~/projects/clean_env/venv/bin/python"))
 if os.path.realpath(sys.executable) != os.path.realpath(_VENV) and os.path.exists(_VENV):
     os.execv(_VENV, [_VENV] + sys.argv)
 
 import argparse
-import time
 import subprocess
+import time
 from pathlib import Path
 
 import numpy as np
@@ -87,7 +87,7 @@ def send_target(robot, motor_names, target):
 
 
 def build_observation(arm, pos, a_prev, a_prev2, stats, k_hat, hist):
-    """Mirror scripts/train_act_real.py's observation exactly."""
+    """Mirror scripts/real/train_act_real.py's observation exactly."""
     s_n = (pos - stats["s_mean"]) / stats["s_std"]
     if arm == "base":
         return s_n
@@ -184,7 +184,10 @@ def main():
         # immediately out of distribution on the joint that does the reaching,
         # and the policy holds still. Walk to the mean start pose first, under
         # the same per-step clamp.
-        import pyarrow as pa, pyarrow.parquet as pq, glob as _g
+        import glob as _g
+
+        import pyarrow as pa
+        import pyarrow.parquet as pq
         tb = pa.concat_tables([pq.read_table(f) for f in sorted(
             _g.glob(str(Path(args.home) / "data" / "**" / "*.parquet"), recursive=True))])
         st = np.array(tb["observation.state"].to_pylist(), float)[:, :6]
@@ -208,7 +211,10 @@ def main():
         # 49/50 episodes open with a ~1.9 s stationary pause, so a policy trained
         # on them treats the start pose as an absorbing state. Replay a demo's
         # opening actions open-loop to carry the arm past it, then hand over.
-        import pyarrow as pa, pyarrow.parquet as pq, glob as _g
+        import glob as _g
+
+        import pyarrow as pa
+        import pyarrow.parquet as pq
         tb = pa.concat_tables([pq.read_table(f) for f in sorted(
             _g.glob(str(Path(args.home or args.jumpstart_root) / "data" / "**" / "*.parquet"),
                     recursive=True))])
@@ -217,7 +223,7 @@ def main():
         demo = AA[ee == args.jumpstart_episode][: args.jumpstart]
         print(f"jumpstart: replaying {len(demo)} demo actions from episode "
               f"{args.jumpstart_episode} open-loop")
-        for k, act in enumerate(demo):
+        for act in demo:
             a_prev2, a_prev = a_prev, send_target(robot, motor_names, act)
             obs = robot.get_observation()
             hist.append(np.array([obs[f"{m}.pos"] for m in motor_names], np.float32))
@@ -279,7 +285,8 @@ def main():
         try:
             # Save before shutdown: a servo fault must not erase a completed rollout.
             if traj:
-                P = np.array([t[0] for t in traj]); A = np.array([t[1] for t in traj])
+                P = np.array([t[0] for t in traj])
+                A = np.array([t[1] for t in traj])
                 if len(traj) > 1 and t_start is not None:
                     hz = len(traj) / (time.perf_counter() - t_start)
                     print(f"achieved control rate: {hz:.1f} Hz (target {FPS})"

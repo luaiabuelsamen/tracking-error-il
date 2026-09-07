@@ -9,7 +9,7 @@ Coordinate and unit conventions used throughout:
 * positions are metres in the world frame; the table surface is ``TABLE_TOP``
 * joint angles are radians; joint *readings* are integer encoder counts
 * the tool frame is the jaw-gap centre, not the URDF's nominal TCP -- see
-  ``TCP_LOCAL`` and ``docs/findings.md``
+  ``TCP_LOCAL`` and ``docs/simulation.md``
 """
 
 from __future__ import annotations

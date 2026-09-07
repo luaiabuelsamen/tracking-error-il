@@ -1,8 +1,8 @@
 """Measure scripted-expert success rate under domain randomisation.
 
-    python scripts/evaluate.py --episodes 40
-    python scripts/evaluate.py --episodes 40 --grip-mode force
-    python scripts/evaluate.py --episodes 40 --no-randomise
+    python scripts/sim/evaluate.py --episodes 40
+    python scripts/sim/evaluate.py --episodes 40 --grip-mode force
+    python scripts/sim/evaluate.py --episodes 40 --no-randomise
 """
 
 from __future__ import annotations

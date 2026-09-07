@@ -1,8 +1,8 @@
 """Train lerobot ACT on the expert demos; evaluate CLOSED-LOOP in the env.
 
-    python scripts/train_act.py --arm base      --steps 8000
-    python scripts/train_act.py --arm delta     --steps 8000
-    python scripts/train_act.py --arm delta_q16 --steps 8000
+    python scripts/sim/train_act.py --arm base      --steps 8000
+    python scripts/sim/train_act.py --arm delta     --steps 8000
+    python scripts/sim/train_act.py --arm delta_q16 --steps 8000
 
 THE ARMS. Standard ACT observes the current state and images only -- it never
 sees the previous action, so `delta = a[t-1] - s[t]` is NOT a derived feature
@@ -554,7 +554,7 @@ def main():
 
     policy, data = train(args)
     results = evaluate(policy, data, args)
-    out = args.json or f"results/act_{args.arm}.json"
+    out = args.json or f"results/simulation/act_{args.arm}.json"
     Path(out).parent.mkdir(exist_ok=True)
     with open(out, "w") as fh:
         json.dump(dict(arm=args.arm, steps=args.steps, results=results), fh,

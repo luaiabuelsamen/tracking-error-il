@@ -1,6 +1,6 @@
 # lerobot local-patch snapshot
 
-The bench does not use a stock lerobot. `/home/jetson3/projects/clean_env/lerobot`
+The bench does not use a stock lerobot. the checkout named by `$LEROBOT` (default `~/projects/clean_env/lerobot`)
 is an upstream checkout on `main` carrying local modifications that were never
 committed there, plus untracked helper scripts. If that tree is ever reset,
 re-cloned, or `git checkout .`-ed, all of it is lost. This directory is the backup.
@@ -20,18 +20,19 @@ broken tree.
 ## Restore
 
 ```bash
-cd /home/jetson3/projects/clean_env/lerobot
-git checkout "$(cat /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-base-commit.txt)"
-git apply /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-local.patch
-tar xzf /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-untracked-scripts.tar.gz
+PATCH="$(pwd)/scripts/bench/lerobot-patch"      # run from this repository's root
+cd "$LEROBOT"
+git checkout "$(cat "$PATCH/lerobot-base-commit.txt")"
+git apply "$PATCH/lerobot-local.patch"
+tar xzf "$PATCH/lerobot-untracked-scripts.tar.gz"
 ```
 
 ## Refresh the snapshot after changing the lerobot tree
 
 ```bash
-cd /home/jetson3/projects/clean_env/lerobot
-git diff > /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-local.patch
-git rev-parse HEAD > /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-base-commit.txt
+cd "$LEROBOT"
+git diff > "$PATCH/lerobot-local.patch"
+git rev-parse HEAD > "$PATCH/lerobot-base-commit.txt"
 ```
 
 ## Notable patch: `datasets/pyav_utils.py`

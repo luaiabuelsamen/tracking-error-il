@@ -13,9 +13,17 @@ dependencies = [
     "numpy>=1.24",
 ]
 
+license = {text = "Apache-2.0"}
+authors = [{name = "Luai Abuelsamen", email = "luai_abuelsamen@berkeley.edu"}]
+keywords = ["behavior cloning", "imitation learning", "manipulation", "SO-101", "MuJoCo"]
+
+[project.urls]
+Repository = "https://github.com/luaiabuelsamen/tracking-error-il"
+
 [project.optional-dependencies]
 data = ["lerobot>=0.3", "pandas>=2.0", "pyarrow>=14"]
 video = ["imageio[ffmpeg]>=2.30"]
+analysis = ["scipy>=1.10", "matplotlib>=3.7", "pandas>=2.0", "pyarrow>=14", "pillow>=10"]
 dev = ["pytest>=7.4", "ruff>=0.4"]
 
 [tool.setuptools.packages.find]
@@ -25,11 +33,18 @@ where = ["src"]
 so101_bench = ["assets/*.xml", "assets/assets/*"]
 
 [tool.ruff]
-line-length = 95
+line-length = 100
 target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+ignore = ["B905"]
+
+[tool.ruff.lint.per-file-ignores]
+# Experiment scripts: long literal tables, and interpreter re-exec or sys.path
+# setup that must run before the imports that depend on it.
+"scripts/**" = ["E501", "E402"]
+"tests/test_real_pipeline.py" = ["E402", "E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

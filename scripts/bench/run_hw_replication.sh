@@ -7,7 +7,7 @@ case "$seed" in
   1|2) ;;
   *) echo "Usage: bash scripts/bench/run_hw_replication.sh [1|2]" >&2; exit 1 ;;
 esac
-exec /home/jetson3/projects/clean_env/venv/bin/python scripts/trial_runner.py \
+exec "${SO101_VENV_PYTHON:-python}" scripts/real/trial_runner.py \
   --arms "base_s${seed},delta_s${seed}" --paired --trials 40 \
   --jumpstart 115 --max-steps 400 \
-  --out "results/real_delta_v3_s${seed}_trials.json" "$@"
+  --out "results/hardware/real_delta_v3_s${seed}_trials.json" "$@"

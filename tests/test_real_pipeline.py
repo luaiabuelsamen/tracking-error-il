@@ -10,8 +10,8 @@ import numpy as np
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
-from run_policy_real import send_target
 import trial_runner
+from run_policy_real import send_target
 
 
 class RealPipelineTests(TestCase):
@@ -59,23 +59,23 @@ class RealPipelineTests(TestCase):
                 (root / name / "train_summary.json").write_text("{}")
             argv = ["trial_runner", "--arms", "base_v2,delta_v3", "--paired", "--trials", "4"]
             with patch.object(trial_runner, "REPO", root), patch.object(trial_runner, "CKPT", ckpt), \
-                 patch.object(trial_runner, "__file__", str(root / "scripts/trial_runner.py")), \
+                 patch.object(trial_runner, "__file__", str(root / "scripts/real/trial_runner.py")), \
                  patch.object(sys, "argv", argv), patch("builtins.input", side_effect=["", "s"] * 4), \
                  patch.object(trial_runner.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run:
                 trial_runner.main()
-            records = json.loads((root / "results/real_trials.json").read_text())
+            records = json.loads((root / "results/hardware/real_trials.json").read_text())
             self.assertEqual([r["arm"] for r in records], ["base_v2", "delta_v3", "delta_v3", "base_v2"])
             self.assertEqual([r["pair"] for r in records], [0, 0, 1, 1])
             self.assertEqual([c.args[0][c.args[0].index("--arm") + 1] for c in run.call_args_list],
                              ["base", "delta", "delta", "base"])
             # Emulate shutdown fault on trial 3: recover its outcome, never rerun it.
-            result_path = root / "results/real_trials.json"
+            result_path = root / "results/hardware/real_trials.json"
             result_path.write_text(json.dumps(records[:2]))
-            pending = root / "results/real_trials_pending.json"
+            pending = root / "results/hardware/real_trials_pending.json"
             pending.write_text(json.dumps(dict(session=records[0]["session"], trial=2,
                                                 arm="delta_v3", rollout_complete=True, returncode=-6)))
             with patch.object(trial_runner, "REPO", root), patch.object(trial_runner, "CKPT", ckpt), \
-                 patch.object(trial_runner, "__file__", str(root / "scripts/trial_runner.py")), \
+                 patch.object(trial_runner, "__file__", str(root / "scripts/real/trial_runner.py")), \
                  patch.object(sys, "argv", argv + ["--resume"]), \
                  patch("builtins.input", side_effect=["f", "", "s"]), \
                  patch.object(trial_runner.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run:

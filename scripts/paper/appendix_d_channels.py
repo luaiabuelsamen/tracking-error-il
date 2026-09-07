@@ -16,7 +16,7 @@ The second axis is POSE, not repeat. Pooling across it mixes the lever arm into
 the residual and makes every channel look like noise; each pose is fit
 separately here for that reason.
 
-    python scripts/appendix_d_channels.py
+    python scripts/paper/appendix_d_channels.py
 
 What this is not: it is one joint (the n=1-on-k limitation is untouched), it is
 gravity-direction loading rather than the gripper-closing direction a load cell
@@ -28,7 +28,7 @@ from pathlib import Path
 
 import numpy as np
 
-DEFAULT = Path("/home/jetson3/projects/research/blindspot/data/channel_j2.npz")
+DEFAULT = Path(__file__).resolve().parents[2] / "results/calibration/staircase_channel_j2.npz"
 
 
 def fit_per_pose(x, y):

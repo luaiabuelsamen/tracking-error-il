@@ -1,6 +1,6 @@
 """Collect the demos_v3 recipe THROUGH the guard: shielded imitation data.
 
-    python scripts/collect_guarded.py --episodes 200 --root data/demos_v3g
+    python scripts/sim/collect_guarded.py --episodes 200 --root data/demos_v3g
 
 Fix 2 from the phase-3 review: if deployment runs under the guard, collect
 under the guard, so the teacher's grasp FEELS like the capped grip in the

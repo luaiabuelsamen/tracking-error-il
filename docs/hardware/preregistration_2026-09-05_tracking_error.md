@@ -37,7 +37,7 @@ seed replication before a general method claim. No post-hoc threshold changes.
 Prepared command (only after training completes and operator is ready):
 
 ```bash
-/home/jetson3/projects/clean_env/venv/bin/python scripts/trial_runner.py --arms base_v2,delta_v3 --paired --trials 40 --jumpstart 115 --max-steps 400 --out results/real_delta_v3_trials.json
+/home/jetson3/projects/clean_env/venv/bin/python scripts/real/trial_runner.py --arms base_v2,delta_v3 --paired --trials 40 --jumpstart 115 --max-steps 400 --out results/hardware/real_delta_v3_trials.json
 ```
 
 Open provenance: yesterday's versus today's baseline success shift, and whether

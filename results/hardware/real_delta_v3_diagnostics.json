@@ -60,7 +60,7 @@
       10
     ]
   },
-  "provenance_hashes_verified": 11,
+  "provenance_hashes_verified": 0,
   "saved_observation_parity": "passed; delta t>=1",
   "trials": [
     {

@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 import numpy as np
-
 import train_act_real as train
 from run_policy_real import build_observation
 
@@ -30,7 +29,7 @@ def main():
             np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-6)
             prev2, prev = prev, ds.A[i]
         results[arm] = {"frames": len(ds), "max_abs_error": worst}
-    path = Path("results/real_observation_audit.json")
+    path = Path("results/hardware/real_observation_audit.json")
     path.write_text(json.dumps(results, indent=2) + "\n")
     print(path.read_text())
 

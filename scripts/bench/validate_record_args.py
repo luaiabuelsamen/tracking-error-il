@@ -5,15 +5,18 @@ serial port or a camera. Catches unknown-arg / missing-required-field errors
 without needing the robot plugged in.
 """
 
+import os
 import sys
 import traceback
+from pathlib import Path
 
 FOLLOWER = "/dev/ttyACM0"
 LEADER = "/dev/ttyACM1"
 FID = "my_awesome_follower_arm"
 LID = "my_awesome_leader_arm"
 CAM = "/dev/video0"
-BENCH = "/home/jetson3/projects/so101-bench"
+BENCH = str(Path(__file__).resolve().parents[2])
+LEROBOT = os.environ.get("LEROBOT", os.path.expanduser("~/projects/clean_env/lerobot"))
 NAME = "pickplace_real_v0"
 N = "5"
 
@@ -42,7 +45,7 @@ try:
 
     spec = u.spec_from_file_location(
         "lerobot_record_mod",
-        "/home/jetson3/projects/clean_env/lerobot/src/lerobot/scripts/lerobot_record.py",
+        f"{LEROBOT}/src/lerobot/scripts/lerobot_record.py",
     )
     mod = u.module_from_spec(spec)
     sys.modules["lerobot_record_mod"] = mod

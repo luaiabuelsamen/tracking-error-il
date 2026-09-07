@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this code or these evaluation records, please cite the preprint."
+title: "Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms"
+type: software
+authors:
+  - family-names: Abuelsamen
+    given-names: Luai
+    affiliation: University of California, Berkeley
+    email: luai_abuelsamen@berkeley.edu
+repository-code: https://github.com/luaiabuelsamen/tracking-error-il
+license: Apache-2.0
+year: 2026
+keywords:
+  - behavior cloning
+  - imitation learning
+  - low-cost manipulation
+  - SO-101
+  - observation design
+preferred-citation:
+  type: article
+  title: "Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms"
+  authors:
+    - family-names: Abuelsamen
+      given-names: Luai
+  year: 2026
+  notes: Preprint

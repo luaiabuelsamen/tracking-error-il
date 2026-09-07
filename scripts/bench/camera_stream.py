@@ -6,7 +6,7 @@ be misleading about framing. This streams over HTTP instead.
 Holds the camera open for as long as it runs, so stop it before teleoperating or
 recording -- the device allows one reader.
 
-    python scripts/camera_stream.py [--device /dev/video0] [--port 8000]
+    python scripts/bench/camera_stream.py [--device /dev/video0] [--port 8000]
 """
 
 import argparse

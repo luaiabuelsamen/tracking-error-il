@@ -21,9 +21,11 @@ LEADER="${LEADER:-/dev/ttyACM1}"
 FID="${FID:-my_awesome_follower_arm}"
 LID="${LID:-my_awesome_leader_arm}"
 CAM="${CAM:-/dev/video0}"
-LEROBOT=/home/jetson3/projects/clean_env/lerobot
-PY=/home/jetson3/projects/clean_env/venv/bin/python
-BENCH=/home/jetson3/projects/so101-bench
+# Patched lerobot checkout and the interpreter that has it installed; see
+# lerobot-patch/README.md. Override with LEROBOT= and SO101_VENV_PYTHON=.
+LEROBOT="${LEROBOT:-$HOME/projects/clean_env/lerobot}"
+PY="${SO101_VENV_PYTHON:-python}"
+BENCH="$(cd "$(dirname "$SELF")/../.." && pwd)"
 
 cd "$LEROBOT"
 

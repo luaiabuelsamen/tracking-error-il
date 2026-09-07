@@ -5,8 +5,8 @@ not play in Safari on most Macs, and a single blob is awkward to review, so this
 cuts the chunk at the episode boundaries recorded in the parquet and re-encodes
 to H.264, then writes an index page.
 
-    python scripts/export_episodes.py --root data/real/pickplace_real_v0
-    python scripts/export_episodes.py --root ... --serve 8001
+    python scripts/bench/export_episodes.py --root data/real/pickplace_real_v0
+    python scripts/bench/export_episodes.py --root ... --serve 8001
 """
 
 import argparse

@@ -20,7 +20,7 @@ Sections
   simulation all pairwise design contrasts on the 280-demonstration grid with
              Welch intervals, the preregistered resolution rule, Holm adjustment
 
-    MPLCONFIGDIR=/tmp/so101-matplotlib python scripts/supplementary_analysis.py
+    MPLCONFIGDIR=/tmp/so101-matplotlib python scripts/paper/supplementary_analysis.py
 """
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ from pathlib import Path
 import numpy as np
 from scipy import stats
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 GEN = ROOT / "paper/generated"
 FIG = ROOT / "figures/paper"
 
@@ -136,7 +136,7 @@ def classify(jaw):
 def hardware():
     per_seed, trials = [], []
     for seed, filename, arms in SEEDS:
-        rows = json.loads((ROOT / "results" / filename).read_text())
+        rows = json.loads((ROOT / "results/hardware" / filename).read_text())
         pairs = defaultdict(dict)
         for r in rows:
             pairs[(r["session"], r["pair"])][r["arm"]] = int(r["success"])
@@ -144,7 +144,7 @@ def hardware():
             t = dict(seed=seed, arm=arm, pair=r["pair"], trial=r["trial"], order_in_pair=r["trial"] % 2,
                      success=int(r["success"]), shutdown_error=bool(r.get("shutdown_error")),
                      session_half=int(r["pair"] >= PLAN_PAIRS // 2))
-            path = ROOT / "results" / r["traj"]
+            path = ROOT / "results/hardware" / r["traj"]
             if path.exists():
                 z = np.load(path)
                 pos, act, applied = z["pos"], z["action"], z["applied_action"]
@@ -240,8 +240,8 @@ def power_table():
 
 # ----------------------------------------------------------------------------- corpus
 def corpus():
-    rows = [r for r in json.loads((ROOT / "results/corpus_delta_outcome.json").read_text()) if r.get("cohen_d") is not None]
-    sweep = {r["name"]: r for r in json.loads((ROOT / "results/offset_sweep.json").read_text())}
+    rows = [r for r in json.loads((ROOT / "results/corpus/corpus_delta_outcome.json").read_text()) if r.get("cohen_d") is not None]
+    sweep = {r["name"]: r for r in json.loads((ROOT / "results/corpus/offset_sweep.json").read_text())}
     rows.sort(key=lambda r: r["cohen_d"])
     shifts = [abs(sweep[r["name"]]["cohen_d_by_k"][-1] - sweep[r["name"]]["cohen_d_by_k"][0]) for r in rows if r["name"] in sweep]
     weighted = float(np.average([r["cohen_d"] for r in rows], weights=[r["episodes"] for r in rows]))
@@ -281,7 +281,7 @@ def corpus():
 
 # ----------------------------------------------------------------------------- measurement context
 def measurement():
-    st = np.load(ROOT / "results/staircase_channel_j2.npz", allow_pickle=True)
+    st = np.load(ROOT / "results/calibration/staircase_channel_j2.npz", allow_pickle=True)
     delta = (st["goal"] - st["position"]).ravel()
     load = st["load"].ravel()
     slope, icpt, r, *_ = stats.linregress(delta, load)
@@ -338,7 +338,7 @@ def simulation():
     vals = {}
     for name, pattern in DESIGNS:
         v = []
-        for f in sorted((ROOT / "results").glob(pattern)):
+        for f in sorted((ROOT / "results/simulation").glob(pattern)):
             r = next(r for r in json.loads(f.read_text())["results"] if r["crush"] == -1)
             v.append(100 * r["success"] / r["episodes"])
         vals[name] = v
@@ -364,11 +364,11 @@ def trace_figure(trials):
     for t in trials:
         if not t["trajectory"]:
             continue
-        for seed, filename, arms in SEEDS:
+        for seed, filename, _arms in SEEDS:
             if seed == t["seed"]:
-                rows = json.loads((ROOT / "results" / filename).read_text())
+                rows = json.loads((ROOT / "results/hardware" / filename).read_text())
                 r = next(r for r in rows if r["trial"] == t["trial"])
-        z = np.load(ROOT / "results" / r["traj"])
+        z = np.load(ROOT / "results/hardware" / r["traj"])
         ax = axes[t["seed"], 0 if t["arm"] == "base" else 1]
         ax.plot(z["pos"][:, JAW], color="#14856b" if t["success"] else "#c75d42", alpha=.55, lw=.9)
     per = {s["seed"]: s for s in hardware_cache["per_seed"]}

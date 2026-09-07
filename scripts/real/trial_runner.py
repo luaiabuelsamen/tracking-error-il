@@ -12,9 +12,9 @@ You reset the object between trials; the script waits for you. The outcome is
 recorded from your keypress, because nothing on this bench can see whether the
 adapter ended up in the tape roll.
 
-    python scripts/trial_runner.py --trials 10 --arms base,excess
+    python scripts/real/trial_runner.py --trials 10 --arms base,excess
 
-Outcomes land in results/real_trials.json, appended, so runs accumulate across
+Outcomes land in results/hardware/real_trials.json, appended, so runs accumulate across
 sessions rather than overwriting.
 """
 
@@ -24,7 +24,7 @@ import sys
 # Re-exec under the project venv if launched with another interpreter. The
 # system python has NumPy 2.x and cannot import this pipeline's cv2/torch build,
 # which fails deep in an import with a message that does not name the cause.
-_VENV = "/home/jetson3/projects/clean_env/venv/bin/python"
+_VENV = os.environ.get("SO101_VENV_PYTHON", os.path.expanduser("~/projects/clean_env/venv/bin/python"))
 if os.path.realpath(sys.executable) != os.path.realpath(_VENV) and os.path.exists(_VENV):
     os.execv(_VENV, [_VENV] + sys.argv)
 
@@ -32,15 +32,16 @@ import argparse
 import hashlib
 import json
 import subprocess
-import numpy as np
 from datetime import datetime
 from pathlib import Path
+
+import numpy as np
 
 REPO = Path(__file__).resolve().parent.parent
 # Always the venv interpreter, never sys.executable: this script is convenient
 # to launch with the system python, which has NumPy 2.x and cannot import the
 # cv2/torch build the rest of the pipeline uses.
-PY = "/home/jetson3/projects/clean_env/venv/bin/python"
+PY = _VENV
 CKPT = {"base": "checkpoints/real50_base_s0",
         "base_s1": "checkpoints/real50_base_v3_s1",
         "delta_s1": "checkpoints/real50_delta_v3_s1",
@@ -73,7 +74,7 @@ def main():
     ap.add_argument("--jumpstart", type=int, default=70)
     ap.add_argument("--max-steps", type=int, default=400)
     ap.add_argument("--root", default="data/real/pickplace_real_v0")
-    ap.add_argument("--out", default="results/real_trials.json")
+    ap.add_argument("--out", default="results/hardware/real_trials.json")
     ap.add_argument("--paired", action="store_true",
                     help="two arms, alternating AB/BA pair order; --trials is total rollouts")
     ap.add_argument("--resume", action="store_true", help="resume the most recent recorded session")
@@ -115,7 +116,7 @@ def main():
                     start_trial = max(start_trial, row["trial"] + 1)
     out.parent.mkdir(parents=True, exist_ok=True)
     provenance = {"session": session, "args": vars(args), "sha256": {}}
-    paths = [Path(__file__), REPO / "scripts/run_policy_real.py"]
+    paths = [Path(__file__), REPO / "scripts/real/run_policy_real.py"]
     for a in arms:
         paths.extend(p for p in (REPO / CKPT[a]).iterdir() if p.is_file())
     for p in paths:

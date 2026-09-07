@@ -55,7 +55,7 @@ class JawGuard:
         # ~25-35 N -- above the ~20 N transport minimum, below the 60 N
         # crush tier. The first value (4 counts ~= +8 N) capped a
         # slow-closing expert at ~10 N total and it dropped everything:
-        # Rule 1 pairing, results/expert_guarded_pairing.json.
+        # measured in the paired scripted-expert comparison.
         #
         # max_close_rate limits CLOSING speed only (opening stays instant --
         # release is the safety direction). A ballistic slam produces its
@@ -80,7 +80,7 @@ class JawGuard:
         self.last_out: float | None = None
 
     @classmethod
-    def at_control_rate(cls, **overrides) -> "JawGuard":
+    def at_control_rate(cls, **overrides) -> JawGuard:
         """Same physical constants re-expressed per 30 Hz control frame."""
         kw = dict(window=8, max_slew=6.5, k_lag=5.94, persist=6,
                   max_close_rate=4.0)

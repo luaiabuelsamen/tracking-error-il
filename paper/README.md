@@ -3,8 +3,7 @@
 The current manuscript is `main.tex`, compiled to `main.pdf`: four pages of
 main text, one page of references, and three pages of supplementary details.
 It is a standalone empirical paper, not a report of development sessions.
-The prior manuscript, its PDF and figures, and the CoRL template files are
-preserved under `research/paper_archive/`.
+An earlier manuscript on the same data is kept outside this repository.
 
 The main hardware table focuses on the two completed comparisons. A brief
 main-text disclosure points to the full table in the appendix, which includes
@@ -18,15 +17,13 @@ force estimate is claimed.
 Rebuild from the repository root:
 
 ```bash
-MPLCONFIGDIR=/tmp/so101-matplotlib /home/jetson3/projects/clean_env/venv/bin/python scripts/build_paper_evidence.py
+python scripts/paper/build_paper_evidence.py
 latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
-python scripts/check_paper_numbers.py
+python scripts/paper/check_paper_numbers.py
 ```
 
 The figure and table are generated from trial/grid JSON rather than manually
 entered. `generated/evidence.json` records the inputs to those displays.
-The old manuscript's numerical checks remain in
-`scripts/check_legacy_paper_numbers.py`; they are not the gate for this rewrite.
 
 The five cited works were checked against primary records during the rewrite:
 

@@ -1,6 +1,6 @@
 """Render demonstration episodes to an MP4.
 
-    python scripts/render_demo.py --episodes 2 --out demo.mp4
+    python scripts/sim/render_demo.py --episodes 2 --out demo.mp4
 """
 
 from __future__ import annotations

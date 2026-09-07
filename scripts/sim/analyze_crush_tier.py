@@ -27,7 +27,7 @@ READING RULES, fixed here before the numbers are seen:
    channel.
 4. No claim of resolution at n=1 for E. This is a screen, not a test.
 
-    python scripts/analyze_crush_tier.py
+    python scripts/sim/analyze_crush_tier.py
 """
 
 import glob

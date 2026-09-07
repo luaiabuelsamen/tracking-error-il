@@ -1,6 +1,6 @@
 """Collect demonstrations as a LeRobotDataset.
 
-    python scripts/collect.py --episodes 200 --root ~/data/pick_place
+    python scripts/sim/collect.py --episodes 200 --root ~/data/pick_place
 """
 
 from __future__ import annotations

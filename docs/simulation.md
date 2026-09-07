@@ -40,7 +40,7 @@ computable at inference time, and is quantised by the encoder.
 | speed, 2 × 128 px cameras | 2.7 s/episode |
 | dataset yield (successes only) | ~78% of attempts |
 
-Reproduce with `python scripts/evaluate.py --episodes 40`.
+Reproduce with `python scripts/sim/evaluate.py --episodes 40`.
 
 ## What is recorded
 
@@ -84,8 +84,7 @@ src/so101_bench/
   expert.py      ScriptedExpert: waypoint policy, clamp/force/oracle grasps
   demo_env.py    DemoEnv: rollout, evaluation, LeRobotDataset collection
   assets/        MJCF scene and meshes
-scripts/         evaluate.py, collect.py, render_demo.py, resolution_sweep.py
-docs/findings.md what was measured, and what it cost to find out
+scripts/sim/     evaluate.py, collect.py, render_demo.py, resolution_sweep.py, train_act.py
 ```
 
 ## Grip modes, and what they measure
@@ -135,7 +134,7 @@ the block every time, while the quantised `delta` proxy substitutes fully for a
 real force sensor.
 
 Sweeping the observation quantum against the crush limit (`placed / 30`,
-`scripts/resolution_sweep.py`):
+`scripts/sim/resolution_sweep.py`):
 
 | crush limit | q=1 | q=4 | q=8 | q=16 | q=32 | clamp | oracle |
 |---|---|---|---|---|---|---|---|
@@ -150,8 +149,8 @@ headroom. At the real encoder's resolution the proxy matches the oracle.
 
 The quantitative prediction (`cliff ≈ margin / 2.4 N per count`) gets the
 ordering right and the constant wrong, off by 3.1x, 1.5x and 1.2x as the
-margin grows. See `docs/findings.md`; the limiting error at present is
-contact-detection latency (19–56 N of entry force), not the encoder.
+margin grows. The limiting error at present is contact-detection latency
+(19–56 N of entry force), not the encoder.
 
 The learning grid reported in the paper does not activate the crush threshold;
 these expert measurements characterise the simulator, and the paper's appendix
@@ -167,7 +166,7 @@ pads, and collision meshes separate from visual meshes.
 
 ## Cloud training
 
-`scripts/modal_train.py` and `scripts/modal_grid.py` expect `vendor/lerobot/`
+`scripts/sim/modal_train.py` and `scripts/sim/modal_grid.py` expect `vendor/lerobot/`
 (gitignored): copy your lerobot checkout (`pyproject.toml`, `README.md`,
 `src/`) there. This project pins the tree it was developed against (0.3.4-era
-API: normalisation handled outside policies; see `scripts/train_act.py`).
+API: normalisation handled outside policies; see `scripts/sim/train_act.py`).

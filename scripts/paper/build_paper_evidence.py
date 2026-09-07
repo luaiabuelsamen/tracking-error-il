@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def collect():
@@ -16,7 +16,7 @@ def collect():
         (1, "real_delta_v3_s1_trials.json", ("base_s1", "delta_s1")),
         (2, "real_delta_v3_s2_trials.json", ("base_s2", "delta_s2")),
     ):
-        rows = json.loads((ROOT / "results" / filename).read_text())
+        rows = json.loads((ROOT / "results/hardware" / filename).read_text())
         pairs = defaultdict(dict)
         for r in rows:
             key = (r["session"], r["pair"])
@@ -34,7 +34,7 @@ def collect():
                              both=c[1, 1], neither=c[0, 0], p=p,
                              effect=float(diff.mean()), bootstrap_ci=ci.tolist(),
                              shutdown_errors=sum(bool(r.get("shutdown_error")) for r in rows),
-                             missing_trajectories=sum(not (ROOT / "results" / r["traj"]).exists() for r in rows)))
+                             missing_trajectories=sum(not (ROOT / "results/hardware" / r["traj"]).exists() for r in rows)))
     grids = {}
     for name, pattern in (("Position", "grid_A_base_s*.json"),
                           ("Action history", "grid_B_base_hist_s*.json"),
@@ -44,7 +44,7 @@ def collect():
                           ("Seat token", "grid_F_token_s*.json"),
                           ("Position history", "grid_G_ghist_s*.json")):
         vals = []
-        for file in sorted((ROOT / "results").glob(pattern)):
+        for file in sorted((ROOT / "results/simulation").glob(pattern)):
             rows = json.loads(file.read_text())["results"]
             r = next(r for r in rows if r["crush"] == -1)
             vals.append(100 * r["success"] / r["episodes"])
@@ -108,7 +108,8 @@ def main():
     teaser = Image.open(ROOT / "figures/paper/fig_real_teaser.png").convert("RGB")
     fig2 = plt.figure(figsize=(8.1, 4.8))
     ax_top = fig2.add_axes([0.04, 0.47, 0.92, 0.48])
-    ax_top.imshow(teaser); ax_top.axis("off")
+    ax_top.imshow(teaser)
+    ax_top.axis("off")
     ax_top.set_title("Physical rollout: frames after policy handoff", loc="left", fontsize=10, pad=4)
     ax_bot = fig2.add_axes([0.12, 0.12, 0.78, 0.25])
     completed = [r for r in data["hardware"] if r["pairs"] == 20]
@@ -120,8 +121,10 @@ def main():
     for x, r in zip(xs, completed):
         ax_bot.text(x-.18, 100*r["base"]/r["pairs"]+3, f"{r['base']}/{r['pairs']}", ha="center", fontsize=8)
         ax_bot.text(x+.18, 100*r["delta"]/r["pairs"]+3, f"{r['delta']}/{r['pairs']}", ha="center", fontsize=8)
-    ax_bot.set_xticks(xs, ["Seed 0", "Seed 1"]); ax_bot.set_ylim(0, 85)
-    ax_bot.set_ylabel("Placement success (%)"); ax_bot.legend(frameon=False, ncol=2, loc="upper left")
+    ax_bot.set_xticks(xs, ["Seed 0", "Seed 1"])
+    ax_bot.set_ylim(0, 85)
+    ax_bot.set_ylabel("Placement success (%)")
+    ax_bot.legend(frameon=False, ncol=2, loc="upper left")
     ax_bot.set_title("Completed paired hardware evaluations", loc="left", fontsize=10)
     fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.pdf", bbox_inches="tight")
     fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.png", dpi=200, bbox_inches="tight")

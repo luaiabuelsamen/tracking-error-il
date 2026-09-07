@@ -27,7 +27,7 @@ should, and that is a finding against the paper.
 
 Training is not required -- these checkpoints exist. Rollouts only.
 
-    python scripts/eval_crush_tier.py --episodes 50 --crush 120
+    python scripts/sim/eval_crush_tier.py --episodes 50 --crush 120
 """
 
 from __future__ import annotations
@@ -73,7 +73,7 @@ def main():
     ap.add_argument("--episodes", type=int, default=50)
     ap.add_argument("--crush", type=float, nargs="+", default=[120.0])
     ap.add_argument("--eval-seed", type=int, default=1000)
-    ap.add_argument("--out", default="results/crush_tier_eval.json")
+    ap.add_argument("--out", default="results/simulation/crush_tier_eval.json")
     # One arm per process. Evaluating several checkpoints in a single process
     # stalls at the second: the MuJoCo EGL context is not released between
     # evaluate() calls, and the next renderer blocks on it at 0% CPU.

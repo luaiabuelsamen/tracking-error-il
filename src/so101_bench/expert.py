@@ -7,8 +7,8 @@ tracking error in encoder counts. No force sensor is involved, in simulation or
 on hardware.
 
 Measured success under the default domain randomisation is 70% pick and 55%
-place over 40 episodes; see ``docs/findings.md`` for the failure analysis behind
-each constant here.
+place over 40 episodes; ``docs/simulation.md`` records the measurements behind the
+constants here.
 """
 
 from __future__ import annotations

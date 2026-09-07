@@ -1,6 +1,6 @@
 """Does force-channel resolution decide task success, and where is the cliff?
 
-    python scripts/resolution_sweep.py --episodes 30 --json results.json
+    python scripts/sim/resolution_sweep.py --episodes 30 --json results.json
 
 The environment supplies a grip *window*: the block must be held firmly enough
 to survive transport and gently enough not to exceed ``--crush``. The
@@ -9,7 +9,7 @@ past the detected contact point, so coarsening the observation quantum directly
 coarsens the force it can command.
 
 PREREGISTERED PREDICTION. Grip force changes by about 2.4 N per encoder count
-(measured; see ``docs/findings.md``), and the expert's typical peak grip is
+(measured on the simulated plant; see ``docs/simulation.md``), and the expert's typical peak grip is
 ~91 N. The usable margin at a crush limit ``C`` is therefore ``C - 91`` newtons,
 and the quantum at which control fails should be
 

@@ -3,20 +3,20 @@
 # exists), relaunchable after interruption. Arm C (delta) is complete via
 # the Gate-1 seeds. Waits for the standalone arm-A seed-0 run if present.
 set -u
-cd /home/jetson3/projects/so101-bench
-PY=/home/jetson3/projects/clean_env/venv/bin/python
+cd "$(dirname "$(readlink -f "$0")")/../.."
+PY="${SO101_VENV_PYTHON:-python}"
 export MUJOCO_GL=egl
 
-until [ -f results/grid_A_base_s0.json ] || ! pgrep -f "grid_A_base_s0" >/dev/null; do
+until [ -f results/simulation/grid_A_base_s0.json ] || ! pgrep -f "grid_A_base_s0" >/dev/null; do
   sleep 120
 done
 
 run_cell() {
   local letter=$1 arm=$2 seed=$3
-  local json=results/grid_${letter}_${arm}_s${seed}.json
+  local json=results/simulation/grid_${letter}_${arm}_s${seed}.json
   [ -f "$json" ] && { echo "SKIP $letter/$arm s$seed (done)"; return; }
   echo "CELL $letter/$arm s$seed START $(date -u +%H:%M)"
-  $PY scripts/train_act.py --arm "$arm" --root data/demos_v3 \
+  $PY scripts/sim/train_act.py --arm "$arm" --root data/demos_v3 \
     --out "checkpoints/grid_${letter}_${arm}_s${seed}" --steps 12000 \
     --image-size 96 --seed "$seed" --eval-episodes 100 --eval-crush -1 \
     --json "$json" >/dev/null 2>&1

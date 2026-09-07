@@ -1,6 +1,6 @@
 """Does Present_Load survive a real grasp? Measured on recorded teleop.
 
-The static bench data (scripts/appendix_d_channels.py) shows Present_Load is an
+The static bench data (scripts/paper/appendix_d_channels.py) shows Present_Load is an
 affine function of delta -- the same signal, so it cannot be a better one. This
 asks the next question, which only real teleop can answer: does it stay the same
 signal at the forces a grasp actually produces?
@@ -9,7 +9,7 @@ It does not. The load register pins at its limit during contact, while delta
 goes on resolving. That is not a redundancy argument any more, it is a range
 argument, and it is the stronger half of the reviewer's-baseline answer.
 
-    python scripts/real_channel_saturation.py --root data/real/pickplace_real_v0
+    python scripts/real/real_channel_saturation.py --root data/real/pickplace_real_v0
 
 SETTLED 2026-09-03 (was a caveat here). 500 is the CONFIGURED torque limit, not
 the register's ceiling: Present_Load is full-scale 1000, and a read of addr 48

@@ -1,6 +1,6 @@
 """Roadmap C.1: command-to-state offset sweep over the downloaded corpus.
 
-    python scripts/offset_sweep.py
+    python scripts/corpus/offset_sweep.py
 
 For each scored corpus dataset, sweep the alignment k in
 delta_k[t] = a[t-k] - s[t], k in 0..5, and report:
@@ -27,8 +27,14 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 from corpus_delta_outcome import (  # noqa: E402
-    close_events, cohen_d, load_dataset, DELTA_WIN, SEAT_GAP, STAB_COUNT,
-    STAB_FRAMES, REOPEN_TAIL, TRANSPORT_COUNTS,
+    DELTA_WIN,
+    REOPEN_TAIL,
+    SEAT_GAP,
+    STAB_COUNT,
+    STAB_FRAMES,
+    TRANSPORT_COUNTS,
+    close_events,
+    load_dataset,
 )
 
 RAW = os.path.expanduser("~/projects/research/proprio-residual/data/raw")
@@ -68,7 +74,7 @@ def episode_row_k(s: np.ndarray, a: np.ndarray, k: int):
 
 def main():
     scored = [r["name"] for r in
-              json.load(open("results/corpus_delta_outcome.json"))
+              json.load(open("results/corpus/corpus_delta_outcome.json"))
               if r.get("cohen_d") is not None]
     out = []
     print(f"{'dataset':38s} {'k*':>3} {'free|δ| by k':>28}  d by k")
@@ -123,9 +129,9 @@ def main():
              for r in out if any(x is not None for x in r["cohen_d_by_k"])]
     print(f"d sensitivity to k: median span {np.median(spans):.2f}, "
           f"max {max(spans):.2f} across {len(spans)} datasets")
-    with open("results/offset_sweep.json", "w") as fh:
+    with open("results/corpus/offset_sweep.json", "w") as fh:
         json.dump(out, fh, indent=2, default=float)
-    print("wrote results/offset_sweep.json")
+    print("wrote results/corpus/offset_sweep.json")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 # Tracking error as an observation for behavior cloning on low-cost arms
 
-Code, hardware records, and manuscript for a study of one cheap observation:
+Code, evaluation records, and manuscript for a study of one cheap observation:
 the difference between the position a servo was told to reach and the
 position it actually reached. On a position-controlled hobby servo that
 difference is present in every recorded dataset, costs nothing at inference
@@ -39,9 +39,9 @@ Tracking error helps in simulation and in both completed hardware
 comparisons, and the size of the hardware effect depends strongly on the
 training seed. The simulation grid also shows that a position-history input
 without any command information performs about as well as tracking error, so
-the paper does not attribute the gain to contact sensing. The archived
-teleoperation study (16 public datasets, 546 episodes) rejects the idea that
-large tracking error at grasp time labels a successful grasp. Full protocol,
+the paper does not attribute the gain to contact sensing. A study of 16
+public teleoperation datasets (546 episodes) rejects the idea that large
+tracking error at grasp time labels a successful grasp. Full protocol,
 statistics, and limitations are in [`paper/main.tex`](paper/main.tex)
 ([PDF](paper/main.pdf)).
 
@@ -56,35 +56,39 @@ trimming.
 | [`media/teleoperation.mp4`](media/teleoperation.mp4) | One of the 50 training demonstrations. A human drives the leader arm. | human teleoperation |
 | [`media/simulation_delta.mp4`](media/simulation_delta.mp4) | An ACT policy with tracking-error observations in the MuJoCo benchmark. Rendered forces describe the simulator, not the robot. | autonomous policy, simulation |
 
-A standalone browsable gallery with more showcase clips lives in
-[`research/portfolio/`](research/portfolio/).
-
 ## Repository layout
 
 ```
-src/so101_bench/    MuJoCo pick-and-place scene, scripted experts, LeRobot-schema collection
-scripts/            the experimental record: sim grid, real-data training, hardware trial runner,
-                    paper evidence builder and number checks
-results/            frozen outcomes: grid JSON per design and seed, hardware trial logs,
-                    per-trial trajectories (.npz), corpus study, showcase records
-paper/              main.tex, refs.bib, generated tables and the evidence JSON they come from
-figures/paper/      only the figures included by main.tex
-docs/               findings.md (lab record) and the hardware pre-registrations and diagnostics
-media/              the clips and stills used above
-scripts/bench/      hardware entry points, servo calibration, bench utilities, lerobot patch snapshot
-tests/              simulation environment tests
-research/           everything that is not part of the submission: thesis note, working notes,
-                    reading notes, the pre-rewrite manuscript, the portfolio gallery
+src/so101_bench/   MuJoCo pick-and-place scene, scripted experts, LeRobot-schema collection
+scripts/
+  sim/             demonstration collection, ACT training, the observation-design grid, crush and guard screens
+  real/            real-data training, policy execution on the arm, paired trial runner, trajectory analysis
+  corpus/          the archived-teleoperation study
+  paper/           evidence builder, supplementary analyses, number checks
+  bench/           hardware setup: teleoperation and recording, servo calibration, lerobot patch snapshot
+results/
+  simulation/      one JSON per trained policy (design x seed), crush-tier and guard screens
+  hardware/        trial outcomes, per-trial trajectories, session manifests and incident records
+  corpus/          per-dataset effect sizes and the command-offset sweep
+  calibration/     static load measurements on one servo
+  showcase/        trajectory records of the showcase rollouts
+paper/             main.tex, refs.bib, generated tables and the evidence JSON they come from
+figures/paper/     the figures included by main.tex
+docs/              simulation benchmark notes, hardware pre-registrations and diagnostics
+media/             the clips and stills used above
+tests/             simulation environment tests
 ```
 
-`scripts/` and `results/` are paired and are kept complete rather than
-tidy: every JSON under `results/` was produced by a script that is still
-here, and the paper's tables are rebuilt from those files rather than typed.
+Every file under `results/` was produced by a script that is still in
+`scripts/`, and the paper's tables and figures are rebuilt from those files
+rather than typed. [`scripts/README.md`](scripts/README.md) and
+[`results/README.md`](results/README.md) index both trees and give the
+mapping between the design names in the paper and the identifiers in the code.
 
 ## Install
 
 ```bash
-pip install -e ".[data,video,dev]"
+pip install -e ".[data,video,analysis,dev]"
 make test
 ```
 
@@ -95,17 +99,26 @@ autoloading. Nothing here uses ROS.
 
 ## Reproduce the paper's numbers
 
-Everything the manuscript reports about the hardware trials and the
-simulation grid is recomputed from `results/` and checked against the text:
+Everything the manuscript reports about the hardware trials, the simulation
+grid, and the corpus study is recomputed from `results/` and checked against
+the text:
 
 ```bash
-python scripts/build_paper_evidence.py     # writes paper/generated/*.tex, evidence.json, figures
-latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
-python scripts/check_paper_numbers.py      # asserts every reported value matches results/
+make paper
 ```
 
-The checker fails if a hardware count, a simulation mean, a corpus count, or a
-required disclosure sentence in the manuscript drifts from the data.
+which runs, in order:
+
+```bash
+python scripts/paper/build_paper_evidence.py     # tables, evidence.json, the two main figures
+python scripts/paper/supplementary_analysis.py   # supplementary statistics, tables and figures
+latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
+python scripts/paper/check_paper_numbers.py      # every reported value must match results/
+```
+
+The checker fails if a hardware count, a simulation mean, a corpus count, a
+supplementary statistic, or a required disclosure sentence in the manuscript
+drifts from the data.
 
 ## Simulation benchmark
 
@@ -127,44 +140,38 @@ The learning grid in the paper trains one ACT policy per observation design
 and seed on 280 scripted demonstrations:
 
 ```bash
-python scripts/collect.py --episodes 280 --root data/demos_v3 --grip-mode force
-python scripts/train_act.py --arm delta --root data/demos_v3 --steps 12000 --image-size 96 \
-    --seed 0 --eval-episodes 100 --eval-crush -1 --json results/grid_C_delta_s0.json
+python scripts/sim/collect_guarded.py --episodes 280 --root data/demos_v3
+python scripts/sim/train_act.py --arm delta --root data/demos_v3 --steps 12000 --image-size 96 \
+    --seed 0 --eval-episodes 100 --eval-crush -1 --json results/simulation/grid_C_delta_s0.json
 ```
 
-Designs (`--arm`): `base`, `base_hist`, `delta`, `resid`, `excess`, `token`,
-`ghist`. `scripts/run_grid.sh` runs the whole grid; `scripts/modal_grid.py`
-runs it on Modal from `scripts/grid_spec.json`. The environment, grip modes,
-resolution knob, and the scripted-expert measurements are documented in
-[`docs/simulation_bench.md`](docs/simulation_bench.md).
+`scripts/sim/run_grid.sh` runs the whole grid; `scripts/sim/modal_grid.py`
+runs it on Modal from `scripts/sim/grid_spec.json`. The environment, grip
+modes, resolution knob, and the scripted-expert measurements are documented
+in [`docs/simulation.md`](docs/simulation.md).
 
 ## Hardware pipeline
 
 The real pipeline uses a LeRobot checkout with local patches; see
-[`scripts/bench/lerobot-patch/README.md`](scripts/bench/lerobot-patch/README.md) for what changed and how to restore
-it. The Jetson-side entry points are:
+[`scripts/bench/lerobot-patch/README.md`](scripts/bench/lerobot-patch/README.md)
+for what changed and how to restore it. Set `LEROBOT` to that checkout and
+`SO101_VENV_PYTHON` to the interpreter it is installed in. The entry points
+are:
 
 ```bash
-scripts/bench/arms.sh record pickplace_real_v0 50        # teleoperate and record demonstrations
-python scripts/train_act_real.py --arm delta --root data/real/pickplace_real_v0 \
+scripts/bench/arms.sh record pickplace_real_v0 50     # teleoperate and record demonstrations
+python scripts/real/train_act_real.py --arm delta --root data/real/pickplace_real_v0 \
     --steps 6000 --seed 1 --out checkpoints/real50_delta_v3_s1
-bash scripts/bench/run_hw_replication.sh 1                       # 20 paired base/delta trials for seed 1
-bash scripts/bench/record_demo.sh                                # one showcase rollout with video
+bash scripts/bench/run_hw_replication.sh 1            # 20 paired base/tracking-error trials, seed 1
+bash scripts/bench/record_demo.sh                     # one showcase rollout with video
 ```
 
 Trials are paired by physical reset with alternating order, the operator
 enters each outcome, and every trial writes a trajectory to
-`results/real_trial_traj/`. The pre-registered decision rules and the
-per-session diagnostics are in `docs/real_*.md`. Read the safety notes at the
-top of `scripts/run_policy_real.py` before letting a policy command the arm.
-
-## Research material
-
-`research/` holds the material behind the study that a reader of the paper
-does not need: the one-sentence thesis the project is organized around, the
-reading program and per-thread notes, roadmap and hand-off documents, the
-manuscript as it stood before the hardware rewrite with its figures, and the
-portfolio gallery. See [`research/README.md`](research/README.md).
+`results/hardware/real_trial_traj/`. The pre-registered decision rules and the
+per-session diagnostics are in [`docs/hardware/`](docs/hardware/). Read the
+safety notes at the top of `scripts/real/run_policy_real.py` before letting a
+policy command the arm.
 
 ## Citation
 

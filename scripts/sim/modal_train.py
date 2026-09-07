@@ -7,11 +7,11 @@ One-time dataset upload (550 MB), from the repo root:
 
 Then the full grid (3 arms x 5 seeds, parallel containers):
 
-    modal run scripts/modal_train.py
+    modal run scripts/sim/modal_train.py
 
 or a subset:
 
-    modal run scripts/modal_train.py --arms delta --seeds 0,1,2
+    modal run scripts/sim/modal_train.py --arms delta --seeds 0,1,2
 
 Each container trains one (arm, seed) with the exact same `train_act.py` used
 locally -- same data path, same normalisation, same closed-loop MuJoCo eval
@@ -60,7 +60,7 @@ def train_one(arm: str, seed: int, steps: int = STEPS, eval_eps: int = 100) -> s
     import sys
 
     cmd = [
-        sys.executable, "/repo/scripts/train_act.py",
+        sys.executable, "/repo/scripts/sim/train_act.py",
         "--arm", arm,
         "--seed", str(seed),
         "--steps", str(steps),

@@ -10,8 +10,8 @@ import torch
 if not torch.cuda.is_available():
     raise SystemExit("CUDA unavailable; refusing an accidental CPU training queue")
 
-paths = [Path("scripts/train_act_real.py"), Path("scripts/run_real_delta_replication.sh"),
-         Path("docs/real_delta_replication.md")]
+paths = [Path("scripts/real/train_act_real.py"), Path("scripts/real/run_real_delta_replication.sh"),
+         Path("docs/hardware/replication_plan_2026-09-05.md")]
 root = Path("data/real/pickplace_real_v0")
 paths += sorted((root / "data").rglob("*.parquet"))
 paths += [root / "frames_96.npy", root / "meta/info.json"]
@@ -25,7 +25,7 @@ for path in paths:
 packages = {}
 for package in ("torch", "torchvision", "lerobot", "numpy", "pyarrow"):
     packages[package] = importlib.metadata.version(package)
-out = Path("results/real_delta_replication/manifest.json")
+out = Path("results/hardware/real_delta_replication/manifest.json")
 with out.open("x") as f:
     json.dump(dict(created_utc=datetime.now(timezone.utc).isoformat(),
                    sha256=hashes, packages=packages, gpu=torch.cuda.get_device_name(0)), f, indent=2)

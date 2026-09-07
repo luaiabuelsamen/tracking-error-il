@@ -1,6 +1,6 @@
 """Train ACT on a real SO-101 teleop dataset.
 
-scripts/train_act.py is the sim grid's trainer and cannot read real recordings:
+scripts/sim/train_act.py is the sim grid's trainer and cannot read real recordings:
 it demands two cameras (`front` + `gripper_fpv`), assumes `observation.state` is
 6 positions, and pulls images straight out of `hf_dataset`, which holds nothing
 for a video-backed dataset. This is the real-data path. The arm definitions are
@@ -15,7 +15,7 @@ Real recordings differ in three ways that matter:
             against the position slice only; the load half is never fed to the
             policy, since feeding the servo's own force register would be a
             different experiment (and it saturates -- see
-            scripts/real_channel_saturation.py).
+            scripts/real/real_channel_saturation.py).
   images    stored as AV1 video, so every frame is decoded once up-front into a
             uint8 cache next to the dataset. 21k frames at 96px is ~600 MB and
             makes the loader trivial instead of ruinous.
@@ -27,10 +27,9 @@ Arms:
     excess   [s[t][:6], lag excess]           12-dim, free-motion compensated
     ghist    [s[t][:6], s[t-k][:6]]           12-dim, ARM G: position context
                                               only, no a[t-1]. The control that
-                                              separates "context" from "force"
-                                              (see research/notes/reading_notes thread A).
+                                              separates "context" from "force".
 
-    python scripts/train_act_real.py --arm base --root data/real/pickplace_real_v0 \
+    python scripts/real/train_act_real.py --arm base --root data/real/pickplace_real_v0 \
         --steps 3000 --out checkpoints/real_base
 """
 

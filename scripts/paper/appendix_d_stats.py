@@ -1,6 +1,6 @@
 """Appendix D statistics: per-pose fits with uncertainty, and the figure.
 
-Supersedes the descriptive pass in scripts/appendix_d_channels.py, which
+Supersedes the descriptive pass in scripts/paper/appendix_d_channels.py, which
 reported point estimates only. Nothing in the appendix should quote a number
 this script does not produce with an interval attached.
 
@@ -19,7 +19,7 @@ Two facts about the design that bound every claim below:
              191.0 twice), which are independent re-measurements and are used
              here as the repeatability estimate.
 
-    python scripts/appendix_d_stats.py [--fig research/paper_archive/figures/fig_appd.png]
+    python scripts/paper/appendix_d_stats.py [--fig figures/diagnostics/measurement_context.png]
 """
 
 import argparse
@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 
-NPZ = "/home/jetson3/projects/research/blindspot/data/channel_j2.npz"
+NPZ = str(Path(__file__).resolve().parents[2] / "results/calibration/staircase_channel_j2.npz")
 BOOT = 10000
 RNG = np.random.default_rng(0)
 
@@ -116,10 +116,10 @@ def main():
     lr = [r["r2"] for r in table["Present_Load"]]
     cr = [r["r2"] for r in table["Present_Current"]]
     same = sum(round(a, 3) == round(b, 3) for a, b in zip(dr, lr))
-    print(f"delta vs Present_Load, per-pose R^2 agreement:")
+    print("delta vs Present_Load, per-pose R^2 agreement:")
     print(f"   identical to 3 decimals in {same}/{n_pose} poses; "
           f"max |difference| {max(abs(a-b) for a, b in zip(dr, lr)):.3f}")
-    print(f"   (that difference is the honest statement, not 'identical')\n")
+    print("   (that difference is the honest statement, not 'identical')\n")
 
     # Paired sign test across poses: does delta beat current?
     # NOTE (2026-09-04): this previously printed 2**-n_pose * 2 -- the p-value

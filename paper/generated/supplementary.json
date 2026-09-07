@@ -1,0 +1,910 @@
+{
+  "hardware": {
+    "per_seed": [
+      {
+        "seed": 0,
+        "pairs": 20,
+        "complete": true,
+        "base": 5,
+        "delta": 9,
+        "base_wilson": [
+          0.11186170069997625,
+          0.46870087939258864
+        ],
+        "delta_wilson": [
+          0.25819785703764037,
+          0.6579146589808726
+        ],
+        "base_only": 2,
+        "delta_only": 6,
+        "both": 3,
+        "neither": 9,
+        "discordant": 8,
+        "mcnemar_p": 0.2890625,
+        "difference": 0.2
+      },
+      {
+        "seed": 1,
+        "pairs": 20,
+        "complete": true,
+        "base": 1,
+        "delta": 14,
+        "base_wilson": [
+          0.008881448702335523,
+          0.23613119546428119
+        ],
+        "delta_wilson": [
+          0.4810271799475211,
+          0.8545227559784271
+        ],
+        "base_only": 1,
+        "delta_only": 14,
+        "both": 0,
+        "neither": 5,
+        "discordant": 15,
+        "mcnemar_p": 0.0009765625,
+        "difference": 0.65
+      },
+      {
+        "seed": 2,
+        "pairs": 6,
+        "complete": false,
+        "base": 0,
+        "delta": 0,
+        "base_wilson": [
+          0.0,
+          0.39033429165637346
+        ],
+        "delta_wilson": [
+          0.0,
+          0.39033429165637346
+        ],
+        "base_only": 0,
+        "delta_only": 0,
+        "both": 0,
+        "neither": 6,
+        "discordant": 0,
+        "mcnemar_p": 1.0,
+        "difference": 0.0
+      }
+    ],
+    "stratified": {
+      "base_only": 3,
+      "delta_only": 20,
+      "exact_p": 0.00048828125,
+      "conditional_odds_ratio": {
+        "estimate": 6.666666666666667,
+        "ci": [
+          1.9771727878204595,
+          35.03407860931792
+        ]
+      },
+      "heterogeneity_fisher_p": 0.2687747035573122
+    },
+    "seed_level": {
+      "completed": {
+        "n": 2,
+        "mean": 0.42500000000000004,
+        "sd": 0.31819805153394637,
+        "t": 1.8888888888888893,
+        "ci": [
+          -2.433896065697221,
+          3.2838960656972214
+        ]
+      },
+      "all_three": {
+        "n": 3,
+        "mean": 0.2833333333333334,
+        "sd": 0.33291640592396965,
+        "t": 1.4740869481910042,
+        "ci": [
+          -0.5436768654725321,
+          1.1103435321391988
+        ]
+      }
+    },
+    "order": {
+      "seed0_base_first_in_pair=0": [
+        3,
+        10
+      ],
+      "seed0_base_first_in_pair=1": [
+        2,
+        10
+      ],
+      "seed0_base_second_half=0": [
+        2,
+        10
+      ],
+      "seed0_base_second_half=1": [
+        3,
+        10
+      ],
+      "seed0_delta_first_in_pair=0": [
+        5,
+        10
+      ],
+      "seed0_delta_first_in_pair=1": [
+        4,
+        10
+      ],
+      "seed0_delta_second_half=0": [
+        3,
+        10
+      ],
+      "seed0_delta_second_half=1": [
+        6,
+        10
+      ],
+      "seed1_base_first_in_pair=0": [
+        1,
+        10
+      ],
+      "seed1_base_first_in_pair=1": [
+        0,
+        10
+      ],
+      "seed1_base_second_half=0": [
+        0,
+        10
+      ],
+      "seed1_base_second_half=1": [
+        1,
+        10
+      ],
+      "seed1_delta_first_in_pair=0": [
+        7,
+        10
+      ],
+      "seed1_delta_first_in_pair=1": [
+        7,
+        10
+      ],
+      "seed1_delta_second_half=0": [
+        7,
+        10
+      ],
+      "seed1_delta_second_half=1": [
+        7,
+        10
+      ]
+    },
+    "limiter": {
+      "seed0_base": {
+        "n": 20,
+        "median_clipped_frame_fraction": 0.31625000000000003
+      },
+      "seed0_delta": {
+        "n": 20,
+        "median_clipped_frame_fraction": 0.09125
+      },
+      "seed1_base": {
+        "n": 20,
+        "median_clipped_frame_fraction": 0.34875
+      },
+      "seed1_delta": {
+        "n": 19,
+        "median_clipped_frame_fraction": 0.315
+      },
+      "seed2_base": {
+        "n": 6,
+        "median_clipped_frame_fraction": 0.46499999999999997
+      },
+      "seed2_delta": {
+        "n": 6,
+        "median_clipped_frame_fraction": 0.14500000000000002
+      }
+    },
+    "taxonomy": {
+      "seed0_base_success": {
+        "n": 5,
+        "never_closed": 0,
+        "closed_then_reopened": 1,
+        "closed_and_held": 4,
+        "median_first_close_step": 203.0,
+        "median_abs_delta_jaw_after_close": 0.1643628180027008,
+        "median_tail_path": 29.714290618896484
+      },
+      "seed0_base_failure": {
+        "n": 15,
+        "never_closed": 3,
+        "closed_then_reopened": 8,
+        "closed_and_held": 4,
+        "median_first_close_step": 110.0,
+        "median_abs_delta_jaw_after_close": 1.2695418000221252,
+        "median_tail_path": 124.68672180175781
+      },
+      "seed0_delta_success": {
+        "n": 9,
+        "never_closed": 0,
+        "closed_then_reopened": 0,
+        "closed_and_held": 9,
+        "median_first_close_step": 165.0,
+        "median_abs_delta_jaw_after_close": 0.11198166012763977,
+        "median_tail_path": 14.329673767089844
+      },
+      "seed0_delta_failure": {
+        "n": 11,
+        "never_closed": 1,
+        "closed_then_reopened": 10,
+        "closed_and_held": 0,
+        "median_first_close_step": 83.0,
+        "median_abs_delta_jaw_after_close": 1.0403971672058105,
+        "median_tail_path": 93.6130142211914
+      },
+      "seed1_base_success": {
+        "n": 1,
+        "never_closed": 0,
+        "closed_then_reopened": 1,
+        "closed_and_held": 0,
+        "median_first_close_step": 127.0,
+        "median_abs_delta_jaw_after_close": 1.119147539138794,
+        "median_tail_path": 108.17696380615234
+      },
+      "seed1_base_failure": {
+        "n": 19,
+        "never_closed": 2,
+        "closed_then_reopened": 13,
+        "closed_and_held": 4,
+        "median_first_close_step": 116.0,
+        "median_abs_delta_jaw_after_close": 0.8539304137229919,
+        "median_tail_path": 97.1220932006836
+      },
+      "seed1_delta_success": {
+        "n": 14,
+        "never_closed": 0,
+        "closed_then_reopened": 0,
+        "closed_and_held": 14,
+        "median_first_close_step": 205.5,
+        "median_abs_delta_jaw_after_close": 0.1560741513967514,
+        "median_tail_path": 8.219777822494507
+      },
+      "seed1_delta_failure": {
+        "n": 5,
+        "never_closed": 0,
+        "closed_then_reopened": 4,
+        "closed_and_held": 1,
+        "median_first_close_step": 115.0,
+        "median_abs_delta_jaw_after_close": 0.8756715059280396,
+        "median_tail_path": 128.2965087890625
+      },
+      "seed2_base_success": {
+        "n": 0,
+        "never_closed": 0,
+        "closed_then_reopened": 0,
+        "closed_and_held": 0,
+        "median_first_close_step": null,
+        "median_abs_delta_jaw_after_close": null,
+        "median_tail_path": null
+      },
+      "seed2_base_failure": {
+        "n": 6,
+        "never_closed": 5,
+        "closed_then_reopened": 1,
+        "closed_and_held": 0,
+        "median_first_close_step": 88.0,
+        "median_abs_delta_jaw_after_close": 1.1631642580032349,
+        "median_tail_path": 17.070549964904785
+      },
+      "seed2_delta_success": {
+        "n": 0,
+        "never_closed": 0,
+        "closed_then_reopened": 0,
+        "closed_and_held": 0,
+        "median_first_close_step": null,
+        "median_abs_delta_jaw_after_close": null,
+        "median_tail_path": null
+      },
+      "seed2_delta_failure": {
+        "n": 6,
+        "never_closed": 3,
+        "closed_then_reopened": 3,
+        "closed_and_held": 0,
+        "median_first_close_step": 241.0,
+        "median_abs_delta_jaw_after_close": 1.2238802909851074,
+        "median_tail_path": 66.27418518066406
+      }
+    }
+  },
+  "power": {
+    "pairs": 20,
+    "alpha": 0.05,
+    "grid": {
+      "p_disc=0.2,q=0.7": 0.02053010808232398,
+      "p_disc=0.2,q=0.8": 0.04795589814789901,
+      "p_disc=0.2,q=0.9": 0.10124179824034876,
+      "p_disc=0.2,q=1.0": 0.19579221453960152,
+      "p_disc=0.4,q=0.7": 0.10888811379835106,
+      "p_disc=0.4,q=0.8": 0.2644733165698033,
+      "p_disc=0.4,q=0.9": 0.5321053580353103,
+      "p_disc=0.4,q=1.0": 0.8744010272769637,
+      "p_disc=0.6,q=0.7": 0.1891698190504641,
+      "p_disc=0.6,q=0.8": 0.4572742407186932,
+      "p_disc=0.6,q=0.9": 0.8043034029810936,
+      "p_disc=0.6,q=1.0": 0.9983884753565451,
+      "p_disc=0.8,q=0.7": 0.28739582383536605,
+      "p_disc=0.8,q=0.8": 0.6375106136168386,
+      "p_disc=0.8,q=0.9": 0.9348397182615632,
+      "p_disc=0.8,q=1.0": 0.9999998197236031
+    },
+    "at_observed_structure": {
+      "seed0": 0.17370558536171585,
+      "seed1": 0.9670668989192512
+    }
+  },
+  "corpus": {
+    "datasets": 16,
+    "episodes": 546,
+    "above_threshold": 2,
+    "negative_point_estimates": 11,
+    "ci_excludes_zero_negative": 7,
+    "ci_excludes_zero_positive": 2,
+    "episode_weighted_mean_d": -2.8213302141580976,
+    "median_offset_shift": 0.10692304289984467
+  },
+  "measurement": {
+    "static": {
+      "measurements": 60,
+      "slope": -4.7012946656477625,
+      "intercept": 0.07233385441272588,
+      "r2": 0.9755250384887094
+    },
+    "demonstrations": {
+      "frames": 21476,
+      "episodes": 50,
+      "saturated_fraction": 0.1643229651704228,
+      "episodes_touching_saturation": 50,
+      "corr_load_delta_jaw": -0.9224280190764942,
+      "delta_jaw_sd_when_saturated": 2.675725221633911,
+      "delta_jaw_sd_when_not_saturated": 4.149441719055176
+    }
+  },
+  "simulation": {
+    "per_seed": {
+      "Position": [
+        0.0,
+        15.0,
+        4.0,
+        3.0,
+        9.0
+      ],
+      "Position history": [
+        15.0,
+        22.0,
+        24.0
+      ],
+      "Action history": [
+        4.0,
+        15.0,
+        15.0,
+        10.0,
+        25.0
+      ],
+      "Two-command history": [
+        11.0,
+        16.0,
+        17.0
+      ],
+      "Tracking error": [
+        11.0,
+        31.0,
+        25.0,
+        12.0,
+        30.0
+      ],
+      "Compensated residual": [
+        36.0,
+        32.0,
+        21.0,
+        17.0,
+        27.0
+      ],
+      "Auxiliary target": [
+        8.0,
+        12.0,
+        6.0,
+        1.0,
+        6.0
+      ],
+      "Seat token": [
+        29.0,
+        33.0,
+        18.0,
+        9.0,
+        20.0
+      ]
+    },
+    "means": {
+      "Position": 6.2,
+      "Position history": 20.333333333333332,
+      "Action history": 13.8,
+      "Two-command history": 14.666666666666666,
+      "Tracking error": 21.8,
+      "Compensated residual": 26.6,
+      "Auxiliary target": 6.6,
+      "Seat token": 21.8
+    },
+    "contrasts": [
+      {
+        "a": "Position",
+        "b": "Position history",
+        "n_a": 5,
+        "n_b": 3,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -14.133333333333333,
+        "t": -3.7264736550037134,
+        "df": 5.20523773291299,
+        "p": 0.012660990193486049,
+        "ci": [
+          -23.768240388646674,
+          -4.498426278019993
+        ],
+        "holm_p": 0.32918574503063724
+      },
+      {
+        "a": "Position",
+        "b": "Action history",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": -7.6000000000000005,
+        "t": -1.7490917740068144,
+        "df": 7.475690934486533,
+        "p": 0.12103182867439667,
+        "ci": [
+          -17.74349695420959,
+          2.5434969542095898
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Position",
+        "b": "Two-command history",
+        "n_a": 5,
+        "n_b": 3,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -8.466666666666665,
+        "t": -2.627367529044438,
+        "df": 5.999927325826004,
+        "p": 0.03919796088524904,
+        "ci": [
+          -16.351839793495177,
+          -0.581493539838152
+        ],
+        "holm_p": 0.6663653350492337
+      },
+      {
+        "a": "Position",
+        "b": "Tracking error",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": -15.600000000000001,
+        "t": -3.078414448059048,
+        "df": 6.605337858005685,
+        "p": 0.0192046909097353,
+        "ci": [
+          -27.7295145349091,
+          -3.4704854650909027
+        ],
+        "holm_p": 0.44011325549867836
+      },
+      {
+        "a": "Position",
+        "b": "Compensated residual",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": -20.400000000000002,
+        "t": -4.68008097095946,
+        "df": 7.458400307426583,
+        "p": 0.0019086611214627293,
+        "ci": [
+          -30.58011849287729,
+          -10.219881507122714
+        ],
+        "holm_p": 0.05344251140095642
+      },
+      {
+        "a": "Position",
+        "b": "Auxiliary target",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": -0.39999999999999947,
+        "t": -0.12586335510551033,
+        "df": 7.017121473726205,
+        "p": 0.9033703818826904,
+        "ci": [
+          -7.911177989126729,
+          7.11117798912673
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Position",
+        "b": "Seat token",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": -15.600000000000001,
+        "t": -3.127515065082039,
+        "df": 6.691917346473258,
+        "p": 0.017667504811189554,
+        "ci": [
+          -27.505686488612596,
+          -3.6943135113874064
+        ],
+        "holm_p": 0.4240201154685493
+      },
+      {
+        "a": "Position history",
+        "b": "Action history",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": 6.533333333333331,
+        "t": 1.4839119672625087,
+        "df": 5.9313667001928465,
+        "p": 0.1889218390052436,
+        "ci": [
+          -4.2701636892987995,
+          17.33683035596546
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Position history",
+        "b": "Two-command history",
+        "n_a": 3,
+        "n_b": 3,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": 5.666666666666666,
+        "t": 1.7172593257387583,
+        "df": 3.5244036697247703,
+        "p": 0.17064584578300035,
+        "ci": [
+          -4.003934983600152,
+          15.337268316933484
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Position history",
+        "b": "Tracking error",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -1.4666666666666686,
+        "t": -0.286622143677355,
+        "df": 5.935800057650405,
+        "p": 0.7841427754315734,
+        "ci": [
+          -14.020595724739497,
+          11.08726239140616
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Position history",
+        "b": "Compensated residual",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -6.266666666666669,
+        "t": -1.4189588539614189,
+        "df": 5.9375486549606435,
+        "p": 0.20620803079695876,
+        "ci": [
+          -17.10078027072816,
+          4.567446937394822
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Position history",
+        "b": "Auxiliary target",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": 13.733333333333333,
+        "t": 4.217275770016565,
+        "df": 3.7228766615588524,
+        "p": 0.015705528667315765,
+        "ci": [
+          4.420275924139384,
+          23.04639074252728
+        ],
+        "holm_p": 0.3926382166828941
+      },
+      {
+        "a": "Position history",
+        "b": "Seat token",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -1.4666666666666686,
+        "t": -0.2911036093718223,
+        "df": 5.956969528601715,
+        "p": 0.7808418071225032,
+        "ci": [
+          -13.816556301778421,
+          10.883222968445084
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Action history",
+        "b": "Two-command history",
+        "n_a": 5,
+        "n_b": 3,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -0.8666666666666654,
+        "t": -0.22095873980765135,
+        "df": 5.693145500511684,
+        "p": 0.8328344450096425,
+        "ci": [
+          -10.590990989825636,
+          8.857657656492306
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Action history",
+        "b": "Tracking error",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": -8.0,
+        "t": -1.4443162893482377,
+        "df": 7.625398378778623,
+        "p": 0.1884520884818923,
+        "ci": [
+          -20.882897282464533,
+          4.882897282464532
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Action history",
+        "b": "Compensated residual",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": -12.8,
+        "t": -2.6127890589687235,
+        "df": 7.999800004999875,
+        "p": 0.03099635951445417,
+        "ci": [
+          -24.097116112337673,
+          -1.50288388766233
+        ],
+        "holm_p": 0.557934471260175
+      },
+      {
+        "a": "Action history",
+        "b": "Auxiliary target",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": 7.200000000000001,
+        "t": 1.8528660455579236,
+        "df": 5.978661310580455,
+        "p": 0.11351387064336373,
+        "ci": [
+          -2.3166182958768644,
+          16.716618295876867
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Action history",
+        "b": "Seat token",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": -8.0,
+        "t": -1.4635234665292045,
+        "df": 7.689927287949024,
+        "p": 0.1829644363844208,
+        "ci": [
+          -20.69423963551515,
+          4.6942396355151494
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Two-command history",
+        "b": "Tracking error",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -7.133333333333335,
+        "t": -1.5144963812406238,
+        "df": 5.250771711968293,
+        "p": 0.1875782469436551,
+        "ci": [
+          -19.068995141705184,
+          4.8023284750385145
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Two-command history",
+        "b": "Compensated residual",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -11.933333333333335,
+        "t": -3.0306352292059078,
+        "df": 5.683867414181649,
+        "p": 0.024697699337652323,
+        "ci": [
+          -21.69961906025503,
+          -2.1670476064116393
+        ],
+        "holm_p": 0.49046990865443013
+      },
+      {
+        "a": "Two-command history",
+        "b": "Auxiliary target",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": 8.066666666666666,
+        "t": 3.1388890543135424,
+        "df": 5.175143003953079,
+        "p": 0.024523495432721507,
+        "ci": [
+          1.5271819241939388,
+          14.606151409139393
+        ],
+        "holm_p": 0.49046990865443013
+      },
+      {
+        "a": "Two-command history",
+        "b": "Seat token",
+        "n_a": 3,
+        "n_b": 5,
+        "resolution_rule": 15.0,
+        "resolved": false,
+        "diff": -7.133333333333335,
+        "t": -1.542565210976622,
+        "df": 5.293188924245389,
+        "p": 0.1803745772992699,
+        "ci": [
+          -18.82521905894931,
+          4.558552392282637
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Tracking error",
+        "b": "Compensated residual",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": -4.800000000000001,
+        "t": -0.8648999641877367,
+        "df": 7.640599301856186,
+        "p": 0.41342266209058387,
+        "ci": [
+          -17.703348596964275,
+          8.103348596964272
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Tracking error",
+        "b": "Auxiliary target",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": 15.200000000000001,
+        "t": 3.2480412080972307,
+        "df": 5.3116897931518725,
+        "p": 0.020845457551706522,
+        "ci": [
+          3.379585925164932,
+          27.02041407483507
+        ],
+        "holm_p": 0.44011325549867836
+      },
+      {
+        "a": "Tracking error",
+        "b": "Seat token",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": 0.0,
+        "t": 0.0,
+        "df": 7.996196313038684,
+        "p": 1.0,
+        "ci": [
+          -13.967243541745301,
+          13.967243541745301
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Compensated residual",
+        "b": "Auxiliary target",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": 20.0,
+        "t": 5.126520158510161,
+        "df": 5.961515596811924,
+        "p": 0.002206215075700855,
+        "ci": [
+          10.438949361515327,
+          29.561050638484673
+        ],
+        "holm_p": 0.05956780704392308
+      },
+      {
+        "a": "Compensated residual",
+        "b": "Seat token",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": false,
+        "diff": 4.800000000000001,
+        "t": 0.8763560920082659,
+        "df": 7.704041540191985,
+        "p": 0.4073304273000502,
+        "ci": [
+          -7.9154633123276295,
+          17.515463312327633
+        ],
+        "holm_p": 1.0
+      },
+      {
+        "a": "Auxiliary target",
+        "b": "Seat token",
+        "n_a": 5,
+        "n_b": 5,
+        "resolution_rule": 11.618950038622252,
+        "resolved": true,
+        "diff": -15.200000000000001,
+        "t": -3.309042615799222,
+        "df": 5.366736863422508,
+        "p": 0.019135358934725146,
+        "ci": [
+          -26.769282681446114,
+          -3.630717318553886
+        ],
+        "holm_p": 0.44011325549867836
+      }
+    ]
+  },
+  "thresholds": {
+    "closed_below": 5.0,
+    "reopened_above": 8.0
+  }
+}

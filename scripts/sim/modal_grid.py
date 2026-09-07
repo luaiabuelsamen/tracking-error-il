@@ -1,11 +1,11 @@
 """Task 2 grid cells on Modal H100 -- spec-driven, no value overrides.
 
-    modal run scripts/modal_grid.py --phase dry      # one real cell, check the bill
-    modal run scripts/modal_grid.py --phase main     # D/E/F remaining seeds
-    modal run scripts/modal_grid.py --phase seeds45  # +2 seeds on all six arms
+    modal run scripts/sim/modal_grid.py --phase dry      # one real cell, check the bill
+    modal run scripts/sim/modal_grid.py --phase main     # D/E/F remaining seeds
+    modal run scripts/sim/modal_grid.py --phase seeds45  # +2 seeds on all six arms
 
 Rails (docs: the phase-3 Modal rails):
-- every training value comes from scripts/grid_spec.json, committed; the
+- every training value comes from scripts/sim/grid_spec.json, committed; the
   only CLI argument is the phase NAME;
 - each cell checks the volume for its result json and exits immediately if
   present (idempotent, resumable, crash never reruns paid work);
@@ -23,12 +23,13 @@ import pathlib
 
 import modal
 
+
 def _load_spec():
     # Modal mounts this module at /root/ inside the container while the
     # repo (and the committed spec) is mounted at /repo/scripts/ -- the
     # first dry run crashed at import on exactly this. Check both.
     for p in (pathlib.Path(__file__).parent / "grid_spec.json",
-              pathlib.Path("/repo/scripts/grid_spec.json")):
+              pathlib.Path("/repo/scripts/sim/grid_spec.json")):
         if p.exists():
             return json.loads(p.read_text())
     raise FileNotFoundError("grid_spec.json not beside module or in /repo/scripts")
@@ -68,7 +69,7 @@ def train_cell(arm: str, seed: int) -> str:
     os.makedirs("/vol/outputs/grid", exist_ok=True)
 
     cmd = [
-        sys.executable, "/repo/scripts/train_act.py",
+        sys.executable, "/repo/scripts/sim/train_act.py",
         "--arm", arm,
         "--seed", str(seed),
         "--steps", str(T["steps"]),

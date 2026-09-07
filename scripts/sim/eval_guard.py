@@ -1,6 +1,6 @@
 """Guard-wrapper A/B: the same trained policy, raw vs wrapped, paired seeds.
 
-    python scripts/eval_guard.py --arms base delta delta_q16
+    python scripts/sim/eval_guard.py --arms base delta delta_q16
 
 THE CLAIM UNDER TEST. The demonstrations carry the teacher's force profile
 (peak grip median 77 N), so a cloned policy should crush at tight thresholds
@@ -35,7 +35,6 @@ import torch
 sys.path.insert(0, str(Path(__file__).parent))
 
 from so101_bench import DemoEnv, ExpertConfig  # noqa: E402
-from so101_bench.guard import JawGuard  # noqa: E402
 from so101_bench.scene import JAW_SHUT, RAD_PER_TICK  # noqa: E402
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -158,7 +157,7 @@ def rollout(env, policy, st, arm: str, guarded: bool):
         # ~10x past training range whenever the guard held the jaw (policy
         # commands deep, jaw held at seat-4), and the delta-gated policy
         # collapsed to 0/30 success while the force cap itself worked
-        # (results/guard_h100_v3_rawfeedback.json).
+        # (earlier guard variant, not part of the reported comparison).
         a_prev = torch.tensor(cmd, dtype=torch.float32)
         scene.hold(cmd * RAD_PER_TICK, frames=2)
         peak_rise = max(peak_rise, scene.block_pos()[2] - z0)
@@ -184,7 +183,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--arms", nargs="*", default=["base", "delta", "delta_q16"])
     ap.add_argument("--ckpt", default="checkpoints/act")
-    ap.add_argument("--json", default="results/guard_ab.json")
+    ap.add_argument("--json", default="results/simulation/guard_ab.json")
     ap.add_argument("--image-size", type=int, default=96)
     ap.add_argument("--seed", type=int, default=2000)
     args = ap.parse_args()
