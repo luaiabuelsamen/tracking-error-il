@@ -72,3 +72,21 @@ has a trajectory and shutdown-failure record, but its outcome was never
 entered (`results/hardware/real_delta_v3_s2_trials_pending.json`); the remaining planned
 trials were not run. Neither a diagnosis of the recurring overload nor random
 missingness has been established.
+
+## Position-history control, seed 1 — 2026-09-07 (interrupted)
+
+Two sessions (13:18 and 14:10 local) against the pre-registration of the same
+day, 18 rollouts in total, before the operator stopped. Trials 7 and 8 of the
+first session ended with a gripper overload error at torque disable; in
+trials 4, 8 and 13 the applied jaw command reached about 6 units while the
+measured jaw stayed at the 12.4-unit handoff value for 40 steps, so the servo
+was not following its command. Trial 9's rollout completed normally but its
+trajectory file was not saved because the analyst moved the trajectory
+directory during the session (recorded in the incident file; not a servo
+fault). A frame captured from the overhead camera at 13:57 is displaced about
+30 px vertically and panned right relative to the frame of the 11:35 showcase
+rollout that placed the adapter with the same tracking-error checkpoint. All
+outcomes are retained; the comparison is reported as interrupted and no
+confirmatory test is assigned. Before the next attempt: cool and power-cycle
+the gripper servo or replace it, and re-aim the camera against
+`figures/paper/fig_real_teaser.png`.

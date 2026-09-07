@@ -257,8 +257,8 @@ position-controlled hardware. Report actuator torque and current limits, since
 they set where the shipped telemetry saturates.
 
 Three limits bound the claim. The two hardware seeds gave a 20-point and a
-65-point improvement and two seeds cannot bound that spread. The matched position-history control is registered but not yet evaluated on
-hardware (Appendix~\ref{app:history}), so the hardware result establishes the
+65-point improvement and two seeds cannot bound that spread. The matched position-history control is registered, and its first hardware
+session was interrupted by a gripper servo fault (Appendix~\ref{app:history}), so the hardware result establishes the
 value of the channel, not its superiority over history.
 The hardware task never requires staying under a force threshold, so nothing
 here shows learned force regulation. More seeds, the hardware history control, and a force-limited task are the
@@ -629,7 +629,7 @@ pairs under the protocol of Appendix~\ref{app:protocol}.
 \caption{Pre-registered position-history comparisons on hardware. Generated
 from the trial records; empty until the trials exist.}
 \label{tab:history}
-\input{generated/history_control.tex}
+\resizebox{\linewidth}{!}{\input{generated/history_control.tex}}
 \end{table}
 
 \end{document}

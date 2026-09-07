@@ -1,0 +1,10 @@
+{
+  "session": "2026-09-07T14:10:08",
+  "trial": 3,
+  "pair": 1,
+  "arm": "delta_s1",
+  "returncode": -6,
+  "rollout_complete": true,
+  "trajectory": "results/hardware/real_trial_traj/2026-09-07T141008_03_delta_s1.npz",
+  "reason": "rollout subprocess failed"
+}

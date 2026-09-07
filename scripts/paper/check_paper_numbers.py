@@ -21,7 +21,7 @@ def main():
     for phrase in ('generated/hardware_table.tex', 'fig_observation_evidence.pdf',
                    'third evaluation was interrupted', 'its outcome was not entered', 'not variation over training seeds',
                    'fig_real_quantitative.pdf', 'not included in any count',
-                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'power 0.17', 'registered but not yet evaluated', 'leaves the grasp to the policy'):
+                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'power 0.17', 'interrupted by a gripper servo fault', 'leaves the grasp to the policy'):
         # Case-insensitive: prose checks concern disclosures, not typography.
         assert phrase.lower() in flat.lower(), f'missing disclosure/input: {phrase}'
     expected = [(20, 5, 9, 6, 2), (20, 1, 14, 14, 1), (6, 0, 0, 0, 0)]
@@ -109,9 +109,9 @@ def main():
     for fig in ('fig_sensitivity.pdf', 'fig_timing.pdf', 'fig_training.pdf'):
         assert fig in tex and (ROOT / 'figures/paper' / fig).exists(), fig
     history = supp['history_control']
-    pending = [k for k, v in history.items() if v['status'] != 'evaluated']
+    pending = {k: v['status'] for k, v in history.items() if v['status'] != 'evaluated'}
     if pending:
-        print(f'NOTE: position-history control not evaluated for {pending}; the manuscript says so via generated/history_control_status.tex')
+        print(f'NOTE: position-history control incomplete: {pending}; the manuscript says so via generated/history_control_status.tex')
     assert actual['hardware'][1]['shutdown_errors'] == 2
     assert actual['hardware'][1]['missing_trajectories'] == 1
     assert actual['hardware'][2]['shutdown_errors'] == 3

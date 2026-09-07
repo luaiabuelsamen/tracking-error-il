@@ -1,0 +1,10 @@
+{
+  "session": "2026-09-07T13:18:02",
+  "trial": 9,
+  "pair": 4,
+  "arm": "ghist_s1",
+  "returncode": 1,
+  "rollout_complete": true,
+  "trajectory": "results/real_trial_traj/2026-09-07T131802_09_ghist_s1.npz",
+  "reason": "rollout ran its full 400 steps and torque was released normally; the trajectory save failed because results/real_trial_traj was moved to results/hardware/real_trial_traj by the analyst mid-session. Not a servo fault. Operator observed outcome: fail (jaw never closed)."
+}

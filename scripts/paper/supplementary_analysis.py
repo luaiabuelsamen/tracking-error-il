@@ -568,23 +568,35 @@ def history_control():
             paired = [v for v in pairs.values() if set(v) == set(arms)]
             c = Counter((v[arms[0]], v[arms[1]]) for v in paired)
             b, d = c[1, 0], c[0, 1]
-            rec = dict(seed=seed, arms=arms, pairs=len(paired), first=sum(v[arms[0]] for v in paired),
+            faults = sum(bool(r.get("shutdown_error")) for r in rows)
+            complete = len(paired) >= PLAN_PAIRS
+            rec = dict(seed=seed, arms=arms, pairs=len(paired), rollouts=len(rows), first=sum(v[arms[0]] for v in paired),
                        history=sum(v[arms[1]] for v in paired), first_only=b, history_only=d,
-                       mcnemar_p=exact_mcnemar(b, d), status="evaluated")
+                       mcnemar_p=exact_mcnemar(b, d), shutdown_errors=faults,
+                       status="evaluated" if complete else "interrupted")
             label = "Tracking error" if arms[0].startswith("delta") else "Position only"
-            rows_tex.append(f"{seed} & {label} vs.\\ position history & {rec['first']}/{rec['pairs']} & {rec['history']}/{rec['pairs']} & "
-                            f"{d} / {b} & {rec['mcnemar_p']:.4f} \\\\")
+            rows_tex.append(f"{seed} & {label} vs.\\ position history & {'Complete' if complete else 'Interrupted'} & "
+                            f"{rec['first']}/{rec['pairs']} & {rec['history']}/{rec['pairs']} & {d} / {b} & "
+                            f"{rec['mcnemar_p']:.4f} & {faults} \\\\")
         else:
             rec = dict(seed=seed, arms=arms, status="trained, not evaluated" if ckpt.exists() else "checkpoint not trained")
         out[f"seed{seed}"] = rec
-    evaluated = [r for r in out.values() if r["status"] == "evaluated"]
+    evaluated = [r for r in out.values() if r["status"] in ("evaluated", "interrupted")]
     if evaluated:
         (GEN / "history_control.tex").write_text(
-            "\\begin{tabular}{llrrrr}\n\\toprule\nSeed & Comparison & First & Position history & history-only / first-only & $p$ \\\\\n\\midrule\n"
+            "\\begin{tabular}{lllrrrrr}\n\\toprule\nSeed & Comparison & Session & First & Position history & history-only / first-only & $p$ & faults \\\\\n\\midrule\n"
             + "\n".join(rows_tex) + "\n\\bottomrule\n\\end{tabular}\n")
-        status.append("Table~\\ref{tab:history} reports the pre-registered position-history comparisons that have been run.")
+        for r in evaluated:
+            if r["status"] == "interrupted":
+                status.append(f"The seed-{r['seed']} comparison was run on 2026-09-07 and interrupted after {r['pairs']} complete pairs "
+                              f"({r['rollouts']} rollouts, {r['shutdown_errors']} ending with a gripper overload error): the gripper servo stopped "
+                              "following jaw commands in several rollouts and the overhead camera was found displaced relative to the "
+                              "earlier sessions, so its outcomes are retained (Table~\\ref{tab:history}) but the comparison is not complete "
+                              "and no confirmatory test is assigned to it.")
+            else:
+                status.append(f"Table~\\ref{tab:history} reports the completed seed-{r['seed']} comparison.")
         if len(evaluated) < 2:
-            status.append("The remaining registered comparison had not been run when this version was built.")
+            status.append("The other registered comparison has not been run.")
     else:
         (GEN / "history_control.tex").write_text("\\emph{No position-history trials had been run when this version was built.}\n")
         trained = [r["seed"] for r in out.values() if r["status"] == "trained, not evaluated"]

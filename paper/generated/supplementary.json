@@ -1150,13 +1150,15 @@
       "base_s2": 0.1513,
       "delta_s1": 0.1451,
       "delta_s2": 0.1344,
-      "ghist_s1": 0.2205
+      "ghist_s0": 0.1534,
+      "ghist_s1": 0.1654
     },
     "logged": [
       "base_s1",
       "base_s2",
       "delta_s1",
       "delta_s2",
+      "ghist_s0",
       "ghist_s1"
     ]
   },
@@ -1342,7 +1344,15 @@
         "delta_s1",
         "ghist_s1"
       ],
-      "status": "checkpoint not trained"
+      "pairs": 9,
+      "rollouts": 19,
+      "first": 1,
+      "history": 0,
+      "first_only": 1,
+      "history_only": 0,
+      "mcnemar_p": 1.0,
+      "shutdown_errors": 5,
+      "status": "interrupted"
     },
     "seed0": {
       "seed": 0,
@@ -1350,7 +1360,7 @@
         "base_v2",
         "ghist_s0"
       ],
-      "status": "checkpoint not trained"
+      "status": "trained, not evaluated"
     }
   },
   "thresholds": {
