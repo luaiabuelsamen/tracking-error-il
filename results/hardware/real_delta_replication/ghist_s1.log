@@ -4,7 +4,7 @@ arm=ghist steps=6000 device=cuda
   18549 frames, state_dim=12
 WARNING:xformers:A matching Triton is not available, some optimizations will not be enabled
 Traceback (most recent call last):
-  File "/home/jetson3/projects/clean_env/xformers/xformers/__init__.py", line 57, in _is_triton_available
+  File "<venv>/xformers/xformers/__init__.py", line 57, in _is_triton_available
     import triton  # noqa
 ModuleNotFoundError: No module named 'triton'
   step   100/6000  loss 6.8092  0.28s/step
@@ -44,3 +44,28 @@ ModuleNotFoundError: No module named 'triton'
   step  3500/6000  loss 0.2172  0.35s/step
   step  3600/6000  loss 0.2082  0.35s/step
   step  3700/6000  loss 0.2036  0.35s/step
+  step  3800/6000  loss 0.1988  0.34s/step
+  step  3900/6000  loss 0.2022  0.34s/step
+  step  4000/6000  loss 0.1964  0.34s/step
+  step  4100/6000  loss 0.1976  0.33s/step
+  step  4200/6000  loss 0.1933  0.33s/step
+  step  4300/6000  loss 0.1866  0.33s/step
+  step  4400/6000  loss 0.1873  0.33s/step
+  step  4500/6000  loss 0.1837  0.33s/step
+  step  4600/6000  loss 0.1846  0.32s/step
+  step  4700/6000  loss 0.1784  0.32s/step
+  step  4800/6000  loss 0.1824  0.32s/step
+  step  4900/6000  loss 0.1802  0.32s/step
+  step  5000/6000  loss 0.1783  0.32s/step
+  step  5100/6000  loss 0.1775  0.32s/step
+  step  5200/6000  loss 0.1745  0.31s/step
+  step  5300/6000  loss 0.1765  0.31s/step
+  step  5400/6000  loss 0.1719  0.31s/step
+  step  5500/6000  loss 0.1747  0.31s/step
+  step  5600/6000  loss 0.1785  0.31s/step
+  step  5700/6000  loss 0.1707  0.31s/step
+  step  5800/6000  loss 0.1702  0.31s/step
+  step  5900/6000  loss 0.1656  0.31s/step
+  step  6000/6000  loss 0.1654  0.30s/step
+
+loss 6.8092 -> 0.1654 over 6000 steps (30.4 min); saved checkpoints/real50_ghist_v3_s1

@@ -1,0 +1,71 @@
+arm=ghist steps=6000 device=cuda
+  trim_static: 21476 -> 18549 frames (14% of frames were dead prefix)
+  using cached frames frames_96.npy (21476, 96, 96, 3)
+  18549 frames, state_dim=12
+WARNING:xformers:A matching Triton is not available, some optimizations will not be enabled
+Traceback (most recent call last):
+  File "<venv>/xformers/xformers/__init__.py", line 57, in _is_triton_available
+    import triton  # noqa
+ModuleNotFoundError: No module named 'triton'
+  step   100/6000  loss 5.9256  0.25s/step
+  step   200/6000  loss 2.3924  0.24s/step
+  step   300/6000  loss 1.8639  0.24s/step
+  step   400/6000  loss 1.5056  0.24s/step
+  step   500/6000  loss 1.2629  0.24s/step
+  step   600/6000  loss 1.0335  0.24s/step
+  step   700/6000  loss 0.8815  0.24s/step
+  step   800/6000  loss 0.7164  0.24s/step
+  step   900/6000  loss 0.6153  0.24s/step
+  step  1000/6000  loss 0.5375  0.24s/step
+  step  1100/6000  loss 0.4862  0.24s/step
+  step  1200/6000  loss 0.4784  0.24s/step
+  step  1300/6000  loss 0.4257  0.24s/step
+  step  1400/6000  loss 0.3699  0.24s/step
+  step  1500/6000  loss 0.3454  0.24s/step
+  step  1600/6000  loss 0.3345  0.24s/step
+  step  1700/6000  loss 0.3125  0.24s/step
+  step  1800/6000  loss 0.3019  0.24s/step
+  step  1900/6000  loss 0.2933  0.24s/step
+  step  2000/6000  loss 0.2762  0.24s/step
+  step  2100/6000  loss 0.2670  0.24s/step
+  step  2200/6000  loss 0.2629  0.24s/step
+  step  2300/6000  loss 0.2552  0.24s/step
+  step  2400/6000  loss 0.2513  0.24s/step
+  step  2500/6000  loss 0.2377  0.24s/step
+  step  2600/6000  loss 0.2314  0.24s/step
+  step  2700/6000  loss 0.2274  0.24s/step
+  step  2800/6000  loss 0.2251  0.24s/step
+  step  2900/6000  loss 0.2238  0.24s/step
+  step  3000/6000  loss 0.2167  0.24s/step
+  step  3100/6000  loss 0.2104  0.24s/step
+  step  3200/6000  loss 0.2028  0.24s/step
+  step  3300/6000  loss 0.1994  0.24s/step
+  step  3400/6000  loss 0.1980  0.24s/step
+  step  3500/6000  loss 0.1998  0.24s/step
+  step  3600/6000  loss 0.1954  0.24s/step
+  step  3700/6000  loss 0.1924  0.24s/step
+  step  3800/6000  loss 0.1842  0.24s/step
+  step  3900/6000  loss 0.1772  0.24s/step
+  step  4000/6000  loss 0.1736  0.24s/step
+  step  4100/6000  loss 0.1784  0.24s/step
+  step  4200/6000  loss 0.1735  0.24s/step
+  step  4300/6000  loss 0.1759  0.24s/step
+  step  4400/6000  loss 0.1789  0.24s/step
+  step  4500/6000  loss 0.1678  0.24s/step
+  step  4600/6000  loss 0.1684  0.24s/step
+  step  4700/6000  loss 0.1700  0.24s/step
+  step  4800/6000  loss 0.1628  0.24s/step
+  step  4900/6000  loss 0.1602  0.24s/step
+  step  5000/6000  loss 0.1634  0.24s/step
+  step  5100/6000  loss 0.1619  0.24s/step
+  step  5200/6000  loss 0.1662  0.24s/step
+  step  5300/6000  loss 0.1565  0.24s/step
+  step  5400/6000  loss 0.1584  0.24s/step
+  step  5500/6000  loss 0.1594  0.24s/step
+  step  5600/6000  loss 0.1567  0.24s/step
+  step  5700/6000  loss 0.1563  0.24s/step
+  step  5800/6000  loss 0.1551  0.24s/step
+  step  5900/6000  loss 0.1543  0.24s/step
+  step  6000/6000  loss 0.1534  0.24s/step
+
+loss 5.9256 -> 0.1534 over 6000 steps (23.9 min); saved checkpoints/real50_ghist_v3_s0
