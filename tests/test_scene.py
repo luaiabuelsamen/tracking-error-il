@@ -10,7 +10,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from so101_bench.scene import (
+from tracking_error_il.scene import (
     JAW_OPEN,
     JAW_SHUT,
     RAD_PER_TICK,
@@ -145,7 +145,7 @@ def test_delta_grows_when_the_jaw_is_blocked() -> None:
     from ``zeros(5)`` leaves a 47 mm residual at grasp height -- the arm simply
     does not get there -- and the jaw would then close on empty air.
     """
-    from so101_bench.expert import HOME
+    from tracking_error_il.expert import HOME
 
     s = PickScene(seed=0, randomise=False)
     block = s.reset(block_xy=(0.10, -0.25), block_yaw=0.0)

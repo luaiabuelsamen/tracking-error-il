@@ -1,4 +1,4 @@
-# The simulation benchmark (`so101_bench`)
+# The simulation benchmark (`tracking_error_il`)
 
 A MuJoCo pick-and-place environment for the low-cost SO-100 / SO-101 arm,
 with domain randomisation, scripted experts, and LeRobot-schema data
@@ -8,7 +8,7 @@ measurements below concern the scripted experts and the environment; the
 learned-policy results are in the paper.
 
 ```python
-from so101_bench import DemoEnv
+from tracking_error_il import DemoEnv
 
 env = DemoEnv(seed=0)
 result, frames = env.rollout()          # one scripted episode
@@ -79,7 +79,7 @@ pick rate from 8/20 to 15/20.
 ## Layout
 
 ```
-src/so101_bench/
+src/tracking_error_il/
   scene.py       PickScene: MuJoCo scene, IK on the true tool frame, DR, force channel
   expert.py      ScriptedExpert: waypoint policy, clamp/force/oracle grasps
   demo_env.py    DemoEnv: rollout, evaluation, LeRobotDataset collection

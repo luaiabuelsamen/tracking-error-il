@@ -10,7 +10,7 @@ import logging
 import os
 import sys
 
-from so101_bench import DemoEnv, ExpertConfig
+from tracking_error_il import DemoEnv, ExpertConfig
 
 
 def _exit_success() -> None:

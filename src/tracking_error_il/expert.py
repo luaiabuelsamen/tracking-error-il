@@ -2,7 +2,7 @@
 
 The expert is privileged about the *object* -- it reads the block pose from the
 simulator, as a demonstrator is allowed to -- but everything it does with the
-*gripper* uses only :meth:`~so101_bench.scene.PickScene.delta`, the servo
+*gripper* uses only :meth:`~tracking_error_il.scene.PickScene.delta`, the servo
 tracking error in encoder counts. No force sensor is involved, in simulation or
 on hardware.
 

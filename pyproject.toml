@@ -30,7 +30,7 @@ dev = ["pytest>=7.4", "ruff>=0.4"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-so101_bench = ["assets/*.xml", "assets/assets/*"]
+tracking_error_il = ["assets/*.xml", "assets/assets/*"]
 
 [tool.ruff]
 line-length = 100

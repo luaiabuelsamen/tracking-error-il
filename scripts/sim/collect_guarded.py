@@ -23,8 +23,8 @@ import sys
 
 import numpy as np
 
-from so101_bench import DemoEnv, ExpertConfig
-from so101_bench.guard import JawGuard
+from tracking_error_il import DemoEnv, ExpertConfig
+from tracking_error_il.guard import JawGuard
 
 
 def main() -> None:

@@ -1,0 +1,349 @@
+{
+  "stride": 4,
+  "permutation_seed": 0,
+  "device": "cuda",
+  "checkpoints": {
+    "base_v2": {
+      "arm": "base",
+      "checkpoint": "checkpoints/real50_base_v2",
+      "seed": 0,
+      "hardware": {
+        "placed": 5,
+        "pairs": 20
+      },
+      "frames": 4638,
+      "saturated_frames": 881,
+      "teacher_forcing_l1": {
+        "overall": {
+          "all": 3.7466773986816406,
+          "jaw": 2.312854290008545
+        },
+        "saturated": {
+          "all": 3.8833577632904053,
+          "jaw": 1.3634802103042603
+        },
+        "free": {
+          "all": 3.713003158569336,
+          "jaw": 2.54675555229187
+        }
+      }
+    },
+    "delta_v3": {
+      "arm": "delta",
+      "checkpoint": "checkpoints/real50_delta_v3_s0",
+      "seed": 0,
+      "hardware": {
+        "placed": 9,
+        "pairs": 20
+      },
+      "frames": 4638,
+      "saturated_frames": 881,
+      "teacher_forcing_l1": {
+        "overall": {
+          "all": 2.887193202972412,
+          "jaw": 1.9700273275375366
+        },
+        "saturated": {
+          "all": 2.774871826171875,
+          "jaw": 1.2388960123062134
+        },
+        "free": {
+          "all": 2.9148664474487305,
+          "jaw": 2.1501588821411133
+        }
+      },
+      "delta_zeroed": {
+        "change": {
+          "overall": {
+            "all": 5.1888427734375,
+            "jaw": 4.928427696228027
+          },
+          "saturated": {
+            "all": 7.979682922363281,
+            "jaw": 12.98489761352539
+          },
+          "free": {
+            "all": 4.5012526512146,
+            "jaw": 2.9435250759124756
+          }
+        },
+        "teacher_forcing_l1": {
+          "overall": {
+            "all": 6.211440086364746,
+            "jaw": 5.877467632293701
+          },
+          "saturated": {
+            "all": 8.356368064880371,
+            "jaw": 12.989230155944824
+          },
+          "free": {
+            "all": 5.682985782623291,
+            "jaw": 4.125316143035889
+          }
+        }
+      },
+      "delta_permuted": {
+        "change": {
+          "overall": {
+            "all": 7.194357395172119,
+            "jaw": 5.971979141235352
+          },
+          "saturated": {
+            "all": 8.407608032226562,
+            "jaw": 8.961605072021484
+          },
+          "free": {
+            "all": 6.895444869995117,
+            "jaw": 5.235414505004883
+          }
+        },
+        "teacher_forcing_l1": {
+          "overall": {
+            "all": 7.833161354064941,
+            "jaw": 6.6443400382995605
+          },
+          "saturated": {
+            "all": 8.903066635131836,
+            "jaw": 9.273530006408691
+          },
+          "free": {
+            "all": 7.569563388824463,
+            "jaw": 5.996577262878418
+          }
+        }
+      },
+      "reference_step_l1": {
+        "all": 0.48249587416648865,
+        "jaw": 0.35026270151138306
+      }
+    },
+    "base_s1": {
+      "arm": "base",
+      "checkpoint": "checkpoints/real50_base_v3_s1",
+      "seed": 1,
+      "hardware": {
+        "placed": 1,
+        "pairs": 20
+      },
+      "frames": 4638,
+      "saturated_frames": 881,
+      "teacher_forcing_l1": {
+        "overall": {
+          "all": 3.9003775119781494,
+          "jaw": 2.7832136154174805
+        },
+        "saturated": {
+          "all": 3.3764002323150635,
+          "jaw": 1.4974935054779053
+        },
+        "free": {
+          "all": 4.029472351074219,
+          "jaw": 3.0999810695648193
+        }
+      }
+    },
+    "delta_s1": {
+      "arm": "delta",
+      "checkpoint": "checkpoints/real50_delta_v3_s1",
+      "seed": 1,
+      "hardware": {
+        "placed": 14,
+        "pairs": 20
+      },
+      "frames": 4638,
+      "saturated_frames": 881,
+      "teacher_forcing_l1": {
+        "overall": {
+          "all": 3.582472324371338,
+          "jaw": 2.405515432357788
+        },
+        "saturated": {
+          "all": 3.4921092987060547,
+          "jaw": 1.3157564401626587
+        },
+        "free": {
+          "all": 3.6047348976135254,
+          "jaw": 2.674003839492798
+        }
+      },
+      "delta_zeroed": {
+        "change": {
+          "overall": {
+            "all": 5.083377838134766,
+            "jaw": 4.626974582672119
+          },
+          "saturated": {
+            "all": 7.7514119148254395,
+            "jaw": 12.591458320617676
+          },
+          "free": {
+            "all": 4.42604398727417,
+            "jaw": 2.664733648300171
+          }
+        },
+        "teacher_forcing_l1": {
+          "overall": {
+            "all": 6.825962066650391,
+            "jaw": 5.965298175811768
+          },
+          "saturated": {
+            "all": 8.707444190979004,
+            "jaw": 12.599148750305176
+          },
+          "free": {
+            "all": 6.3624138832092285,
+            "jaw": 4.3308916091918945
+          }
+        }
+      },
+      "delta_permuted": {
+        "change": {
+          "overall": {
+            "all": 6.9294657707214355,
+            "jaw": 5.731866359710693
+          },
+          "saturated": {
+            "all": 8.112401962280273,
+            "jaw": 8.586213111877441
+          },
+          "free": {
+            "all": 6.638022422790527,
+            "jaw": 5.028628826141357
+          }
+        },
+        "teacher_forcing_l1": {
+          "overall": {
+            "all": 8.151419639587402,
+            "jaw": 6.620934009552002
+          },
+          "saturated": {
+            "all": 9.156888008117676,
+            "jaw": 9.02566909790039
+          },
+          "free": {
+            "all": 7.903698444366455,
+            "jaw": 6.028470993041992
+          }
+        }
+      },
+      "reference_step_l1": {
+        "all": 0.48249587416648865,
+        "jaw": 0.35026270151138306
+      }
+    },
+    "base_s2": {
+      "arm": "base",
+      "checkpoint": "checkpoints/real50_base_v3_s2",
+      "seed": 2,
+      "hardware": {
+        "placed": 0,
+        "pairs": 6
+      },
+      "frames": 4638,
+      "saturated_frames": 881,
+      "teacher_forcing_l1": {
+        "overall": {
+          "all": 3.7125115394592285,
+          "jaw": 2.7501883506774902
+        },
+        "saturated": {
+          "all": 3.5896050930023193,
+          "jaw": 1.4395471811294556
+        },
+        "free": {
+          "all": 3.7427918910980225,
+          "jaw": 3.0730957984924316
+        }
+      }
+    },
+    "delta_s2": {
+      "arm": "delta",
+      "checkpoint": "checkpoints/real50_delta_v3_s2",
+      "seed": 2,
+      "hardware": {
+        "placed": 0,
+        "pairs": 6
+      },
+      "frames": 4638,
+      "saturated_frames": 881,
+      "teacher_forcing_l1": {
+        "overall": {
+          "all": 3.1378352642059326,
+          "jaw": 2.0598106384277344
+        },
+        "saturated": {
+          "all": 2.9826862812042236,
+          "jaw": 1.2868610620498657
+        },
+        "free": {
+          "all": 3.1760594844818115,
+          "jaw": 2.2502450942993164
+        }
+      },
+      "delta_zeroed": {
+        "change": {
+          "overall": {
+            "all": 4.929012298583984,
+            "jaw": 4.701941013336182
+          },
+          "saturated": {
+            "all": 7.679357528686523,
+            "jaw": 12.98794937133789
+          },
+          "free": {
+            "all": 4.251400470733643,
+            "jaw": 2.6604855060577393
+          }
+        },
+        "teacher_forcing_l1": {
+          "overall": {
+            "all": 6.35119104385376,
+            "jaw": 5.853509902954102
+          },
+          "saturated": {
+            "all": 8.68880558013916,
+            "jaw": 13.184468269348145
+          },
+          "free": {
+            "all": 5.775265693664551,
+            "jaw": 4.047353267669678
+          }
+        }
+      },
+      "delta_permuted": {
+        "change": {
+          "overall": {
+            "all": 6.778972625732422,
+            "jaw": 5.678664207458496
+          },
+          "saturated": {
+            "all": 8.002002716064453,
+            "jaw": 9.35676383972168
+          },
+          "free": {
+            "all": 6.477649211883545,
+            "jaw": 4.772477626800537
+          }
+        },
+        "teacher_forcing_l1": {
+          "overall": {
+            "all": 7.711735725402832,
+            "jaw": 6.430525779724121
+          },
+          "saturated": {
+            "all": 8.919795989990234,
+            "jaw": 9.742511749267578
+          },
+          "free": {
+            "all": 7.414101600646973,
+            "jaw": 5.614539623260498
+          }
+        }
+      },
+      "reference_step_l1": {
+        "all": 0.48249587416648865,
+        "jaw": 0.35026270151138306
+      }
+    }
+  }
+}

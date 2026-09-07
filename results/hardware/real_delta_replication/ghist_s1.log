@@ -1,0 +1,28 @@
+arm=ghist steps=6000 device=cuda
+  trim_static: 21476 -> 18549 frames (14% of frames were dead prefix)
+  using cached frames frames_96.npy (21476, 96, 96, 3)
+  18549 frames, state_dim=12
+WARNING:xformers:A matching Triton is not available, some optimizations will not be enabled
+Traceback (most recent call last):
+  File "/home/jetson3/projects/clean_env/xformers/xformers/__init__.py", line 57, in _is_triton_available
+    import triton  # noqa
+ModuleNotFoundError: No module named 'triton'
+  step   100/6000  loss 6.8092  0.28s/step
+  step   200/6000  loss 2.3517  0.38s/step
+  step   300/6000  loss 1.8301  0.41s/step
+  step   400/6000  loss 1.5167  0.43s/step
+  step   500/6000  loss 1.2151  0.44s/step
+  step   600/6000  loss 1.0346  0.45s/step
+  step   700/6000  loss 0.8484  0.45s/step
+  step   800/6000  loss 0.7011  0.46s/step
+  step   900/6000  loss 0.5921  0.46s/step
+  step  1000/6000  loss 0.5222  0.46s/step
+  step  1100/6000  loss 0.4733  0.47s/step
+  step  1200/6000  loss 0.4296  0.47s/step
+  step  1300/6000  loss 0.3955  0.47s/step
+  step  1400/6000  loss 0.3666  0.47s/step
+  step  1500/6000  loss 0.3466  0.47s/step
+  step  1600/6000  loss 0.3230  0.47s/step
+  step  1700/6000  loss 0.3142  0.47s/step
+  step  1800/6000  loss 0.3063  0.46s/step
+  step  1900/6000  loss 0.2899  0.45s/step

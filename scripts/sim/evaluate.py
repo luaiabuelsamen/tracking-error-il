@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 
-from so101_bench import DemoEnv, ExpertConfig
+from tracking_error_il import DemoEnv, ExpertConfig
 
 
 def main() -> None:

@@ -11,8 +11,8 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from so101_bench import DemoEnv, DomainRandomization, ExpertConfig, PickScene
-from so101_bench.expert import HOME, ScriptedExpert
+from tracking_error_il import DemoEnv, DomainRandomization, ExpertConfig, PickScene
+from tracking_error_il.expert import HOME, ScriptedExpert
 
 
 @pytest.fixture(scope="module")

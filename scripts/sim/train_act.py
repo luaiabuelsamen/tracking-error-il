@@ -42,7 +42,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from so101_bench import DemoEnv, ExpertConfig  # noqa: E402
+from tracking_error_il import DemoEnv, ExpertConfig  # noqa: E402
 
 CHUNK = 30
 FPS = 15                    # demos are stride-2 from the 30 Hz loop
@@ -57,7 +57,7 @@ def load_dataset(root: str):
 
     # no delta_timestamps: FastChunkDataset builds chunks itself, and the
     # windowing path is the 1.5 s/item bottleneck being bypassed
-    return LeRobotDataset(repo_id="so101_bench/pick_place", root=root)
+    return LeRobotDataset(repo_id="tracking_error_il/pick_place", root=root)
 
 
 class FastChunkDataset(torch.utils.data.Dataset):
@@ -160,7 +160,7 @@ class FastChunkDataset(torch.utils.data.Dataset):
             # limit -- recorded commands are already the applied ones) run
             # causally over each episode's (s[t], a[t-1]) jaw pairs, matching
             # what the runtime sees before acting at t.
-            from so101_bench.guard import JawGuard
+            from tracking_error_il.guard import JawGuard
             seat = np.zeros(len(self.S), np.float32)
             start = 0
             for i in range(1, len(ep) + 1):
@@ -430,7 +430,7 @@ def evaluate(policy, data, args, shift_fn=None):
             s_hist = []          # observed states this episode, for ghist
             peak = 0.0
             if args.arm == "token":
-                from so101_bench.guard import JawGuard
+                from tracking_error_il.guard import JawGuard
                 gd = JawGuard(max_close_rate=1e9)   # detector only, no cap
             for _t in range(260):        # 260 x (2/30 s) ~ 17 s budget
                 s = torch.as_tensor(scene.state_ticks(), dtype=torch.float32)
@@ -499,7 +499,7 @@ def evaluate(policy, data, args, shift_fn=None):
                 )
                 a_prev2 = a_prev
                 a_prev = action.clone()
-                from so101_bench.scene import RAD_PER_TICK
+                from tracking_error_il.scene import RAD_PER_TICK
 
                 scene.hold(action.numpy() * RAD_PER_TICK, frames=2)
                 peak = max(peak, scene.block_pos()[2] - z0)

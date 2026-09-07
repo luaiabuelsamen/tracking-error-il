@@ -8,7 +8,7 @@ time, and carries information about load and contact. This repository asks
 whether giving it to a behavior-cloning policy helps.
 
 Platform: the SO-101 arm (STS3215 servos), one overhead camera, ACT policies
-trained with LeRobot. The Python package `so101_bench` is the MuJoCo
+trained with LeRobot. The Python package `tracking_error_il` is the MuJoCo
 simulation benchmark used for the controlled comparison.
 
 <p align="center">
@@ -59,7 +59,7 @@ trimming.
 ## Repository layout
 
 ```
-src/so101_bench/   MuJoCo pick-and-place scene, scripted experts, LeRobot-schema collection
+src/tracking_error_il/   MuJoCo pick-and-place scene, scripted experts, LeRobot-schema collection
 scripts/
   sim/             demonstration collection, ACT training, the observation-design grid, crush and guard screens
   real/            real-data training, policy execution on the arm, paired trial runner, trajectory analysis
@@ -129,7 +129,7 @@ same schema as the public SO-100/101 datasets, so that
 is from real data.
 
 ```python
-from so101_bench import DemoEnv
+from tracking_error_il import DemoEnv
 
 env = DemoEnv(seed=0)
 result, frames = env.rollout()                # one scripted episode

@@ -32,7 +32,7 @@ import json
 
 import numpy as np
 
-from so101_bench import DemoEnv, ExpertConfig
+from tracking_error_il import DemoEnv, ExpertConfig
 
 #: Measured grip response, used only to state the prediction. See findings.
 NEWTONS_PER_COUNT = 2.4

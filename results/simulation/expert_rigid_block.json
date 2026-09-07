@@ -1,0 +1,32 @@
+[
+  {
+    "crush_n": 1000000.0,
+    "obs_quantum": 1.0,
+    "grip_mode": "force",
+    "episodes": 30,
+    "picked": 29,
+    "placed": 22,
+    "crushed": 0,
+    "peak_grip_median_n": 74.31379114724173
+  },
+  {
+    "crush_n": 1000000.0,
+    "obs_quantum": 1.0,
+    "grip_mode": "clamp",
+    "episodes": 30,
+    "picked": 29,
+    "placed": 29,
+    "crushed": 0,
+    "peak_grip_median_n": 355.3001978026771
+  },
+  {
+    "crush_n": 1000000.0,
+    "obs_quantum": 1.0,
+    "grip_mode": "oracle",
+    "episodes": 30,
+    "picked": 29,
+    "placed": 20,
+    "crushed": 0,
+    "peak_grip_median_n": 74.59108448129506
+  }
+]

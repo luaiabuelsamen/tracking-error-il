@@ -1,6 +1,6 @@
 """Demonstration environment: scene, scripted expert and dataset recording.
 
-    from so101_bench import DemoEnv
+    from tracking_error_il import DemoEnv
     env = DemoEnv(seed=0)
     env.collect(200, root="~/data/pick_place")
 
@@ -92,7 +92,7 @@ class DemoEnv:
         stride: record every ``stride``-th control frame.
         expert: expert configuration.
         quantise, obs_quantum, crush_newtons: see
-            :class:`~so101_bench.scene.PickScene`.
+            :class:`~tracking_error_il.scene.PickScene`.
     """
 
     def __init__(
@@ -154,7 +154,7 @@ class DemoEnv:
         fps: int = 30,
         overwrite: bool = True,
         max_attempts: int | None = None,
-        repo_id: str = "so101_bench/pick_place",
+        repo_id: str = "tracking_error_il/pick_place",
         hook=None,
         per_episode=None,
     ) -> CollectionReport:
