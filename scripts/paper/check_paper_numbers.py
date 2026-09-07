@@ -21,7 +21,7 @@ def main():
     for phrase in ('generated/hardware_table.tex', 'fig_observation_evidence.pdf',
                    'third evaluation was interrupted', 'its outcome was not entered', 'not variation over training seeds',
                    'fig_real_quantitative.pdf', 'not included in any count',
-                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'power 0.17'):
+                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'power 0.17', 'registered but not yet evaluated', 'leaves the grasp to the policy'):
         # Case-insensitive: prose checks concern disclosures, not typography.
         assert phrase.lower() in flat.lower(), f'missing disclosure/input: {phrase}'
     expected = [(20, 5, 9, 6, 2), (20, 1, 14, 14, 1), (6, 0, 0, 0, 0)]
@@ -72,6 +72,46 @@ def main():
     meas = supp['measurement']['demonstrations']
     assert f"{100*meas['saturated_fraction']:.1f}" == '16.5' and f"{meas['corr_load_delta_jaw']:.2f}" == '-0.92'
     assert f"{supp['measurement']['static']['r2']:.3f}" == '0.976'
+    demo = supp['demonstrations']
+    assert (round(demo['median_first_close_frame']), demo['closes_after_115'], round(demo['median_frames'])) == (331, 48, 400)
+    assert round(100 * demo['median_travel_fraction_after_115']) == 67
+    sens = supp['sensitivity']
+    zs = [sens[k]['delta_zeroed']['saturated'] for k in ('delta_v3', 'delta_s1', 'delta_s2')]
+    zf = [sens[k]['delta_zeroed']['free'] for k in ('delta_v3', 'delta_s1', 'delta_s2')]
+    ps_ = [sens[k]['delta_permuted']['saturated'] for k in ('delta_v3', 'delta_s1', 'delta_s2')]
+    pf = [sens[k]['delta_permuted']['free'] for k in ('delta_v3', 'delta_s1', 'delta_s2')]
+    assert (round(min(zs), 1), round(max(zs), 1)) == (12.6, 13.0) and (round(min(zf), 1), round(max(zf), 1)) == (2.7, 2.9)
+    assert (round(min(ps_), 1), round(max(ps_), 1)) == (8.6, 9.4) and (round(min(pf), 1), round(max(pf), 1)) == (4.8, 5.2)
+    l1d = [sens[k]['l1_all'] for k in ('delta_v3', 'delta_s1', 'delta_s2')]
+    l1b = [sens[k]['l1_all'] for k in ('base_v2', 'base_s1', 'base_s2')]
+    assert (round(min(l1d), 1), round(max(l1d), 1)) == (2.9, 3.6) and (round(min(l1b), 1), round(max(l1b), 1)) == (3.7, 3.9)
+    lz = [sens[k]['delta_zeroed_l1_all'] for k in ('delta_v3', 'delta_s1', 'delta_s2')]
+    assert (round(min(lz), 1), round(max(lz), 1)) == (6.2, 6.8)
+    assert round(sens['delta_v3']['l1_all'], 1) == 2.9 and round(sens['delta_s1']['l1_all'], 1) == 3.6
+    early = supp['earlier_comparison']['2026-09-05T16:35:05']
+    assert early['arms'] == {'base': [7, 10], 'excess': [0, 10]} and f"{early['fisher_p']:.3f}" == '0.003'
+    assert [round(100 * v) for v in early['wilson']['base']] == [40, 89] and [round(100 * v) for v in early['wilson']['excess']] == [0, 28]
+    for key, val in (('seed0_delta_success', .11), ('seed1_delta_success', .16), ('seed0_delta_failure', 1.04), ('seed1_delta_failure', .88)):
+        assert round(tax[key]['median_abs_delta_jaw_after_close'], 2) == val, key
+    order = supp['hardware']['order']
+    assert order['seed1_delta_first_in_pair=0'] == [7, 10] and order['seed1_delta_first_in_pair=1'] == [7, 10]
+    assert order['seed1_delta_second_half=0'] == [7, 10] and order['seed1_delta_second_half=1'] == [7, 10]
+    assert order['seed0_delta_first_in_pair=0'] == [5, 10] and order['seed0_delta_first_in_pair=1'] == [4, 10]
+    assert order['seed0_delta_second_half=0'] == [3, 10] and order['seed0_delta_second_half=1'] == [6, 10]
+    plant = supp['plant']
+    assert all(plant[k]['clamp']['placed'] == 0 for k in ('100', '120', '160'))
+    assert [plant[k]['q1']['placed'] for k in ('100', '120', '160')] == [11, 17, 20]
+    assert [plant[k]['oracle']['placed'] for k in ('100', '120', '160')] == [12, 14, 17]
+    assert (plant['none']['q1']['placed'], plant['none']['clamp']['placed'], plant['none']['oracle']['placed']) == (22, 29, 20)
+    assert round(plant['none']['clamp']['peak_n']) == 355
+    for name in ('plant_table.tex', 'history_control.tex', 'history_control_status.tex'):
+        assert f'generated/{name}' in tex and (generated / name).exists(), name
+    for fig in ('fig_sensitivity.pdf', 'fig_timing.pdf', 'fig_training.pdf'):
+        assert fig in tex and (ROOT / 'figures/paper' / fig).exists(), fig
+    history = supp['history_control']
+    pending = [k for k, v in history.items() if v['status'] != 'evaluated']
+    if pending:
+        print(f'NOTE: position-history control not evaluated for {pending}; the manuscript says so via generated/history_control_status.tex')
     assert actual['hardware'][1]['shutdown_errors'] == 2
     assert actual['hardware'][1]['missing_trajectories'] == 1
     assert actual['hardware'][2]['shutdown_errors'] == 3

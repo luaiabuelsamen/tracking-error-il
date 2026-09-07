@@ -30,17 +30,21 @@ computable at inference time, and is quantised by the encoder.
 
 ## Scripted-expert performance
 
-| metric | value |
-|---|---|
-| pick rate (randomised) | 78% (31/40) |
-| place rate (randomised) | 78% (31/40) |
-| retention of picked blocks | 100% |
-| nominal scene | 100% |
-| speed, headless | 0.65 s/episode |
-| speed, 2 × 128 px cameras | 2.7 s/episode |
-| dataset yield (successes only) | ~78% of attempts |
+Three experts differ only in the signal that sets the squeeze (see below).
+Without a crush limit, over 30 randomised episodes
+(`results/simulation/expert_rigid_block.json`):
 
-Reproduce with `python scripts/sim/evaluate.py --episodes 40`.
+| expert | picked | placed | median peak grip |
+|---|---|---|---|
+| `clamp` | 29/30 | 29/30 | 355 N |
+| `force` (tracking error) | 29/30 | 22/30 | 74 N |
+| `oracle` (true force) | 29/30 | 20/30 | 75 N |
+
+Reproduce with
+`python scripts/sim/resolution_sweep.py --episodes 30 --crush 1000000 --quanta 1 --json results/simulation/expert_rigid_block.json`;
+`python scripts/sim/evaluate.py --episodes 40` reports the clamp and force
+experts with per-episode detail. Headless rollouts take about 0.65 s per
+episode, 2.7 s with two 128-pixel cameras.
 
 ## What is recorded
 
@@ -105,33 +109,20 @@ task, `clamp → force` the value of the channel that actually exists, and
 Sweeping `obs_quantum` under `force` gives a dose-response curve without
 training anything.
 
-On rigid-block pick-and-place, that gap is zero. Over 40 randomised episodes:
-
-| expert | pick | place | grip force |
-|---|---|---|---|
-| `clamp` | 31/40 | 31/40 | 301 N |
-| `force` | 31/40 | 28/40 | 51 N |
-| `oracle` | 29/40 | 25/40 | 37 N |
-
-Force feedback buys nothing here, and costs a little: a gentler grip drops more
-often and nothing penalises crushing. This is the intended negative control.
-Rigid-block pick-and-place is not a force-sensitive task, so it cannot be used
-to study force resolution.
+On rigid-block pick-and-place without a crush limit, force feedback buys
+nothing and costs a little: the clamp places 29/30, the tracking-error expert
+22/30 and the oracle 20/30, because a gentler grip drops more often and nothing
+penalises crushing. This is the intended negative control. Rigid-block
+pick-and-place is not a force-sensitive task, so it cannot be used to study
+force resolution.
 
 ## The fragile task, and the resolution cliff
 
 `crush_newtons` loses the episode if grip force ever exceeds a limit, so success
 requires landing inside a window instead of squeezing as hard as possible.
-That inverts the control:
-
-| task | clamp | force (`delta`) | oracle (true N) |
-|---|---|---|---|
-| rigid block | 23/30 | 19/30 | 18/30 |
-| crush 120 N | 0/30 | 17/30 | 16/30 |
-
-The open-loop clamp goes from best to zero, since a 356 N median grip destroys
-the block every time, while the quantised `delta` proxy substitutes fully for a
-real force sensor.
+That inverts the control: at a 120 N limit the clamp places 0/30 (its 355 N
+median grip destroys the block every time) while the tracking-error expert
+places 17/30 and the oracle 14/30.
 
 Sweeping the observation quantum against the crush limit (`placed / 30`,
 `scripts/sim/resolution_sweep.py`):

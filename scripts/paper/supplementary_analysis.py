@@ -358,6 +358,245 @@ def simulation():
     return dict(per_seed=vals, means={k: float(np.mean(v)) for k, v in vals.items()}, contrasts=contrasts)
 
 
+
+# ----------------------------------------------------------------------------- simulated plant
+def plant():
+    """Scripted-expert characterization of the simulated plant: placements out of 30 by grip
+    signal and observation quantum, with and without a crush limit."""
+    rows = json.loads((ROOT / "results/simulation/resolution_sweep.json").read_text())
+    rigid = ROOT / "results/simulation/expert_rigid_block.json"
+    if rigid.exists():
+        rows += json.loads(rigid.read_text())
+    table = {}
+    for r in rows:
+        limit = "none" if r["crush_n"] is None or r["crush_n"] >= 1e5 else f"{r['crush_n']:.0f}"
+        key = r["grip_mode"] if r["grip_mode"] != "force" else f"q{r['obs_quantum']:g}"
+        table.setdefault(limit, {})[key] = dict(placed=r["placed"], picked=r["picked"], crushed=r["crushed"],
+                                                episodes=r["episodes"], peak_n=r["peak_grip_median_n"])
+    quanta = ["q1", "q4", "q8", "q16", "q32"]
+    lines = []
+    for limit in ("none", "100", "120", "160"):
+        if limit not in table:
+            continue
+        t = table[limit]
+        cells = [f"{t[q]['placed']}" if q in t else "---" for q in quanta]
+        cells += [f"{t['clamp']['placed']}" if "clamp" in t else "---", f"{t['oracle']['placed']}" if "oracle" in t else "---"]
+        label = "no limit" if limit == "none" else f"{limit}\\,N"
+        lines.append(f"{label} & " + " & ".join(cells) + " \\\\")
+    (GEN / "plant_table.tex").write_text(
+        "\\begin{tabular}{lrrrrrrr}\n\\toprule\n"
+        " & \\multicolumn{5}{c}{tracking error, quantum $q$ (counts)} & clamp & oracle \\\\\n"
+        "Crush limit & 1 & 4 & 8 & 16 & 32 & & \\\\\n\\midrule\n" + "\n".join(lines) + "\n\\bottomrule\n\\end{tabular}\n")
+    return table
+
+
+# ----------------------------------------------------------------------------- demonstrations
+def demonstrations():
+    """How much of the task the 115-command replay covers, from the demonstrations themselves."""
+    parquet = sorted((ROOT / "data/real/pickplace_real_v0/data").glob("**/*.parquet"))
+    if not parquet:
+        return None
+    import pandas as pd
+    df = pd.concat([pd.read_parquet(f) for f in parquet]).sort_values(["episode_index", "frame_index"])
+    state = np.stack(df["observation.state"].to_numpy())[:, :6]
+    ep = df["episode_index"].to_numpy()
+    lengths, close, travel_after, close_after = [], [], [], 0
+    for e in np.unique(ep):
+        m = ep == e
+        q = state[m]
+        lengths.append(int(m.sum()))
+        # demonstrations start with the jaw closed on nothing; the grasp is the first
+        # closure after the jaw has opened past the reopen threshold
+        opened = np.flatnonzero(q[:, JAW] > REOPENED)
+        c = np.flatnonzero(q[:, JAW] < CLOSED) if len(opened) else np.array([], int)
+        c = c[c > opened[0]] if len(opened) else c
+        first = int(c[0]) if len(c) else None
+        close.append(first)
+        if first is not None and first > 115:
+            close_after += 1
+        step = np.abs(np.diff(q, axis=0)).sum(1)
+        travel_after.append(float(step[115:].sum() / step.sum()))
+    closes = [c for c in close if c is not None]
+    return dict(episodes=len(lengths), median_frames=float(np.median(lengths)),
+                frames_range=[int(min(lengths)), int(max(lengths))],
+                median_first_close_frame=float(np.median(closes)), closes_after_115=close_after,
+                never_closed=sum(c is None for c in close),
+                median_travel_fraction_after_115=float(np.median(travel_after)),
+                first_close_frames=closes)
+
+
+def timing_figure(trials, demo):
+    p = _plt()
+    fig, axes = p.subplots(1, 2, figsize=(8.1, 2.9))
+    ax = axes[0]
+    for arm, color in (("base", "#777777"), ("delta", "#167e83")):
+        for outcome, ls in ((1, "-"), (0, ":")):
+            steps = sorted(t["first_close_step"] for t in trials if t["trajectory"] and t["seed"] in (0, 1)
+                           and t["arm"] == arm and t["success"] == outcome and t["first_close_step"] is not None)
+            n_all = sum(1 for t in trials if t["trajectory"] and t["seed"] in (0, 1) and t["arm"] == arm and t["success"] == outcome)
+            if steps:
+                ax.step(steps, np.arange(1, len(steps) + 1) / n_all, where="post", color=color, ls=ls,
+                        label=f"{'position only' if arm == 'base' else 'tracking error'}, {'placed' if outcome else 'failed'} (n={n_all})")
+    ax.set_xlabel("Policy step of first jaw closure")
+    ax.set_ylabel("Fraction of rollouts")
+    ax.set_ylim(0, 1.02)
+    ax.legend(frameon=False, fontsize=6.5, loc="lower right")
+    ax.set_title("Hardware, seeds 0 and 1: when the jaw closes", fontsize=9, loc="left")
+    ax = axes[1]
+    if demo:
+        ax.hist(demo["first_close_frames"], bins=20, color="#aaa08c")
+        ax.axvline(115, color="#c75d42", lw=1, ls="--")
+        ax.set_xlabel("Demonstration frame of first jaw closure")
+        ax.set_ylabel("Demonstrations")
+        ax.set_title("Demonstrations: closure relative to the 115-command replay", fontsize=9, loc="left")
+    fig.tight_layout(pad=.6)
+    fig.savefig(FIG / "fig_timing.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_timing.png", dpi=200, bbox_inches="tight")
+    p.close(fig)
+
+
+# ----------------------------------------------------------------------------- training curves
+def learning_curves():
+    import re
+    logs = sorted((ROOT / "results/hardware/real_delta_replication").glob("*_s[0-9].log"))
+    curves, final = {}, {}
+    for log in logs:
+        pts = [(int(a), float(b)) for a, b in re.findall(r"step\s+(\d+)/\d+\s+loss\s+([\d.]+)", log.read_text())]
+        if pts:
+            curves[log.stem] = pts
+            final[log.stem] = pts[-1][1]
+    if not curves:
+        return None
+    p = _plt()
+    fig, ax = p.subplots(figsize=(4.2, 2.6))
+    colors = {"base": "#777777", "delta": "#167e83", "ghist": "#aaa08c"}
+    for name, pts in curves.items():
+        arm = name.split("_")[0]
+        ax.plot([a for a, _ in pts], [b for _, b in pts], color=colors.get(arm, "#222222"),
+                ls="-" if name.endswith("s1") else "--", lw=1,
+                label={"base": "position only", "delta": "tracking error", "ghist": "position history"}.get(arm, arm) + " seed " + name.rsplit("_s", 1)[-1])
+    ax.set_yscale("log")
+    ax.set_xlabel("Training step")
+    ax.set_ylabel("Training loss (log)")
+    ax.legend(frameon=False, fontsize=6)
+    fig.tight_layout(pad=.5)
+    fig.savefig(FIG / "fig_training.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_training.png", dpi=200, bbox_inches="tight")
+    p.close(fig)
+    return dict(final_loss=final, logged=list(curves))
+
+
+# ----------------------------------------------------------------------------- earlier comparison
+def earlier_comparison():
+    """The position-only vs compensated-residual session that preceded the tracking-error study."""
+    rows = json.loads((ROOT / "results/hardware/real_trials.json").read_text())
+    out = {}
+    for session in sorted({r["session"] for r in rows}):
+        sub = [r for r in rows if r["session"] == session]
+        arms = sorted({r["arm"] for r in sub})
+        counts = {a: [sum(int(r["success"]) for r in sub if r["arm"] == a), sum(r["arm"] == a for r in sub)] for a in arms}
+        rec = dict(arms=counts, jumpstart=sorted({r.get("jumpstart") for r in sub}))
+        if arms == ["base", "excess"]:
+            b, e = counts["base"], counts["excess"]
+            rec["fisher_p"] = float(stats.fisher_exact([[b[0], b[1] - b[0]], [e[0], e[1] - e[0]]])[1])
+            rec["wilson"] = {a: wilson(*counts[a]) for a in arms}
+        out[session] = rec
+    return out
+
+
+# ----------------------------------------------------------------------------- checkpoint sensitivity
+def sensitivity():
+    path = ROOT / "results/hardware/checkpoint_sensitivity.json"
+    if not path.exists():
+        return None
+    d = json.loads(path.read_text())["checkpoints"]
+    order = ["base_v2", "delta_v3", "base_s1", "delta_s1", "base_s2", "delta_s2"]
+    p = _plt()
+    fig, axes = p.subplots(1, 2, figsize=(8.1, 2.9), gridspec_kw={"width_ratios": [1.2, 1]})
+    ax = axes[0]
+    xs = np.arange(len(order))
+    for dx, key, color, label in ((-.18, "all", "#222222", "all joints"), (.18, "jaw", "#c75d42", "jaw")):
+        ax.bar(xs + dx, [d[k]["teacher_forcing_l1"]["overall"][key] for k in order], .34, color=color, label=label)
+    for x, k in zip(xs, order):
+        hw = d[k]["hardware"]
+        ax.text(x, max(d[k]["teacher_forcing_l1"]["overall"].values()) * 1.05, f"{hw['placed']}/{hw['pairs']}", ha="center", fontsize=7)
+    ax.set_xticks(xs, [f"seed {d[k]['seed']}\n{'position' if d[k]['arm'] == 'base' else 'tracking err.'}" for k in order], fontsize=7)
+    ax.set_ylabel("Teacher-forcing L1 (joint units)")
+    ax.set_title("Offline imitation error; labels give hardware placements", fontsize=9, loc="left")
+    ax.legend(frameon=False, fontsize=7)
+    ax = axes[1]
+    deltas = [k for k in order if d[k]["arm"] == "delta"]
+    xs = np.arange(len(deltas))
+    for dx, pert, phase, color in ((-.27, "delta_zeroed", "free", "#aaa08c"), (-.09, "delta_zeroed", "saturated", "#7a6f5a"),
+                                   (.09, "delta_permuted", "free", "#7eb8b4"), (.27, "delta_permuted", "saturated", "#167e83")):
+        ax.bar(xs + dx, [d[k][pert]["change"][phase]["jaw"] for k in deltas], .17, color=color,
+               label=f"{pert.split('_')[1]}, {'load at limit' if phase == 'saturated' else 'free'}")
+    ax.set_xticks(xs, [f"seed {d[k]['seed']}" for k in deltas])
+    ax.set_ylabel("Mean |change| in jaw command")
+    ax.set_title("Tracking-error input zeroed or permuted", fontsize=9, loc="left")
+    ax.legend(frameon=False, fontsize=6.5)
+    fig.tight_layout(pad=.6)
+    fig.savefig(FIG / "fig_sensitivity.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_sensitivity.png", dpi=200, bbox_inches="tight")
+    p.close(fig)
+    summary = {k: dict(seed=d[k]["seed"], arm=d[k]["arm"], hardware=d[k]["hardware"],
+                       l1_all=d[k]["teacher_forcing_l1"]["overall"]["all"], l1_jaw=d[k]["teacher_forcing_l1"]["overall"]["jaw"])
+               for k in order}
+    for k in deltas:
+        for pert in ("delta_zeroed", "delta_permuted"):
+            summary[k][pert] = {ph: d[k][pert]["change"][ph]["jaw"] for ph in ("overall", "saturated", "free")}
+            summary[k][pert + "_l1_all"] = d[k][pert]["teacher_forcing_l1"]["overall"]["all"]
+    # does offline error rank the checkpoints as hardware did?
+    rates = [d[k]["hardware"]["placed"] / d[k]["hardware"]["pairs"] for k in order if d[k]["hardware"]["pairs"] == 20]
+    errs = [d[k]["teacher_forcing_l1"]["overall"]["all"] for k in order if d[k]["hardware"]["pairs"] == 20]
+    summary["spearman_error_vs_hardware_completed"] = float(stats.spearmanr(errs, rates)[0])
+    return summary
+
+
+# ----------------------------------------------------------------------------- history control (pending or done)
+def history_control():
+    """Paired position-history evaluations, if they have been run; otherwise the current status."""
+    status, rows_tex, out = [], [], {}
+    for seed, arms in ((1, ("delta_s1", "ghist_s1")), (0, ("base_v2", "ghist_s0"))):
+        ckpt = ROOT / f"checkpoints/real50_ghist_v3_s{seed}/train_summary.json"
+        trials = ROOT / f"results/hardware/real_history_control_s{seed}_trials.json"
+        if trials.exists():
+            rows = json.loads(trials.read_text())
+            pairs = defaultdict(dict)
+            for r in rows:
+                pairs[(r["session"], r["pair"])][r["arm"]] = int(r["success"])
+            paired = [v for v in pairs.values() if set(v) == set(arms)]
+            c = Counter((v[arms[0]], v[arms[1]]) for v in paired)
+            b, d = c[1, 0], c[0, 1]
+            rec = dict(seed=seed, arms=arms, pairs=len(paired), first=sum(v[arms[0]] for v in paired),
+                       history=sum(v[arms[1]] for v in paired), first_only=b, history_only=d,
+                       mcnemar_p=exact_mcnemar(b, d), status="evaluated")
+            label = "Tracking error" if arms[0].startswith("delta") else "Position only"
+            rows_tex.append(f"{seed} & {label} vs.\\ position history & {rec['first']}/{rec['pairs']} & {rec['history']}/{rec['pairs']} & "
+                            f"{d} / {b} & {rec['mcnemar_p']:.4f} \\\\")
+        else:
+            rec = dict(seed=seed, arms=arms, status="trained, not evaluated" if ckpt.exists() else "checkpoint not trained")
+        out[f"seed{seed}"] = rec
+    evaluated = [r for r in out.values() if r["status"] == "evaluated"]
+    if evaluated:
+        (GEN / "history_control.tex").write_text(
+            "\\begin{tabular}{llrrrr}\n\\toprule\nSeed & Comparison & First & Position history & history-only / first-only & $p$ \\\\\n\\midrule\n"
+            + "\n".join(rows_tex) + "\n\\bottomrule\n\\end{tabular}\n")
+        status.append("Table~\\ref{tab:history} reports the pre-registered position-history comparisons that have been run.")
+        if len(evaluated) < 2:
+            status.append("The remaining registered comparison had not been run when this version was built.")
+    else:
+        (GEN / "history_control.tex").write_text("\\emph{No position-history trials had been run when this version was built.}\n")
+        trained = [r["seed"] for r in out.values() if r["status"] == "trained, not evaluated"]
+        status.append("At the time this version was built, " + (
+            f"the matched position-history checkpoint{'s' if len(trained) > 1 else ''} for seed{'s' if len(trained) > 1 else ''} "
+            + " and ".join(str(t) for t in trained) + " had been trained but not evaluated on the arm."
+            if trained else "the matched position-history checkpoints had not finished training."))
+        status.append("The comparison is registered in the repository and its results table is generated from the trial "
+                      "records when they exist; nothing here is hand-typed.")
+    (GEN / "history_control_status.tex").write_text(" ".join(status) + "\n")
+    return out
+
 # ----------------------------------------------------------------------------- figures + tables
 def trace_figure(trials):
     p = _plt()
@@ -469,12 +708,19 @@ def main():
     meas = measurement()
     sim = simulation()
     tables(hw, power, sim)
+    demo = demonstrations()
+    timing_figure(trials, demo)
     out = dict(hardware=hw, power=power, corpus=corp, measurement=meas, simulation=sim,
+               plant=plant(), demonstrations=demo, training=learning_curves(),
+               earlier_comparison=earlier_comparison(), sensitivity=sensitivity(),
+               history_control=history_control(),
                thresholds=dict(closed_below=CLOSED, reopened_above=REOPENED))
     (GEN / "supplementary.json").write_text(json.dumps(out, indent=2, default=float) + "\n")
     print(json.dumps(dict(stratified=hw["stratified"], seed_level=hw["seed_level"],
                           taxonomy={k: (v["never_closed"], v["closed_then_reopened"], v["closed_and_held"]) for k, v in hw["taxonomy"].items()},
                           power=power["at_observed_structure"], corpus=corp, measurement=meas,
+                          demonstrations={k: v for k, v in (out["demonstrations"] or {}).items() if k != "first_close_frames"},
+                          earlier=out["earlier_comparison"], sensitivity=out["sensitivity"], history=out["history_control"],
                           contrasts={f"{c['b']}-{c['a']}": (round(c['diff'], 1), round(c['p'], 3), round(c['holm_p'], 2), c['resolved']) for c in sim["contrasts"]}),
                      indent=1, default=float))
 

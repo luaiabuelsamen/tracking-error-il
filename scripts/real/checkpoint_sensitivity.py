@@ -98,7 +98,7 @@ def main():
         saturated = np.abs(load[frames, 5]) >= 499.5
         pred = chunks(policy, ds, pos)
         err = np.abs(pred - truth)
-        def masked(e, m=None):
+        def masked(e, m=None, valid=valid):
             w = valid if m is None else valid & m[:, None]
             return dict(all=float(e[w].mean()), jaw=float(e[..., 5][w].mean()))
         rec = dict(arm=arm, checkpoint=ckpt, seed=seed, hardware=dict(placed=succ, pairs=pairs),

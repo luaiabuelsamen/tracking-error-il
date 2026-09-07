@@ -14,22 +14,21 @@
 \maketitle
 
 \begin{abstract}
-The difference between a commanded joint position and the position actually
-reached is available on any position-controlled robot that logs both, with no
-added sensor or fitted force model.
-We study this tracking error as an additional input to behavior cloning on a
-low-cost SO-101 arm. In simulation, placement success increases from 6.2\% with
-position observations to 21.8\% with tracking error across five training seeds,
-but position history reaches 20.3\% across three seeds, leaving the specific
-benefit of tracking error unresolved. On hardware, policies trained on the same
-50 demonstrations achieve 9/20 and 14/20 placements with tracking error against
-5/20 and 1/20 for their position-only counterparts in two completed
-evaluations that begin after a scripted approach; a third evaluation was
-interrupted by hardware faults. The benefit varies
-substantially across training seeds and does not by itself show that the
-policy uses contact information. A study of 546 archived teleoperation
-episodes further shows that large tracking error at grasp onset does not
-predict grasp success.
+Standard behavior-cloning stacks for low-cost arms observe one timestep of
+joint positions. We show that appending the servo tracking error, the
+difference between the last applied command and the measured position, changes
+what a policy can learn at a 50-demonstration budget. On a physical SO-101, ACT
+policies with tracking error place the object in 23 of 40 paired trials
+against 6 of 40 for position-only policies (stratified exact test
+$p=0.0005$), with the gain replicated across two training seeds. In simulation
+over five seeds, placement rises from 6.2\% to 21.8\%, and a position-history
+control recovers most of the gain, so the effect is attributable to temporal
+information the default omits rather than to tracking error specifically. The
+signal is free: it is reconstructible from existing logs, and it keeps varying
+where the servo's load register saturates at a vendor torque limit in 16.5\% of
+demonstration frames. Across 546 archived teleoperation episodes, tracking
+error at grasp onset marks resistance but not grasp success, so it is an
+observation, not an outcome label.
 \end{abstract}
 \keywords{Behavior Cloning, Proprioception, Low-Cost Manipulation}
 
@@ -42,22 +41,23 @@ current joint position must infer all of this from its remaining observations,
 whereas supplying the previous command makes the discrepancy directly
 available.
 
-For inexpensive robots this is attractive: it needs neither an added sensor nor
-a force-estimation model, and it can be reconstructed from existing
-demonstrations wherever the logged commands are the goals the servos actually
-received. Cheapness is not the question. Tracking error mixes contact with
+Standard behavior-cloning stacks for low-cost arms observe a single timestep
+of joint positions. Tracking error needs neither an added sensor nor a force
+model, and it can be reconstructed from existing demonstrations wherever the
+logged commands are the goals the servos received. It also mixes contact with
 motion lag and actuator dynamics, and a history of positions may carry the same
-information. The question is whether exposing it helps an imitation policy, and
-what would justify attributing any gain to contact.
+information, so the question is whether exposing it helps an imitation policy,
+and whether any gain is specific to it.
 
 We run two experiments. A simulation grid sets explicit tracking error against
 action history, position history and a compensated residual under identical
 data and training budgets. A hardware study asks whether the simplest of these
 features helps ACT policies trained on 50 human demonstrations on one SO-101.
-Tracking error wins both completed hardware comparisons, by 4 and 13 placements
-out of 20, the second significantly. In simulation, position history matches
-it, so the results argue for keeping command history in policy interfaces
-without establishing that the policy reads contact.
+On the arm, tracking error places 23 of 40 paired trials against 6 of 40,
+replicated across two training seeds. In simulation, position history recovers
+most of the gain, so the result is that the single-timestep default omits
+temporal information a policy needs, and tracking error is the temporal
+channel every existing log already contains.
 
 \section{Related work}
 Hwang et al.~\citep{hwang2018virtual} estimate torque on RC servos by system
@@ -112,7 +112,10 @@ checkpoint per observation design and seed.
 
 Evaluation begins after replaying 115 commands from a fixed demonstration,
 which places the arm near the grasp, after which each policy controls up to 400
-steps. ACT predicts and executes 30-command chunks, so observations inform the
+steps. In the demonstrations the grasp closure occurs at a median frame 331 of
+a median 400-frame episode and after frame 115 in 48 of 50 episodes, and a
+median 67\% of joint travel follows frame 115, so the replay covers the
+approach and leaves the grasp to the policy (Appendix~\ref{app:traces}). ACT predicts and executes 30-command chunks, so observations inform the
 next chunk rather than each command within it. A relative-target limiter is
 shared by both policies, and the tracking-error input uses the command returned
 \emph{after} limiting. Trials are paired by training seed and physical reset,
@@ -152,20 +155,19 @@ reaches 20.3\% (Fig.~\ref{fig:evidence}). Tracking error exceeds the base by
 (CI $-11.1$ to 14.0); position history itself exceeds the base by 14.1 points
 (CI 4.5 to 23.8). Only the tracking-error and compensated-residual gains over
 the base clear the preregistered resolution rule of $15\sqrt{3/n}$ points for
-$n$ seeds, and no contrast among the 28 design pairs survives a Holm
-adjustment (Appendix~\ref{app:sim}). Because the residual subtracts a
+$n$ seeds (Appendix~\ref{app:sim}). Because the residual subtracts a
 fitted free-motion term from tracking error and uses two previous commands,
 comparing it against one-command history changes both the information available
-and its representation. Position history performs comparably
-to tracking error without observing commands at all, so the grid supports
-supplying temporal information without resolving whether explicit tracking
-error is preferable to a suitable history. Predicting tracking error as an
+and its representation. Position history recovers most of the gain without
+observing commands at all, so what the grid identifies is the cost of the
+single-timestep default, not a property of tracking error specifically. Predicting tracking error as an
 auxiliary training target gives 6.6\%: this particular auxiliary objective does
 not recover the benefit of supplying it as input.
 
-Hardware improvements depend on the trained policy. Table~\ref{tab:hardware}
-reports each comparison separately: tracking error improves placement by 20
-percentage points for seed 0 and 65 points for seed 1. Exact two-sided McNemar
+On hardware, tracking error places 23 of 40 against 6 of 40 across the two
+completed seeds. Table~\ref{tab:hardware} reports each comparison separately:
+9/20 against 5/20 for seed 0 and 14/20 against 1/20 for seed 1, improvements
+of 20 and 65 percentage points. Exact two-sided McNemar
 tests use only the discordant pairs. Seed 0 has six pairs favouring tracking
 error and two favouring the base ($p=0.29$); seed 1 has fourteen and one
 ($p=0.001$). The first comparison is inconclusive and the second is not. Both
@@ -177,7 +179,14 @@ ratios are not detectably different (Fisher $p=0.27$); these pooled figures
 still condition on two checkpoint pairs and are not an estimate over
 retraining. With 20 pairs the exact test has power 0.17 under seed 0's
 observed discordance structure and 0.97 under seed 1's, so the protocol could
-detect only large effects (Appendix~\ref{app:protocol}).
+detect only large effects (Appendix~\ref{app:protocol}). Offline, all three
+tracking-error checkpoints depend on the tracking-error input: zeroing it
+changes the predicted jaw command by 12.6 to 13.0 units on frames where the
+gripper load register is at its limit and by 2.7 to 2.9 units elsewhere,
+against a median recorded command step of 0.5. Teacher-forcing error on the
+training frames separates the designs, 2.9 to 3.6 for tracking error against
+3.7 to 3.9 for the base, but does not order the two tracking-error checkpoints
+as the hardware did (Appendix~\ref{app:sensitivity}).
 
 \begin{table}[t]
 \centering
@@ -192,6 +201,14 @@ Appendix~\ref{app:protocol} for the interrupted evaluation.}
 A third evaluation was interrupted by recurring hardware faults; its partial
 results and missing outcomes are reported in Appendix~\ref{app:protocol}.
 
+The shipped force signal is clipped. The follower's gripper load register sits
+at its configured torque limit of 500 in 16.5\% of demonstration frames and
+touches it in every episode, while tracking error keeps varying on those
+frames; over all frames the two correlate at $r=-0.92$
+(Appendix~\ref{app:measure}). A vendor default therefore removes the only
+shipped force telemetry exactly where the jaw is loaded, and the
+command--position discrepancy is the signal that survives it.
+
 A useful input is not necessarily an outcome label. We also test a
 preregistered prediction that larger tracking error at detected grasp onset
 accompanies successful grasps in archived teleoperation data. Sixteen datasets
@@ -203,24 +220,27 @@ and illustrates why a discrepancy can indicate resistance without identifying a
 successful grasp (Appendix~\ref{app:corpus}).
 
 \section{Discussion and conclusion}
-Tracking error costs nothing to add: the command interface already carries
-both signals. In simulation and in two hardware comparisons it improved
-behavior cloning at a 50-demonstration budget. Whether the policy uses it as
-contact information is a separate question that this study leaves open.
-Position history is competitive in simulation, no history control has been run
-on hardware, and the hardware task never requires staying under a force
-threshold.
+Behavior-cloning stacks for low-cost arms default to a single timestep of
+joint positions, and at a 50-demonstration budget that default is the limiting
+choice. Adding the servo tracking error raised placements on a physical SO-101
+from 6 of 40 to 23 of 40 across two training seeds, and in simulation from
+6.2\% to 21.8\% over five. Position history recovers most of the simulated
+gain without observing commands, so the finding is that the default omits
+temporal information a policy needs and any temporal channel repairs it.
+Tracking error is the channel every existing log already contains, and it
+keeps varying where the vendor-limited load register saturates.
 
-The two completed hardware seeds gave a 20-point and a 65-point improvement,
-and two seeds cannot bound that spread. The study uses one arm, one task and a
-fixed scripted approach, so it says nothing about full-task reliability, other
-objects or robots, or performance without the command limiter.
+Three limitations bound the claim. The hardware effect differs across seeds,
+20 and 65 points, and two completed seeds cannot bound that spread. A matched
+position-history control on hardware is registered but not yet evaluated
+(Appendix~\ref{app:history}), so whether tracking error adds anything beyond
+history on the arm is open. The task never requires staying under a force
+limit, so nothing here shows learned force regulation, and the corpus study
+shows tracking error marks resistance, not success. The study covers one arm,
+one task and a fixed scripted approach.
 
-The next experiments are a position-history control on hardware, more training
-seeds per design, and a task with a measured force limit. Those three settle,
-respectively, whether tracking error adds information beyond history, how large
-the seed effect is, and whether a policy can use the signal to regulate
-contact.
+The next experiments are the registered hardware history control, more
+training seeds per design, and a task with a measured force limit.
 
 \clearpage
 \bibliography{refs}
@@ -291,7 +311,10 @@ collection used an additional limiter.
 
 \textbf{Pairing and inference.} Hardware resets are manual, and within each
 seed consecutive trials form a pair with AB/BA order alternating between pairs.
-The operator knows the policy identity, so outcomes are not blinded. Seeds 1
+The operator knows the policy identity, so outcomes are not blinded. Outcomes
+show no order effect: seed-1 tracking error placed 7/10 whether it ran first
+or second in a pair and in both halves of the session, and seed 0 placed 5/10
+and 4/10 by order and 3/10 and 6/10 by half. Seeds 1
 and 2 were scheduled after observing seed 0, with their training recipe and
 evaluation budget fixed before their evaluations, and no policy was selected by
 hardware performance: every trained checkpoint was evaluated. The primary paired test is exact, two-sided McNemar with
@@ -352,9 +375,62 @@ less motion in successful trials could simply follow from progressing further
 through the task. Traces were grouped by outcome after the fact and contain no
 video, object pose or force, so they cannot say whether a failure was a missed
 grasp, a slip or a misplacement, and none of these regularities is a validated
-success detector.
+success detector. In tracking-error rollouts the median absolute jaw tracking
+error after closure is 0.11 and 0.16 units for successes and 1.04 and 0.88 for
+failures (seeds 0 and 1): a held grasp settles to a small steady discrepancy,
+whereas reopening and re-closing keeps it large. Fig.~\ref{fig:timing} shows
+when the jaw first closes in each rollout and, for the demonstrations, when
+the grasp closure occurs relative to the replayed prefix.
 
-\section{Measurement context}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{fig_timing.pdf}
+\caption{Left: cumulative fraction of hardware rollouts (seeds 0 and 1) whose
+jaw has closed by a given policy step, by policy and outcome. Right: frame of
+the grasp closure in the 50 demonstrations; the dashed line is the 115-command
+replay.}
+\label{fig:timing}
+\end{figure}
+
+\section{Checkpoint sensitivity and offline error}
+\label{app:sensitivity}
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{fig_sensitivity.pdf}
+\caption{Left: teacher-forcing L1 error of each evaluated checkpoint's
+predicted 30-command chunk on every fourth training frame (4,638 frames), all
+joints and jaw; labels give hardware placements. Right: mean absolute change
+in the predicted jaw command when the six tracking-error inputs are zeroed or
+permuted across frames, split by whether the recorded gripper load register is
+at its limit (881 frames) or not.}
+\label{fig:sensitivity}
+\end{figure}
+The hardware trials cannot say whether a policy reads its tracking-error
+input, so the six evaluated checkpoints were re-scored offline on the
+demonstration frames (Fig.~\ref{fig:sensitivity}). Zeroing the input changes
+the predicted jaw command by 12.6 to 13.0 units where the load register is
+pinned and by 2.7 to 2.9 units on free frames; permuting it across frames
+changes the command by 8.6 to 9.4 and 4.8 to 5.2 units. The median recorded
+command step is 0.5 units, and teacher-forcing error rises from 2.9 to 3.6 to
+6.2 to 6.8 under zeroing. All three tracking-error checkpoints therefore
+depend on the channel, most where the jaw is loaded; this is a property of the
+networks, not evidence that the dependence is what produced the hardware
+placements. Offline error itself is a fit diagnostic on training frames, since
+no demonstrations were held out: it separates designs but ranks the seed-0
+tracking-error checkpoint (2.9, 9/20) below the seed-1 checkpoint (3.6,
+14/20). Training losses of the seed-1 and seed-2 checkpoints track each other
+closely (Fig.~\ref{fig:training}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=.6\linewidth]{fig_training.pdf}
+\caption{Training loss, logged every 100 steps, for the checkpoints whose logs
+are in the repository.}
+\label{fig:training}
+\end{figure}
+
+\section{The shipped load register saturates at a vendor limit}
+\label{app:measure}
 A separate static experiment on one shoulder-lift STS3215 uses twelve hanging
 masses
 at five poses (60 measurements). Across those measurements, the fitted
@@ -374,6 +450,34 @@ when telemetry saturates, but it does not calibrate the remaining discrepancy
 in newtons: no jaw load-cell calibration is available, and simulator force
 conversions such as the fitted 2.00\,N/count slope and 4.3\,N held-out RMSE
 over 4--78\,N describe the simulated plant only.
+
+\section{Simulated plant}
+\label{app:plant}
+The simulated plant was characterised with scripted experts before any policy
+was trained, to check that tracking error can carry contact information in
+this simulator at all. Three experts differ only in the signal that sets the
+grip: a fixed jaw angle (clamp), the quantised tracking error, or the true
+contact force (oracle). Without a crush limit the clamp places 29 of 30 and
+the two regulated experts 22 and 20, because a gentler grip drops more often
+and nothing penalises crushing. With a crush limit the clamp fails every
+episode at a median peak grip of 355\,N, while the tracking-error expert at
+the native quantum places within a few episodes of the oracle at every limit,
+and coarsening the observation quantum destroys the task as a cliff whose
+position moves with the margin (Table~\ref{tab:plant}). This is why the
+learning grid could ask whether a policy uses the channel: in this plant the
+channel suffices for force regulation by a scripted controller at the real
+encoder's resolution. It does not show that the physical servo provides the
+same information; Appendix~\ref{app:measure} addresses that separately.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Scripted-expert placements out of 30 randomised episodes in the
+simulated plant, by grip signal and observation quantum, with and without a
+crush limit that fails the episode if grip force exceeds it.}
+\label{tab:plant}
+\input{generated/plant_table.tex}
+\end{table}
 
 \begin{figure}[t]
 \centering
@@ -410,7 +514,9 @@ percentage points for $n$ training seeds, neither this comparison nor the
 residual--position-history comparison resolves at three seeds, and the stronger
 feature-specific interpretation remains open. Table~\ref{tab:contrasts} lists
 the main design contrasts with Welch intervals; the Holm column adjusts across
-all 28 pairwise comparisons.
+all 28 pairwise comparisons, and no contrast survives that adjustment. The
+preregistered contrasts against the base are the primary tests; the adjustment
+across every pair is reported for completeness.
 
 \begin{table}[h]
 \centering
@@ -423,7 +529,9 @@ and whether the difference clears it.}
 \end{table}
 
 An earlier hardware comparison, run before the tracking-error study, evaluated the
-compensated residual: the base placed 7/10 objects and the residual 0/10. The
+compensated residual: the base placed 7/10 objects and the residual 0/10
+(Fisher exact $p=0.003$; Wilson intervals 40 to 89\% and 0 to 28\%;
+alternating unpaired trials with the same 115-command replay). The
 coefficients fitted from these real demonstrations differ markedly from the
 simulation fits, and a free-motion labeling heuristic includes contact frames.
 Both are plausible sources of mismatch, not a diagnosis. Coefficients above
@@ -481,5 +589,25 @@ not isolate their causal contributions. Recorded leader commands may differ
 from applied follower goals and the timing is only approximately aligned, but
 an offset sweep from zero to five recorded frames leaves the qualitative
 conclusion unchanged, with median per-dataset effect-size shift 0.12.
+
+\section{Position-history control on hardware}
+\label{app:history}
+The simulation grid leaves open whether the hardware gain from tracking error
+is specific to the command or would follow from any temporal input. A matched
+position-history control, $[q_t, q_{t-8}]$ with the seed-1 and seed-2 training
+recipe, is pre-registered in the repository together with the two paired
+comparisons that would settle it: tracking error against position history for
+seed 1, and position only against position history for seed 0, each with 20
+pairs under the protocol of Appendix~\ref{app:protocol}.
+\input{generated/history_control_status.tex}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Pre-registered position-history comparisons on hardware. Generated
+from the trial records; empty until the trials exist.}
+\label{tab:history}
+\input{generated/history_control.tex}
+\end{table}
 
 \end{document}
