@@ -50,6 +50,8 @@ CKPT = {"base": "checkpoints/real50_base_s0",
         "delta_v3": "checkpoints/real50_delta_v3_s0",
         "excess": "checkpoints/real50_excess_s0",
         "ghist": "checkpoints/real50_ghist_s0",
+        "ghist_s0": "checkpoints/real50_ghist_v3_s0",
+        "ghist_s1": "checkpoints/real50_ghist_v3_s1",
         "base_trim": "checkpoints/real50_base_trim",
         # v2 pair: both trimmed of the dead prefix, excess with the load-based
         # k_hat. Matched treatment, so they differ only in the observation.
