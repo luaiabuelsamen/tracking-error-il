@@ -164,6 +164,11 @@ pip install -e ".[data,video,analysis,dev]"
 make test
 ```
 
+Training and hardware scripts additionally need the `train` extra (`torch`,
+`safetensors`, `opencv-python`, `lerobot`). Every `make` target accepts
+`PYTHON=/path/to/python` when the project lives in a virtual environment that
+is not first on your `PATH`.
+
 Python 3.10 or newer. Rendering uses EGL and works headless. `make test` is
 used instead of bare `pytest` because a system ROS install registers pytest
 plugins globally that fail on import; the Makefile disables plugin
@@ -190,7 +195,25 @@ python scripts/paper/check_paper_numbers.py      # every reported value must mat
 
 The checker fails if a hardware count, a simulation mean, a corpus count, a
 supplementary statistic, or a required disclosure sentence in the manuscript
-drifts from the data.
+drifts from the data. `make paper-anon` builds the same source in CoRL
+submission mode (anonymous author block, line numbers) to `paper/main_anon.pdf`
+and fails if the PDF text or metadata still carries an identifying string.
+
+## Data and checkpoints
+
+The repository ships the evaluation records under `results/`, from which every
+number in the paper is rebuilt. It does not yet host the raw inputs:
+
+| artifact | local path | status |
+|---|---|---|
+| 50 teleoperated SO-101 demonstrations (LeRobot dataset) | `data/real/pickplace_real_v0` | to be released with the paper |
+| hardware checkpoints, 3 seeds x 2 designs | `checkpoints/real50_{base,delta}_v3_s{0,1,2}` | to be released with the paper |
+| 280 scripted simulation demonstrations | `data/demos_v3` | regenerate with `scripts/sim/collect_guarded.py` |
+| simulation grid checkpoints | `checkpoints/grid_*` | regenerate with `scripts/sim/run_grid.sh` |
+
+Until the hosted copies exist, the hardware trials and the offline checkpoint
+analyses in the appendix cannot be re-run from a fresh clone; everything else
+can.
 
 ## Simulation benchmark
 

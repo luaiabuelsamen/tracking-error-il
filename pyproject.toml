@@ -24,6 +24,7 @@ Repository = "https://github.com/luaiabuelsamen/tracking-error-il"
 data = ["lerobot>=0.3", "pandas>=2.0", "pyarrow>=14"]
 video = ["imageio[ffmpeg]>=2.30"]
 analysis = ["scipy>=1.10", "matplotlib>=3.7", "pandas>=2.0", "pyarrow>=14", "pillow>=10"]
+train = ["torch>=2.1", "safetensors>=0.4", "opencv-python>=4.8", "lerobot>=0.3"]
 dev = ["pytest>=7.4", "ruff>=0.4"]
 
 [tool.setuptools.packages.find]
@@ -48,5 +49,6 @@ ignore = ["B905"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 filterwarnings = ["ignore::DeprecationWarning"]
 markers = ["slow: excluded from `make test-fast`"]

@@ -11,7 +11,7 @@ re-cloned, or `git checkout .`-ed, all of it is lost. This directory is the back
 |---|---|
 | `lerobot-base-commit.txt` | upstream commit the patch applies onto |
 | `lerobot-local.patch` | `git diff` of 13 modified tracked files |
-| `lerobot-untracked-scripts.tar.gz` | 10 untracked files, incl. `src/lerobot/policies/normalize.py` |
+| `lerobot-untracked-scripts.tar.gz` | 5 untracked files used by the bench (`run_policy_on_robot.py`, `view_camera.py`, two servo probes, and `src/lerobot/policies/normalize.py`); unrelated experiments and machine-specific shell scripts are not carried |
 
 `normalize.py` lives *inside* the lerobot package but is untracked, so it is
 carried in the tarball, not the patch — restoring only the patch leaves a

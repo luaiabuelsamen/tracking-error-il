@@ -9,7 +9,6 @@ data/
 outputs/
 *.mp4
 !media/*.mp4
-!research/portfolio/media/*.mp4
 MUJOCO_LOG.TXT
 vendor/
 checkpoints/
@@ -22,3 +21,5 @@ paper/*.blg
 paper/*.fls
 paper/*.fdb_latexmk
 camera_check*.jpg
+*.synctex.gz
+paper/main_anon.*

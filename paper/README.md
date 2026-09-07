@@ -36,7 +36,16 @@ The five cited works were checked against primary records during the rewrite:
 - ACT: https://arxiv.org/abs/2304.13705
 - Copycat agents: https://arxiv.org/abs/2010.14876
 
-Before external submission, confirm the author affiliation/contact details
-(retained from the existing manuscript), choose the venue's final format and
-anonymization requirements, and supply a public artifact URL if releasing the
-code/data. The current PDF uses preprint formatting and has not been submitted.
+Target venue: the CoRL 2026 workshop *Everything Beneath the Policy*
+(4 pages excluding references, double blind, OpenReview, deadline
+October 9, 2026, 11:59 p.m. Central). Main text ends on page 4 in both build
+modes; references and appendices follow. The workshop permits concurrent
+submissions if disclosed, and papers accepted to the CoRL main conference are
+ineligible.
+
+`make paper-anon` produces `main_anon.pdf` in submission mode (anonymous
+author block, line numbers, anonymous PDF metadata) and checks it for
+identifying strings. For an anonymous code artifact, strip the author name and
+handle from `CITATION.cff`, `pyproject.toml`, `NOTICE`, the README citation
+block, and the Hugging Face repo id in `scripts/bench/arms.sh` and
+`scripts/bench/validate_record_args.py` before uploading a copy.

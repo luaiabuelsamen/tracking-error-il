@@ -1,0 +1,6 @@
+tracking-error-il
+Copyright 2026 Luai Abuelsamen
+
+Robot model assets under src/tracking_error_il/assets derive from MuJoCo
+Menagerie (Google DeepMind) and the SO-ARM100 CAD by TheRobotStudio, both
+Apache License 2.0. See src/tracking_error_il/assets/README.md.
