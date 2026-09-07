@@ -8,7 +8,7 @@ McNemar p=0.2890625; paired percentile bootstrap 95% interval [-5,+45]
 points (20,000 resamples, seed 0). This does not meet the registered rule.
 
 Reproduce with scripts/analyze_real_delta_trials.py. Outputs:
-results/real_delta_v3_diagnostics.json and figures/real_delta_v3_diagnostics.png.
+results/real_delta_v3_diagnostics.json and research/figures/real_delta_v3_diagnostics.png.
 These diagnostics are exploratory, computed after outcomes were known.
 
 ## Integrity checks

@@ -3,7 +3,7 @@
 *Luai Abuelsamen. Draft v0.4, 2026-08-18. Workshop target: 4 pages.
 Status: main grid final (5 seeds). Guarded column and hardware calibration
 (Sec. 4.5) in progress. Full lab record with every n and CI in
-[findings.md](findings.md).*
+[findings.md](../../docs/findings.md).*
 
 ---
 
@@ -33,7 +33,7 @@ at [URL].
 
 ---
 
-![Teaser](../figures/paper/fig_teaser.png)
+![Teaser](../research/paper_archive/figures/fig_teaser.png)
 
 **Fig. 1.** Two policies on an identical scene with an identical data
 budget of 280 demonstrations. Top row: the stock observation (joint
@@ -254,7 +254,7 @@ the channel only if the observed quantum is finer than the window it must
 resolve, i.e. quantum < M / κ. Empirically this failure is a cliff rather
 than a slope, and the cliff location moves with the margin (Sec. 4.1).
 
-![Mechanism](../figures/paper/fig_mech.png)
+![Mechanism](../research/paper_archive/figures/fig_mech.png)
 
 **Fig. 2.** The channel on one servo and one grasp. The commanded position
 (dashed) and measured position (solid) track closely through the free
@@ -384,7 +384,7 @@ consistent ordering supports one design statement: at small data on this
 force-critical task, placing the free-motion-compensated residual in the
 observation vector is the change that moves performance.
 
-![Observation-design grid](../figures/paper/fig2_grid.png)
+![Observation-design grid](../research/paper_archive/figures/fig2_grid.png)
 
 **Fig. 3.** The observation-design grid. Bars are 5-seed means, dots are
 individual seeds (100 episodes each). The gray band spans the
@@ -434,7 +434,7 @@ follower command, and per-dataset action-to-state timing offsets are
 uncharacterized (Sec. 3.1); an integer-offset sweep of δ[t] = g[t−k] −
 q[t] is the direct check and is future work.
 
-![Corpus forest plot](../figures/paper/fig1_corpus.png)
+![Corpus forest plot](../research/paper_archive/figures/fig1_corpus.png)
 
 **Fig. 4.** Per-dataset Cohen's d of δ-at-seat between proxy successes and
 failures, with bootstrap 95% CIs, for the 16 datasets passing the frozen
@@ -467,7 +467,7 @@ breaks open-loop grasp timing by construction. Collecting demonstrations
 through the guard is cost-neutral within seed resolution on the arms
 measured so far.
 
-![Guard crush counts](../figures/paper/fig2_guard.png)
+![Guard crush counts](../research/paper_archive/figures/fig2_guard.png)
 
 **Fig. 5.** Crush events per 30 paired episodes for three learned
 checkpoints (base, delta, and a 16-count-quantized delta arm) at two crush

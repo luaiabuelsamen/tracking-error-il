@@ -1,7 +1,7 @@
 # The gap statement
 
 *v2, after external review of v1. One claim, one page. Sources:
-`docs/reading_notes/` (58 papers); the two load-bearing quotes below were
+`research/notes/reading_notes/` (58 papers); the two load-bearing quotes below were
 re-verified against the primary sources directly, not the reading agents'
 notes.*
 

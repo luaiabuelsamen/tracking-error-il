@@ -3,8 +3,8 @@
     python scripts/corpus_delta_outcome.py                 # local datasets
     python scripts/corpus_delta_outcome.py --fetch 40      # top up to 20 qualifiers
 
-ONE SCRIPT, ONE FIGURE, THEN STOP (docs/phase3.md). All operational
-definitions are frozen in docs/phase3.md and were written before the run:
+ONE SCRIPT, ONE FIGURE, THEN STOP (research/notes/phase3.md). All operational
+definitions are frozen in research/notes/phase3.md and were written before the run:
 
 - close events: hysteresis on the gripper ACTION trace (close < 30% of
   range sustained 5 frames, reopen > 60% sustained 5 frames); datasets whose
@@ -285,7 +285,7 @@ def main():
                     help="download up to N additional candidate datasets")
     ap.add_argument("--limit", type=int, default=400)
     ap.add_argument("--json", default="results/corpus_delta_outcome.json")
-    ap.add_argument("--fig", default="figures/paper/fig1_corpus.png")
+    ap.add_argument("--fig", default="research/paper_archive/figures/fig1_corpus.png")
     args = ap.parse_args()
 
     quanta: dict[str, float] = {}

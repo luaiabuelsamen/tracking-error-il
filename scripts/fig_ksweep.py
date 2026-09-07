@@ -51,6 +51,6 @@ ax2.set_ylabel("Cohen's d of δₖ-at-seat (clipped ±3)")
 ax2.set_title("The corpus conclusion does not care (median span 0.12)",
               fontsize=10)
 fig.tight_layout()
-out = Path("figures/paper/fig_ksweep.png")
+out = Path("research/paper_archive/figures/fig_ksweep.png")
 fig.savefig(out, dpi=200)
 print(f"wrote {out}")

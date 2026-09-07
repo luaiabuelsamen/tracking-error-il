@@ -26,7 +26,7 @@ PREDICTIONS REGISTERED UP FRONT. The observability thesis says both arms use
 history as a force channel, not a shortcut: err_true < err_prev and beta >>
 0 for BOTH delta and base_hist. The copycat account predicts base_hist shows
 err_prev <= err_true or beta near 0 at breaks. Either outcome sharpens
-docs/gap.md section 1.
+research/notes/gap.md section 1.
 """
 
 from __future__ import annotations
@@ -163,7 +163,7 @@ def main():
     ap.add_argument("--episodes", type=int, default=40)
     ap.add_argument("--batch", type=int, default=32)
     ap.add_argument("--json", default="results/probe_copycat.json")
-    ap.add_argument("--fig", default="figures/paper/fig4_copycat.png")
+    ap.add_argument("--fig", default="research/paper_archive/figures/fig4_copycat.png")
     args = ap.parse_args()
 
     ds_raw = load_dataset(args.root)

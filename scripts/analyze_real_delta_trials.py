@@ -90,7 +90,7 @@ def main():
     fig.suptitle("Exploratory trajectories — green: success; orange: failure")
     fig.tight_layout()
     Path("figures").mkdir(exist_ok=True)
-    fig.savefig("figures/real_delta_v3_diagnostics.png", dpi=160)
+    fig.savefig("research/figures/real_delta_v3_diagnostics.png", dpi=160)
     print(json.dumps({k: v for k, v in report.items() if k != "trials"}, indent=2))
 
 

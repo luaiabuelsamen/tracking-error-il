@@ -5,7 +5,7 @@ completed and no G seed had. The point of writing it now is that the comparison,
 the interval method and the decision rule are fixed before the data can
 influence them; running it later then has no degrees of freedom left.
 
-Decision rule, frozen in docs/task2_arms.md before the cells launched:
+Decision rule, frozen in research/notes/task2_arms.md before the cells launched:
 claim a difference only at >= 15 points. sigma_seed on this grid is ~10 and
 E's own five seeds span 17-36, so smaller gaps are not resolvable at n=3.
 

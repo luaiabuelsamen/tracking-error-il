@@ -100,7 +100,7 @@ def main():
     ax1.annotate("simulation", xy=(0.99, 0.03), xycoords="axes fraction",
                  ha="right", va="bottom", fontsize=8, color="gray")
     fig.tight_layout()
-    out = Path("figures/paper/fig_mech.png")
+    out = Path("research/paper_archive/figures/fig_mech.png")
     fig.savefig(out, dpi=200)
     print(f"wrote {out}  (contact@{contact}, seat@{seat}, "
           f"peak |δ| {np.abs(delta).max():.0f} counts, placed={result.placed})")

@@ -8,6 +8,7 @@ After recording a showcase, refresh from the repository root:
 
     python scripts/update_portfolio.py
 
+The gallery is not part of the code submission; it lives under `research/`.
 Only showcase MP4s, a labelled teleoperation clip and a labelled simulation clip
 are included. The update copies the current paper. Showcase clips are unannotated;
 review them before publishing and describe their actual outcomes. Numerical

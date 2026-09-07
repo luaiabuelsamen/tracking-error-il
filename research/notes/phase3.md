@@ -101,4 +101,4 @@ Phase 3 continues on the sim result.
 **Figure 1**: forest plot — per-dataset Cohen's d with bootstrap 95% CI,
 reference lines at 0 and 0.5, marker area ∝ episodes; pooled d at bottom.
 
-**Friday paragraphs** land in `docs/friday.md` starting 2026-08-21.
+**Friday paragraphs** land in `research/notes/friday.md` starting 2026-08-21.

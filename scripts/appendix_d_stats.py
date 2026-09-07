@@ -19,7 +19,7 @@ Two facts about the design that bound every claim below:
              191.0 twice), which are independent re-measurements and are used
              here as the repeatability estimate.
 
-    python scripts/appendix_d_stats.py [--fig figures/paper/fig_appd.png]
+    python scripts/appendix_d_stats.py [--fig research/paper_archive/figures/fig_appd.png]
 """
 
 import argparse

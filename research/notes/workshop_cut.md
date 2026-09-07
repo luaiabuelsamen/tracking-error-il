@@ -1,6 +1,6 @@
 # The workshop cut: what a 4-page version contains
 
-`THESIS.md` rule 6 says ship 4 pages, one figure, one claim, workshop or arXiv.
+`research/THESIS.md` rule 6 says ship 4 pages, one figure, one claim, workshop or arXiv.
 The body is currently 6,119 words, roughly eight pages in CoRL format. Four pages
 is about 3,200. So the cut is ~2,900 words, 48% of the body.
 
@@ -46,7 +46,7 @@ family plus an honest negative"*.
 
 ## What moves out
 
-- **Runtime guard** → appendix or dropped. `THESIS.md` already calls it
+- **Runtime guard** → appendix or dropped. `research/THESIS.md` already calls it
   infrastructure, not research, and it costs 339 words plus a figure.
 - **Channel behaviour on the plant** → appendix. It supports the method; it is
   not the claim.

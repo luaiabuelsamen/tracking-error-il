@@ -56,7 +56,7 @@ credits remaining; a top-up is the user's call. Until then: Jetson serial,
 (d4077d5) and stays as written. This section corrects it for anyone planning
 a run.*
 
-`docs/task2_arms.md:46` estimates "~12-15 min/cell train" on H100 and
+`research/notes/task2_arms.md:46` estimates "~12-15 min/cell train" on H100 and
 "$40-50 for the full grid at 5 seeds". Both were written before the launcher
 spec was frozen and are superseded by `scripts/grid_spec.json`, which the
 launcher reads exclusively: **`est_cell_minutes` 35, `est_cell_usd` 2.60**.

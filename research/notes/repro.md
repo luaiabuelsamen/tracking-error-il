@@ -9,8 +9,8 @@ the archive's git history.
 
 | tag | commit | timestamp (UTC−7) | freezes |
 |---|---|---|---|
-| `prereg-corpus` | 7b7a818 | 2026-08-16 18:38 | corpus protocol: close/seat detectors, δ-at-seat, success proxy, prediction (docs/phase3.md) |
-| `prereg-grid` | d4077d5 | 2026-08-17 07:54 | six arm definitions, budget, seeds, resolution rule, predictions (docs/task2_arms.md) |
+| `prereg-corpus` | 7b7a818 | 2026-08-16 18:38 | corpus protocol: close/seat detectors, δ-at-seat, success proxy, prediction (research/notes/phase3.md) |
+| `prereg-grid` | d4077d5 | 2026-08-17 07:54 | six arm definitions, budget, seeds, resolution rule, predictions (research/notes/task2_arms.md) |
 
 Both tags predate the corresponding runs recorded in `docs/findings.md`.
 
@@ -91,7 +91,7 @@ One consequence to know about before trusting a `make figures`-style rerun:
 
 - **`grid_A_base_s0` is gone**, and `scripts/fig_teaser.py:115` is the only
   consumer. Fig. 1 therefore cannot be re-rendered as-is; the committed
-  `figures/paper/fig_teaser.png` is intact and the paper builds. Recovering it
+  `research/paper_archive/figures/fig_teaser.png` is intact and the paper builds. Recovering it
   means retraining that one cell (`scripts/run_grid.sh`, the base arm, the
   cheapest in the grid) and accepting a non-identical checkpoint -- training is
   bit-nonreproducible across GPUs, so the re-rendered episode will differ even

@@ -751,9 +751,9 @@ final experiment.
 
 ## Phase 3 Task 1 -- corpus study: the pre-registered prediction is falsified, informatively (2026-08-16)
 
-Frozen protocol in `docs/phase3.md` (committed before the run); one script
+Frozen protocol in `research/notes/phase3.md` (committed before the run); one script
 (`scripts/corpus_delta_outcome.py`), one figure
-(`figures/paper/fig1_corpus.png`). Sample: 16 public SO-100/101 teleop
+(`research/paper_archive/figures/fig1_corpus.png`). Sample: 16 public SO-100/101 teleop
 datasets scored of the spec's 20 -- the 555-repo candidate pool plus frozen
 gates (>=20 episodes with a close event, median one close per episode, both
 outcome classes >=5) plus intermittent Hub connectivity from the bench
@@ -793,7 +793,7 @@ n=16 not 20.
 
 ## The guard, paired (2026-08-16, post Rule 1) -- wrapper-alters-plant, three ways
 
-Rule 1 (docs/phase3.md) arrived after four phantom-seat modes were excavated
+Rule 1 (research/notes/phase3.md) arrived after four phantom-seat modes were excavated
 one GPU run at a time; applying it retroactively took two CPU-minutes per
 question and settled everything the GPU runs could not.
 
@@ -947,7 +947,7 @@ lift -- a 30+ point gap).
 
 Six observation designs, identical everything else (280 demos, 12k steps,
 96 px, 3 seeds x n=100; sigma_seed ~ 10 -> only >=15-point differences are
-claimed). Figure: figures/paper/fig2_grid.png.
+claimed). Figure: research/paper_archive/figures/fig2_grid.png.
 
 | arm | input | seeds | mean |
 |---|---|---|---|
@@ -958,7 +958,7 @@ claimed). Figure: figures/paper/fig2_grid.png.
 | E excess | s + (delta - lag baseline) | 36, 32, 21 | **29.7** |
 | F token | s + latched seat bit | 29, 33, 18 | **26.7** |
 
-Pre-registered predictions (docs/task2_arms.md), their fates:
+Pre-registered predictions (research/notes/task2_arms.md), their fates:
 - "D/E/F >= B if the channel's value is information": E-B = +18.4
   (RESOLVED), F-B = +15.4 (at the floor, resolved marginally), D-B = -2.6
   (FAILED). The split is the finding: **the channel must be observed, not
@@ -1043,7 +1043,7 @@ closed-loop policy impact, which is arm E itself.
   the smoke-test K values quoted earlier came from a 12-episode subset;
   full-set values are the canonical ones.)
 - **k-sweep timing figure (NEW, P1): built** from the C.1 data ->
-  figures/paper/fig_ksweep.png (residual minimum at k*~3-4; d flat, span
+  research/paper_archive/figures/fig_ksweep.png (residual minimum at k*~3-4; d flat, span
   0.12).
 - **Compensator ladder status sync:** linear family ran (saturates at K*r,
   jaw +1.9%); the spec's small-MLP variant still to add.
@@ -1618,7 +1618,7 @@ is now scripted in this entry's method.
 
 Follow-on from the bibliography audit. If given names in `refs.bib` were
 generated rather than looked up, the next surface at risk is
-`docs/reading_notes/thread_A_history_in_IL.md`, which carries ~40 specific
+`research/notes/reading_notes/thread_A_history_in_IL.md`, which carries ~40 specific
 quoted numbers from 15 papers and is the input to the paper's Related Work. Its
 header claims "Every URL below was actually fetched." That claim is testable.
 

@@ -82,7 +82,7 @@ def main():
     bracket(idx["B"], idx["E"], top + 5.5, "E − B = +12.8 [+2.8, +22.6]")
     ax.set_ylim(-2, top + 10)
     fig.tight_layout()
-    out = Path("figures/paper/fig2_grid.png")
+    out = Path("research/paper_archive/figures/fig2_grid.png")
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=160)
     print(f"wrote {out}")

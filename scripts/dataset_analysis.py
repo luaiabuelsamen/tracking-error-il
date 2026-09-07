@@ -8,7 +8,7 @@ computed in TOOL SPACE via forward kinematics on the recorded joint states
 (the dataset stores encoder counts at 15 Hz), because joint-space numbers hide
 what the gripper actually did.
 
-Outputs PNGs to figures/dataset_analysis/ and prints per-episode outlier
+Outputs PNGs to research/figures/dataset_analysis/ and prints per-episode outlier
 checks (the "should we clean it?" answer).
 """
 
@@ -245,7 +245,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--root", default="data/demos_native")
     args = ap.parse_args()
-    out = Path("figures/dataset_analysis")
+    out = Path("research/figures/dataset_analysis")
     out.mkdir(parents=True, exist_ok=True)
 
     df = load_frames(args.root)

@@ -88,10 +88,10 @@ exceeds `15·sqrt(3/n)` points — **11.62 at n=5, 15.00 at n=3**. Implemented i
    the paper traces to an entry here.
 3. **`paper/main.tex`** — read §Limitations first. It is the most honest part
    and tells you what is actually in doubt.
-4. **`docs/task2_arms.md`** — the pre-registered arm definitions, frozen before
+4. **`research/notes/task2_arms.md`** — the pre-registered arm definitions, frozen before
    implementation (git tag `prereg-grid` → `d4077d5`).
-5. **`docs/roadmap.md`** — open experiments and the pre-submission gate.
-6. **`docs/related_table.md`** — positioning against prior work, every cell now
+5. **`research/notes/roadmap.md`** — open experiments and the pre-submission gate.
+6. **`research/notes/related_table.md`** — positioning against prior work, every cell now
    verified against primary sources.
 
 ### Code map
@@ -133,7 +133,7 @@ Results are JSON in `results/`, one file per cell, never overwritten.
 These are not bureaucracy; each was bought with a real error.
 
 1. **Pre-register before running.** Decision rules go in a doc, frozen, before
-   the cell exists. `docs/task2_arms.md` and `docs/real_trial_prereg.md` are
+   the cell exists. `research/notes/task2_arms.md` and `docs/real_trial_prereg.md` are
    the templates. Failed predictions get reported as failures.
 2. **Never accept a summariser on presence or absence.** Save the source text
    to disk and grep it literally. An *absence* claim additionally requires
@@ -212,8 +212,8 @@ failures are about measurement.
 2. **Run 20 paired trials** `base_v2` vs `delta` via `scripts/trial_runner.py`
    (needs a human: physical resets and outcome calls). Add a `delta` entry to
    the `CKPT` dict at `trial_runner.py:42`.
-3. **`docs/workshop_cut.md`** holds the 4-page plan: one claim, one figure.
-   `THESIS.md` rule 6 is the standing instruction — ship workshop/arXiv sized.
+3. **`research/notes/workshop_cut.md`** holds the 4-page plan: one claim, one figure.
+   `research/THESIS.md` rule 6 is the standing instruction — ship workshop/arXiv sized.
 4. Running now: 600-demo A-vs-E cells (`results/grid600_*`), ~21 h, the first
    test of channel-versus-channel-free above 280 demos.
 

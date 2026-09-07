@@ -467,12 +467,12 @@ loop's tracking error, and it costs 6 scalars at `T_o`=1 — is ours.
 1. **Our grid is pinned at their worst corner and we never varied the axis.**
    `scripts/train_act.py:47,270-271` sets `chunk_size = n_action_steps = 30` at 15 Hz —
    a **2.0 s fully open-loop chunk** — with ACT's default `n_obs_steps = 1`
-   (`configuration_act.py:84`). Every arm A–F in `docs/task2_arms.md` runs at
+   (`configuration_act.py:84`). Every arm A–F in `research/notes/task2_arms.md` runs at
    (`T_o`=1, `T_exec`=30). Their result says the base arm's plateau is partly a
    horizon artefact, and the autopsy agrees from our own side: base's decoded plan at
-   a stall is STATIC (`docs/overnight_plan.md:75`) — that *is* their failure mode.
+   a stall is STATIC (`research/notes/overnight_plan.md:75`) — that *is* their failure mode.
    Registered prediction: `T_exec*` should be strictly lower for C/E than for A. The
-   chunk=15 variant already floated at `docs/overnight_plan.md:20` is no longer a hunch
+   chunk=15 variant already floated at `research/notes/overnight_plan.md:20` is no longer a hunch
    but a directional prediction from a published result.
 2. **The grid has no pure-context arm.** A–F vary channel content at fixed `T_o`=1;
    nothing separates "context length" from "this specific channel". The missing cell is

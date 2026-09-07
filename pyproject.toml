@@ -3,9 +3,9 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "so101-bench"
+name = "tracking-error-il"
 version = "0.1.0"
-description = "Force-aware manipulation benchmark for the SO-100/SO-101 arm"
+description = "Tracking error as an observation for behavior cloning on the SO-101 arm: simulation benchmark, hardware evaluation pipeline, and paper evidence"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

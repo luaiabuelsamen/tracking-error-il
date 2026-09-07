@@ -1,6 +1,6 @@
 # Related-work difference table (draft)
 
-Roadmap item `docs/roadmap.md:235` — "difference table in related work
+Roadmap item `research/notes/roadmap.md:235` — "difference table in related work
 (methods x {extra sensor, online, retroactive, works on position-only logs})".
 
 **Status: draft, needs verification against the primary sources.** Every cell
@@ -95,7 +95,7 @@ paper's claim, not a measured result. `zeng2026revisiting` shows context length 
 reaching 93.2% on FurnitureSimOneLeg (vs 90.6% for the best short-context policy), and
 our own B ≈ C is consistent with `a[t−1]` acting as one frame of context rather than as
 a force channel. Arm G (`s[t−k:t]`, no `a[t−1]`) is the experiment that earns the row —
-see `docs/reading_notes/thread_A_history_in_IL.md` Part 5. Until it runs, this table
+see `research/notes/reading_notes/thread_A_history_in_IL.md` Part 5. Until it runs, this table
 states a distinction we have argued and not demonstrated, and must not be captioned
 otherwise.
 
@@ -243,5 +243,5 @@ legitimate but unusual and worth a deliberate choice.
 
 Reads best as a compact `tabular` closing `sec:related`, or in the appendix with
 a one-sentence pointer from the related-work text if the CoRL page budget binds
-(`docs/roadmap.md:238` notes the §4 figure count as the other budget pressure).
+(`research/notes/roadmap.md:238` notes the §4 figure count as the other budget pressure).
 Not yet inserted into `main.tex` — this file is the draft for review.

@@ -1,56 +1,87 @@
-# so101-bench
+# Tracking error as an observation for behavior cloning on low-cost arms
 
-**Headline results:** behaviour cloning on this task went from 5% → **57–63%**
-place rate by (1) adding the servo's own tracking error to the observation,
-(2) fixing two measured data-coverage gaps (recovery kicks, grip-depth
-diversity), and (3) running the standard training recipe at scale. A raw
-action-history control performs equivalently to the explicit channel at scale
-(n=2 seeds; the form-vs-information question is open) — while policies with
-neither plateau at ~20% grasp commitment — and a 30-line bus-observable
-guard eliminates 96% of crush events on any policy without retraining. Full
-evidence chain in `docs/findings.md`; every claim has an n and a CI.
+Code, hardware records, and manuscript for a study of one cheap observation:
+the difference between the position a servo was told to reach and the
+position it actually reached. On a position-controlled hobby servo that
+difference is present in every recorded dataset, costs nothing at inference
+time, and carries information about load and contact. This repository asks
+whether giving it to a behavior-cloning policy helps.
 
-A MuJoCo pick-and-place environment for the low-cost **SO-100 / SO-101** arm,
-with domain randomisation, a scripted expert, and LeRobot-schema data
-collection — built around the proprioceptive force channel that a
-position-controlled hobby servo exposes through its own tracking error.
+Platform: the SO-101 arm (STS3215 servos), one overhead camera, ACT policies
+trained with LeRobot. The Python package `so101_bench` is the MuJoCo
+simulation benchmark used for the controlled comparison.
 
-```python
-from so101_bench import DemoEnv
+<p align="center">
+  <a href="media/real_rollout_delta_s1.mp4">
+    <img src="figures/paper/fig_real_teaser.png" alt="Three frames of an autonomous SO-101 rollout: the arm approaches a white adapter, lifts it, and places it inside a tape roll." width="100%">
+  </a>
+</p>
 
-env = DemoEnv(seed=0)
-result, frames = env.rollout()          # one scripted episode
-env.collect(200, root="~/data/pick_place")   # LeRobotDataset
+*Autonomous rollout of a tracking-error policy (training seed 1) on the
+physical arm, after a fixed demonstration replay brings the arm near the
+grasp. Click the image for the clip. This is a showcase recording. It is
+not one of the evaluated trials and its outcome is not in any count below.*
+
+## Result
+
+<p align="center">
+  <img src="figures/paper/fig_observation_evidence.png" alt="Left: simulation placement success per observation design, bars are means and dots are training seeds. Right: hardware placement counts for base and tracking-error policies in two completed paired evaluations." width="100%">
+</p>
+
+| setting | position only | with tracking error | notes |
+|---|---|---|---|
+| simulation, 280 scripted demos, 100 eval episodes | 6.2% | 21.8% | means over 5 training seeds; position history alone reaches 20.3% (3 seeds) |
+| hardware, seed 0, 20 paired trials | 5/20 | 9/20 | exact McNemar p = 0.29 |
+| hardware, seed 1, 20 paired trials | 1/20 | 14/20 | exact McNemar p = 0.001 |
+| hardware, seed 2 | 0/6 | 0/6 | interrupted by recurring servo overload faults |
+
+Tracking error helps in simulation and in both completed hardware
+comparisons, and the size of the hardware effect depends strongly on the
+training seed. The simulation grid also shows that a position-history input
+without any command information performs about as well as tracking error, so
+the paper does not attribute the gain to contact sensing. The archived
+teleoperation study (16 public datasets, 546 episodes) rejects the idea that
+large tracking error at grasp time labels a successful grasp. Full protocol,
+statistics, and limitations are in [`paper/main.tex`](paper/main.tex)
+([PDF](paper/main.pdf)).
+
+## Media
+
+Each clip is labeled by what controls the arm. Nothing here was edited beyond
+trimming.
+
+| clip | what it shows | control |
+|---|---|---|
+| [`media/real_rollout_delta_s1.mp4`](media/real_rollout_delta_s1.mp4) | Adapter placed in a tape roll on the physical SO-101, seed 1 tracking-error checkpoint, 400 policy steps after replay of 115 demonstration commands. Showcase recording, outcome not annotated. | autonomous policy |
+| [`media/teleoperation.mp4`](media/teleoperation.mp4) | One of the 50 training demonstrations. A human drives the leader arm. | human teleoperation |
+| [`media/simulation_delta.mp4`](media/simulation_delta.mp4) | An ACT policy with tracking-error observations in the MuJoCo benchmark. Rendered forces describe the simulator, not the robot. | autonomous policy, simulation |
+
+A standalone browsable gallery with more showcase clips lives in
+[`research/portfolio/`](research/portfolio/).
+
+## Repository layout
+
+```
+src/so101_bench/    MuJoCo pick-and-place scene, scripted experts, LeRobot-schema collection
+scripts/            the experimental record: sim grid, real-data training, hardware trial runner,
+                    paper evidence builder and number checks
+results/            frozen outcomes: grid JSON per design and seed, hardware trial logs,
+                    per-trial trajectories (.npz), corpus study, showcase records
+paper/              main.tex, refs.bib, generated tables and the evidence JSON they come from
+figures/paper/      only the figures included by main.tex
+docs/               findings.md (lab record) and the hardware pre-registrations and diagnostics
+media/              the clips and stills used above
+tools/              bench operation: camera stream, record-config validation, episode export
+hardware/           servo load calibration against a load cell
+patches/            snapshot of the local lerobot modifications the real pipeline depends on
+tests/              simulation environment tests
+research/           everything that is not part of the submission: thesis note, working notes,
+                    reading notes, the pre-rewrite manuscript, the portfolio gallery
 ```
 
-## Why
-
-The SO-101 has no torque sensor. It does have a P-controlled servo, and a servo
-holding against a load sits at an offset from its commanded position
-proportional to that load. That offset
-
-```
-delta = action[t-1] - state[t]        # encoder counts
-```
-
-is a force signal that already exists in every recorded SO-100/101 dataset, is
-computable at inference time, and is quantised by the encoder. This package
-exists to study what that channel is worth, in a task where grasping actually
-has to work.
-
-## Status
-
-| metric | value |
-|---|---|
-| pick rate (randomised) | **78%** (31/40) |
-| place rate (randomised) | **78%** (31/40) |
-| retention of picked blocks | **100%** |
-| nominal scene | 100% |
-| speed, headless | 0.65 s/episode |
-| speed, 2 × 128 px cameras | 2.7 s/episode |
-| dataset yield (successes only) | ~78% of attempts |
-
-Reproduce with `python scripts/evaluate.py --episodes 40`.
+`scripts/` and `results/` are paired and are kept complete rather than
+tidy: every JSON under `results/` was produced by a script that is still
+here, and the paper's tables are rebuilt from those files rather than typed.
 
 ## Install
 
@@ -59,138 +90,94 @@ pip install -e ".[data,video,dev]"
 make test
 ```
 
-Requires Python ≥3.10. Rendering uses EGL and works headless.
+Python 3.10 or newer. Rendering uses EGL and works headless. `make test` is
+used instead of bare `pytest` because a system ROS install registers pytest
+plugins globally that fail on import; the Makefile disables plugin
+autoloading. Nothing here uses ROS.
 
-> `make` is used rather than bare `pytest` because a system ROS installation
-> registers pytest plugins globally that fail on an unrelated import; the
-> Makefile disables plugin autoloading. This project does not use ROS.
+## Reproduce the paper's numbers
 
-## What is recorded
+Everything the manuscript reports about the hardware trials and the
+simulation grid is recomputed from `results/` and checked against the text:
 
-Per control frame, in the same schema as the public SO-100/101 datasets:
-
-| column | meaning |
-|---|---|
-| `observation.state` | 6 joints, integer encoder counts, read **before** the command |
-| `action` | 6 joint goals, integer encoder counts |
-| `observation.images.<camera>` | `front`, `side`, `gripper_fpv` |
-| `grip_force_N` | true contact force — **analysis only, never an observation** |
-
-`delta = action[t-1] - state[t]` is therefore reconstructable downstream exactly
-as it is from real data. Both state and command are rounded to whole counts,
-because `Goal_Position` is an integer register; without that the channel is
-continuous and the question of *resolution* disappears.
-
-`obs_quantum` coarsens or refines the observation quantum alone
-(`obs_quantum=0.25` models a 4× finer encoder), which is the knob for
-resolution ablations.
-
-## Domain randomisation
-
-Per episode: block position, yaw (full ±π), size, mass, friction, and the
-container's position. See `DomainRandomization`.
-
-The block's half-width is capped at 9.5 mm, which is **not** a taste
-parameter. The fixed jaw's fingertip sits 11.9 mm from the tool centre across
-the closing axis, and anything wider is struck from above rather than enclosed;
-the cap leaves margin against that limit instead of sitting on it. Capping at
-11.0 mm left the largest blocks 0.9 mm of clearance — which an open-loop clamp
-forces through, but a force-regulated grip cannot. Widening the margin raised
-the clamp expert's place rate from 10/20 to 15/20 and the force-regulated
-expert's pick rate from 8/20 to 15/20.
-
-## Layout
-
-```
-src/so101_bench/
-  scene.py       PickScene: MuJoCo scene, IK on the true tool frame, DR, force channel
-  expert.py      ScriptedExpert: waypoint policy, clamp/force/oracle grasps
-  demo_env.py    DemoEnv: rollout, evaluation, LeRobotDataset collection
-  assets/        MJCF scene and meshes
-scripts/         evaluate.py, collect.py, render_demo.py
-docs/findings.md what was measured, and what it cost to find out
+```bash
+python scripts/build_paper_evidence.py     # writes paper/generated/*.tex, evidence.json, figures
+latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
+python scripts/check_paper_numbers.py      # asserts every reported value matches results/
 ```
 
-## Grip modes, and what they measure
+The checker fails if a hardware count, a simulation mean, a corpus count, or a
+required disclosure sentence in the manuscript drifts from the data.
 
-`ExpertConfig(grip_mode=...)` selects the signal that sets the squeeze. The
-three modes are identical apart from that, which makes comparing them a
-measurement rather than three implementations:
+## Simulation benchmark
 
-| mode | grip signal | role |
-|---|---|---|
-| `clamp` | fixed jaw angle | no force feedback at all |
-| `force` | `delta`, quantised | the channel the real robot has |
-| `oracle` | true contact force | privileged upper bound |
+The package exposes a randomized pick-and-place task, three scripted experts
+that differ only in the grip signal they read, and dataset collection in the
+same schema as the public SO-100/101 datasets, so that
+`delta = action[t-1] - state[t]` is reconstructable downstream exactly as it
+is from real data.
 
-The gaps decompose: `clamp → oracle` is the total value of force feedback on a
-task, `clamp → force` the value of the channel that actually exists, and
-`force → oracle` the price of having a tracking-error proxy instead of a sensor.
-Sweeping `obs_quantum` under `force` gives a dose-response curve — all without
-training anything.
+```python
+from so101_bench import DemoEnv
 
-**On this task, that gap is zero.** Over 40 randomised episodes:
+env = DemoEnv(seed=0)
+result, frames = env.rollout()                # one scripted episode
+env.collect(200, root="~/data/pick_place")    # LeRobotDataset
+```
 
-| expert | pick | place | grip force |
-|---|---|---|---|
-| `clamp` | 31/40 | **31/40** | 301 N |
-| `force` | 31/40 | 28/40 | 51 N |
-| `oracle` | 29/40 | 25/40 | 37 N |
+The learning grid in the paper trains one ACT policy per observation design
+and seed on 280 scripted demonstrations:
 
-Force feedback buys nothing here, and costs a little: a gentler grip drops more
-often and nothing penalises crushing. This is the intended negative control —
-rigid-block pick-and-place is *not* a force-sensitive task, so it cannot be used
-to study force resolution.
+```bash
+python scripts/collect.py --episodes 280 --root data/demos_v3 --grip-mode force
+python scripts/train_act.py --arm delta --root data/demos_v3 --steps 12000 --image-size 96 \
+    --seed 0 --eval-episodes 100 --eval-crush -1 --json results/grid_C_delta_s0.json
+```
 
-## The fragile task, and the resolution cliff
+Designs (`--arm`): `base`, `base_hist`, `delta`, `resid`, `excess`, `token`,
+`ghist`. `scripts/run_grid.sh` runs the whole grid; `scripts/modal_grid.py`
+runs it on Modal from `scripts/grid_spec.json`. The environment, grip modes,
+resolution knob, and the scripted-expert measurements are documented in
+[`docs/simulation_bench.md`](docs/simulation_bench.md).
 
-`crush_newtons` loses the episode if grip force ever exceeds a limit, so success
-requires landing inside a *window* instead of squeezing as hard as possible.
-That inverts the control:
+## Hardware pipeline
 
-| task | clamp | force (`delta`) | oracle (true N) |
-|---|---|---|---|
-| rigid block | **23/30** | 19/30 | 18/30 |
-| crush 120 N | **0/30** | **17/30** | 16/30 |
+The real pipeline uses a LeRobot checkout with local patches; see
+[`patches/README.md`](patches/README.md) for what changed and how to restore
+it. The Jetson-side entry points are:
 
-The open-loop clamp goes from best to zero — a 356 N median grip destroys the
-block every time — while the quantised `delta` proxy substitutes fully for a
-real force sensor.
+```bash
+scripts/arms.sh record pickplace_real_v0 50        # teleoperate and record demonstrations
+python scripts/train_act_real.py --arm delta --root data/real/pickplace_real_v0 \
+    --steps 6000 --seed 1 --out checkpoints/real50_delta_v3_s1
+bash run_hw_replication.sh 1                       # 20 paired base/delta trials for seed 1
+bash record_demo.sh                                # one showcase rollout with video
+```
 
-Sweeping the observation quantum against the crush limit (`placed / 30`,
-`scripts/resolution_sweep.py`):
+Trials are paired by physical reset with alternating order, the operator
+enters each outcome, and every trial writes a trajectory to
+`results/real_trial_traj/`. The pre-registered decision rules and the
+per-session diagnostics are in `docs/real_*.md`. Read the safety notes at the
+top of `scripts/run_policy_real.py` before letting a policy command the arm.
 
-| crush limit | q=1 | q=4 | q=8 | q=16 | q=32 | clamp | oracle |
-|---|---|---|---|---|---|---|---|
-| 100 N | 11 | 11 | 9 | **1** | 0 | 0 | 12 |
-| 120 N | 17 | 17 | 16 | 10 | **0** | 0 | 14 |
-| 160 N | 20 | 20 | 19 | 17 | **11** | 0 | 17 |
+## Research material
 
-Coarsening the channel destroys the task, as a cliff rather than a slope — and
-**the cliff moves with the margin**. An effect that appeared at every crush limit
-alike would just be the loss of input bits; this one tracks the physical
-headroom. At the real encoder's resolution the proxy matches the oracle.
+`research/` holds the material behind the study that a reader of the paper
+does not need: the one-sentence thesis the project is organized around, the
+reading program and per-thread notes, roadmap and hand-off documents, the
+manuscript as it stood before the hardware rewrite with its figures, and the
+portfolio gallery. See [`research/README.md`](research/README.md).
 
-The quantitative prediction (`cliff ≈ margin / 2.4 N per count`) gets the
-ordering right and the constant wrong — off by 3.1x, 1.5x and 1.2x as the margin
-grows. See `docs/findings.md`; the limiting error at present is contact-detection
-latency (19–56 N of entry force), not the encoder.
+## Citation
 
-## Provenance
-
-The MJCF scene originates from a working teleoperation setup and was verified by
-replaying its recorded demonstrations (8/10 episodes place the block). Three
-properties make grasping possible here and are absent from a URDF-derived
-model: an elliptic friction cone at `impratio=10`, explicit thin-box finger
-pads, and collision meshes separate from visual meshes.
-
-
-## Reproducing the cloud runs
-
-`scripts/modal_train.py` expects `vendor/lerobot/` (gitignored): copy your
-lerobot checkout (`pyproject.toml`, `README.md`, `src/`) there. This project
-pins the tree this repo was developed against (0.3.4-era API: normalisation
-handled outside policies; see `scripts/train_act.py`).
+```bibtex
+@misc{abuelsamen2026trackingerror,
+  title  = {Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms},
+  author = {Abuelsamen, Luai},
+  year   = {2026},
+  note   = {Preprint. Code and evaluation records: https://github.com/luaiabuelsamen/so101-bench}
+}
+```
 
 ## License
 

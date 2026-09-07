@@ -1,4 +1,4 @@
-"""Guard Pareto accounting (roadmap docs/roadmap.md:219-220).
+"""Guard Pareto accounting (roadmap research/notes/roadmap.md:219-220).
 
 Reports crushes, successes, deletions, false interventions and peak force as
 one table, from the paired guarded/unguarded runs already in results/.

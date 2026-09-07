@@ -161,7 +161,7 @@ def main():
                  ha="right", va="bottom", fontsize=8, color="gray")
 
     fig.tight_layout()
-    out = Path("figures/paper/fig_decomposition.png")
+    out = Path("research/paper_archive/figures/fig_decomposition.png")
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=160)
     print(f"wrote {out}")

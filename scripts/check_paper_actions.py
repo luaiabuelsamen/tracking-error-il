@@ -22,7 +22,7 @@ Two passes:
                  description, so each needs a reader.
 
 Deliberately not automatic. The gate is a checklist with an owner, and this
-script only makes the list. See docs/roadmap.md, "Submission gate".
+script only makes the list. See research/notes/roadmap.md, "Submission gate".
 """
 
 from __future__ import annotations

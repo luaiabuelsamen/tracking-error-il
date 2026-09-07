@@ -3,7 +3,8 @@
 The current manuscript is `main.tex`, compiled to `main.pdf`: four pages of
 main text, one page of references, and three pages of supplementary details.
 It is a standalone empirical paper, not a report of development sessions.
-The prior manuscript and PDF are preserved under `archive/`.
+The prior manuscript, its PDF and figures, and the CoRL template files are
+preserved under `research/paper_archive/`.
 
 The main hardware table focuses on the two completed comparisons. A brief
 main-text disclosure points to the full table in the appendix, which includes

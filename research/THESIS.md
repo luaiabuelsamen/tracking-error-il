@@ -36,7 +36,7 @@ that does neither gets killed, however fun.
 
 1. One sentence, years. This file.
 2. Read before build — 30–50 papers on the thread before the next line of
-   code (`docs/reading.md`).
+   code (`research/notes/reading.md`).
 3. Hardware or it isn't a claim.
 4. Reviewer's baseline first (for us: `Present_Load` / `Present_Current`).
 5. Figure before code — axes and expected curve drawn first.

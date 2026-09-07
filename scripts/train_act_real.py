@@ -28,7 +28,7 @@ Arms:
     ghist    [s[t][:6], s[t-k][:6]]           12-dim, ARM G: position context
                                               only, no a[t-1]. The control that
                                               separates "context" from "force"
-                                              (see docs/reading_notes thread A).
+                                              (see research/notes/reading_notes thread A).
 
     python scripts/train_act_real.py --arm base --root data/real/pickplace_real_v0 \
         --steps 3000 --out checkpoints/real_base
