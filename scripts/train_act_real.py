@@ -265,6 +265,11 @@ def main():
     ap.add_argument("--keep-static", action="store_true",
                     help="keep the stationary prefix of each episode (default: drop it)")
     args = ap.parse_args()
+    out = Path(args.out)
+    if out.exists():
+        raise SystemExit(f"refusing to overwrite existing output: {out}")
+    out.mkdir(parents=True)
+    (out / "train_args.json").write_text(json.dumps(vars(args), indent=2))
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
@@ -302,7 +307,6 @@ def main():
                 print(f"  step {step:5d}/{args.steps}  loss {recent:.4f}  "
                       f"{(time.time()-t0)/step:.2f}s/step", flush=True)
 
-    out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     policy.save_pretrained(out)
     np.savez(out / "norm_stats.npz", s_mean=ds.s_mean, s_std=ds.s_std,

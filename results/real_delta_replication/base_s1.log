@@ -1,0 +1,71 @@
+arm=base steps=6000 device=cuda
+  trim_static: 21476 -> 18549 frames (14% of frames were dead prefix)
+  using cached frames frames_96.npy (21476, 96, 96, 3)
+  18549 frames, state_dim=6
+WARNING:xformers:A matching Triton is not available, some optimizations will not be enabled
+Traceback (most recent call last):
+  File "/home/jetson3/projects/clean_env/xformers/xformers/__init__.py", line 57, in _is_triton_available
+    import triton  # noqa
+ModuleNotFoundError: No module named 'triton'
+  step   100/6000  loss 6.3651  0.51s/step
+  step   200/6000  loss 2.3599  0.51s/step
+  step   300/6000  loss 1.8614  0.51s/step
+  step   400/6000  loss 1.5277  0.51s/step
+  step   500/6000  loss 1.3044  0.51s/step
+  step   600/6000  loss 1.1104  0.51s/step
+  step   700/6000  loss 0.9333  0.51s/step
+  step   800/6000  loss 0.7917  0.51s/step
+  step   900/6000  loss 0.6743  0.51s/step
+  step  1000/6000  loss 0.6020  0.51s/step
+  step  1100/6000  loss 0.5267  0.51s/step
+  step  1200/6000  loss 0.4661  0.51s/step
+  step  1300/6000  loss 0.4210  0.51s/step
+  step  1400/6000  loss 0.3968  0.51s/step
+  step  1500/6000  loss 0.3630  0.51s/step
+  step  1600/6000  loss 0.3492  0.51s/step
+  step  1700/6000  loss 0.3239  0.51s/step
+  step  1800/6000  loss 0.3128  0.51s/step
+  step  1900/6000  loss 0.2960  0.51s/step
+  step  2000/6000  loss 0.2857  0.51s/step
+  step  2100/6000  loss 0.2802  0.51s/step
+  step  2200/6000  loss 0.2770  0.51s/step
+  step  2300/6000  loss 0.2670  0.51s/step
+  step  2400/6000  loss 0.2554  0.51s/step
+  step  2500/6000  loss 0.2475  0.51s/step
+  step  2600/6000  loss 0.2405  0.51s/step
+  step  2700/6000  loss 0.2355  0.51s/step
+  step  2800/6000  loss 0.2321  0.51s/step
+  step  2900/6000  loss 0.2274  0.51s/step
+  step  3000/6000  loss 0.2203  0.51s/step
+  step  3100/6000  loss 0.2136  0.51s/step
+  step  3200/6000  loss 0.2146  0.51s/step
+  step  3300/6000  loss 0.2122  0.51s/step
+  step  3400/6000  loss 0.2024  0.51s/step
+  step  3500/6000  loss 0.2079  0.51s/step
+  step  3600/6000  loss 0.1952  0.51s/step
+  step  3700/6000  loss 0.1965  0.51s/step
+  step  3800/6000  loss 0.1960  0.51s/step
+  step  3900/6000  loss 0.1981  0.51s/step
+  step  4000/6000  loss 0.1942  0.51s/step
+  step  4100/6000  loss 0.1967  0.51s/step
+  step  4200/6000  loss 0.1834  0.51s/step
+  step  4300/6000  loss 0.1854  0.51s/step
+  step  4400/6000  loss 0.1821  0.51s/step
+  step  4500/6000  loss 0.1785  0.51s/step
+  step  4600/6000  loss 0.1849  0.51s/step
+  step  4700/6000  loss 0.1740  0.51s/step
+  step  4800/6000  loss 0.1720  0.51s/step
+  step  4900/6000  loss 0.1730  0.51s/step
+  step  5000/6000  loss 0.1711  0.51s/step
+  step  5100/6000  loss 0.1660  0.51s/step
+  step  5200/6000  loss 0.1753  0.51s/step
+  step  5300/6000  loss 0.1707  0.51s/step
+  step  5400/6000  loss 0.1692  0.51s/step
+  step  5500/6000  loss 0.1649  0.51s/step
+  step  5600/6000  loss 0.1658  0.51s/step
+  step  5700/6000  loss 0.1668  0.51s/step
+  step  5800/6000  loss 0.1655  0.51s/step
+  step  5900/6000  loss 0.1656  0.51s/step
+  step  6000/6000  loss 0.1605  0.51s/step
+
+loss 6.3651 -> 0.1605 over 6000 steps (50.6 min); saved checkpoints/real50_base_v3_s1

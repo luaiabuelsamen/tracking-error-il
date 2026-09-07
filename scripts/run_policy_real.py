@@ -47,6 +47,7 @@ if os.path.realpath(sys.executable) != os.path.realpath(_VENV) and os.path.exist
 
 import argparse
 import time
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -54,6 +55,35 @@ import torch
 
 FPS = 30
 GRIPPER = 5
+
+
+def save_showcase_video(frames, timestamps, path):
+    """Encode after shutdown so video compression does not delay control."""
+    if not frames:
+        return
+    height, width = frames[0].shape[:2]
+    fps = ((len(frames) - 1) / (timestamps[-1] - timestamps[0])
+           if len(frames) > 1 else FPS)
+    cmd = ["ffmpeg", "-v", "error", "-n", "-f", "rawvideo", "-pix_fmt", "rgb24",
+           "-s", f"{width}x{height}", "-r", str(fps), "-i", "pipe:0", "-an",
+           "-c:v", "libx264", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(path)]
+    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    try:
+        for frame in frames:
+            proc.stdin.write(np.ascontiguousarray(frame).tobytes())
+    finally:
+        proc.stdin.close()
+        code = proc.wait()
+    if code:
+        raise RuntimeError(f"video encoder failed: {code}")
+    print(f"saved showcase video: {path}")
+
+
+def send_target(robot, motor_names, target):
+    """Return the post-limit target, in the policy's joint order."""
+    sent = robot.send_action({f"{m}.pos": float(target[i])
+                              for i, m in enumerate(motor_names)})
+    return np.array([sent[f"{m}.pos"] for m in motor_names], np.float32)
 
 
 def build_observation(arm, pos, a_prev, a_prev2, stats, k_hat, hist):
@@ -90,6 +120,7 @@ def main():
                     help="degrees per step per joint; 99.9th pct of the demos")
     ap.add_argument("--image-size", type=int, default=96)
     ap.add_argument("--out-traj", default=None, help="npz to save the rollout")
+    ap.add_argument("--out-video", default=None, help="showcase MP4, recorded from policy handoff")
     ap.add_argument("--jumpstart", type=int, default=0,
                     help="replay this many demo actions open-loop before handing over")
     ap.add_argument("--jumpstart-episode", type=int, default=0)
@@ -99,6 +130,13 @@ def main():
     ap.add_argument("--dry-run", action="store_true",
                     help="run the full loop but never send an action to the arm")
     args = ap.parse_args()
+    if args.out_video:
+        import shutil
+        if not shutil.which("ffmpeg"):
+            raise SystemExit("ffmpeg is required for video recording")
+        if Path(args.out_video).exists():
+            raise SystemExit("refusing to overwrite video")
+        Path(args.out_video).parent.mkdir(parents=True, exist_ok=True)
 
     import logging
     logging.getLogger().setLevel(logging.ERROR)   # clamp warnings drown the trace
@@ -180,9 +218,7 @@ def main():
         print(f"jumpstart: replaying {len(demo)} demo actions from episode "
               f"{args.jumpstart_episode} open-loop")
         for k, act in enumerate(demo):
-            robot.send_action({f"{m}.pos": float(act[i])
-                               for i, m in enumerate(motor_names)})
-            a_prev2, a_prev = a_prev, act.astype(np.float32)
+            a_prev2, a_prev = a_prev, send_target(robot, motor_names, act)
             obs = robot.get_observation()
             hist.append(np.array([obs[f"{m}.pos"] for m in motor_names], np.float32))
             time.sleep(period)
@@ -193,7 +229,9 @@ def main():
         a_prev = a_prev2 = None
         hist = []
     traj = []
+    video_frames, video_times = [], []
     t_start = None
+    rollout_complete = False
     try:
         for step in range(args.max_steps):
             t0 = time.perf_counter()
@@ -204,6 +242,9 @@ def main():
             hist.append(pos)
 
             frame = obs["front"]
+            if args.out_video:
+                video_frames.append(np.asarray(frame).copy())
+                video_times.append(time.perf_counter())
             img = cv2.resize(np.asarray(frame), (args.image_size, args.image_size),
                              interpolation=cv2.INTER_AREA)
             img_t = torch.from_numpy(img.copy()).permute(2, 0, 1).float().div(255)
@@ -217,36 +258,51 @@ def main():
                 }).squeeze(0).cpu().numpy()
             action = a_norm * stats["a_std"] + stats["a_mean"]
 
+            applied = action.astype(np.float32)
             if not args.dry_run:
                 # send_action keeps only keys ending in .pos; without the suffix
                 # the write set is empty and sync_write raises StopIteration.
-                robot.send_action({f"{m}.pos": float(action[i])
-                                   for i, m in enumerate(motor_names)})
-            a_prev2, a_prev = a_prev, action.astype(np.float32)
+                applied = send_target(robot, motor_names, action)
+            a_prev2, a_prev = a_prev, applied
 
-            traj.append((pos.copy(), action.astype(np.float32).copy()))
+            traj.append((pos.copy(), action.astype(np.float32).copy(), applied.copy(),
+                         state.copy(), time.perf_counter() - t_start))
             if step % 60 == 0:
                 print(f"  {step:4d} pos " + " ".join(f"{v:6.1f}" for v in pos)
                       + "  cmd " + " ".join(f"{v:6.1f}" for v in action), flush=True)
             time.sleep(max(0.0, period - (time.perf_counter() - t0)))
+        rollout_complete = True
     except KeyboardInterrupt:
         print("\ninterrupted")
+        raise
     finally:
-        robot.disconnect()      # disable_torque_on_disconnect releases the arm
-        print("disconnected, torque released -- the arm is limp and will drop.")
-        if traj:
-            P = np.array([t[0] for t in traj]); A = np.array([t[1] for t in traj])
-            if len(traj) > 1 and t_start is not None:
-                hz = len(traj) / (time.perf_counter() - t_start)
-                print(f"achieved control rate: {hz:.1f} Hz (target {FPS})"
-                      + ("   <-- SLOW, chunks are stretched" if hz < FPS * 0.8 else ""))
-            out = Path(args.out_traj) if args.out_traj else None
-            rng = P.max(0) - P.min(0)
-            print("\nper-joint travel over the episode (deg):")
-            print("  " + " ".join(f"{v:6.1f}" for v in rng))
-            print(f"  total path length: {np.abs(np.diff(P, axis=0)).sum():.1f} deg")
-            if out:
-                np.savez(out, pos=P, action=A); print(f"  saved {out}")
+        try:
+            # Save before shutdown: a servo fault must not erase a completed rollout.
+            if traj:
+                P = np.array([t[0] for t in traj]); A = np.array([t[1] for t in traj])
+                if len(traj) > 1 and t_start is not None:
+                    hz = len(traj) / (time.perf_counter() - t_start)
+                    print(f"achieved control rate: {hz:.1f} Hz (target {FPS})"
+                          + ("   <-- SLOW, chunks are stretched" if hz < FPS * 0.8 else ""))
+                out = Path(args.out_traj) if args.out_traj else None
+                rng = P.max(0) - P.min(0)
+                print("\nper-joint travel over the episode (deg):")
+                print("  " + " ".join(f"{v:6.1f}" for v in rng))
+                print(f"  total path length: {np.abs(np.diff(P, axis=0)).sum():.1f} deg")
+                if out:
+                    np.savez(out, pos=P, action=A,
+                             applied_action=np.array([t[2] for t in traj]),
+                             observation_state=np.array([t[3] for t in traj]),
+                             elapsed_s=np.array([t[4] for t in traj]),
+                             rollout_complete=rollout_complete)
+                    print(f"  saved {out}")
+        finally:
+            try:
+                robot.disconnect()      # failure remains fatal; never claim torque was released
+                print("disconnected, torque released -- the arm is limp and will drop.")
+            finally:
+                if getattr(args, "out_video", None):
+                    save_showcase_video(video_frames, video_times, args.out_video)
 
 
 if __name__ == "__main__":

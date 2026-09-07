@@ -1,0 +1,21 @@
+{
+  "status": "interrupted after repeated gripper overload; not planned fixed-sample completion",
+  "recorded_outcomes": 37,
+  "complete_pairs": 18,
+  "base_success_complete": 1,
+  "delta_success_complete": 12,
+  "base_only": 1,
+  "delta_only": 12,
+  "both": 0,
+  "neither": 5,
+  "difference": 0.6111111111111112,
+  "paired_bootstrap_95_ci": [
+    0.3333333333333333,
+    0.8333333333333334
+  ],
+  "exact_mcnemar_p": 0.00341796875,
+  "interpretation": "Descriptive interim analysis; outcome-dependent hardware interruption limits fixed-sample inference. No general across-seed significance claimed.",
+  "missing_trajectories": [
+    34
+  ]
+}

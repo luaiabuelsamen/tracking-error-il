@@ -1,0 +1,11 @@
+{
+  "session": "2026-09-06T10:43:56",
+  "trial": 34,
+  "pair": 17,
+  "arm": "delta_s1",
+  "returncode": -6,
+  "rollout_complete": true,
+  "trajectory_missing": true,
+  "reason": "Operator-supplied traceback: ID 6 overload during disconnect after policy loop; old cleanup did not save trajectory. Outcome awaits operator.",
+  "source": "user terminal transcript"
+}

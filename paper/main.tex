@@ -1,1083 +1,405 @@
 \documentclass{article}
-
-\usepackage{corl_2026} % Anonymized submission mode.
-% \usepackage[final]{corl_2026} % Camera-ready.
-% \usepackage[preprint]{corl_2026} % Preprint: shows authors.
-
+\usepackage[preprint]{corl_2026}
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
-
 \graphicspath{{../figures/paper/}}
+\hypersetup{pdftitle={Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms},
+ pdfauthor={Luai Abuelsamen}, pdfsubject={Research preprint}}
 
-% Draft v0.6, 2026-08-18. Canonical source (docs/paper.md frozen at v0.4).
-% Status: main grid final (5 seeds); guarded column in progress. Hardware
-% baseline comparison landed 2026-09-03 (App. D); the newton scale still
-% needs a load cell. Full lab record in docs/findings.md.
-
-\title{A Retroactive Contact Channel for Behavior Cloning on Low-Cost Arms}
-
-% Authors visible only under [final]/[preprint].
-\author{
-  Luai Abuelsamen\\
-  University of California, Berkeley\\
-  \texttt{luai\_abuelsamen@berkeley.edu}
-}
-
+\title{Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms}
+\author{Luai Abuelsamen\\University of California, Berkeley\\
+\texttt{luai\_abuelsamen@berkeley.edu}}
 \begin{document}
 \maketitle
 
-%===============================================================================
-
 \begin{abstract}
-Low-cost servo arms ship without force sensing, and standard
-imitation-learning stacks observe joint positions only, so learned policies
-close the gripper open-loop against contact. For logs that record
-synchronized joint-position commands and measured positions --- which is
-what the public SO-100/SO-101 corpus already contains --- the servo tracking
-error $\delta = a[t{-}1] - s[t]$ is a contact proxy computable after the
-fact, from fields those logs already carry. Current stacks discard it. In a
-pre-registered six-design study at 280 demonstrations on a simulated
-force-critical task (5 seeds $\times$ 100 paired episodes), every
-observation carrying this channel outperforms the channel-free base, while
-predicting $\delta$ as an auxiliary training target does not: the channel
-must be observed, not merely learned. The strongest design appends a
-free-motion-compensated residual, the \emph{lag excess}, reaching 26.6\%
-success against 6.2\% ($+20.4$ points, $t = 4.7$), against a pre-declared
-resolution of 11.6 points at five seeds. A position-history control with no
-access to the channel reaches a comparable level, so this grid establishes
-that contact-relevant temporal information helps and not that this channel
-is uniquely capable. Because the lag excess reads one more frame of action
-history than a one-step baseline, we also ran an
-information-matched control; the advantage persists at $+11.9$ points
-(three seeds; 95\% CI $[+3.3, +20.7]$), below the bar at that seed count.
-On 546 episodes across 16 public teleoperation datasets the pre-registered
-prediction that successful grasps carry higher $\delta$ fails: high $\delta$
-at grasp time accompanies failure, consistent with operators forcing jammed
-grasps, which rules out mining such corpora for success labels through this
-channel alone. Code and data at [URL].
+When a robot records commanded and measured joint positions, their difference
+provides an observation of actuator response that can be reconstructed without
+an additional sensor or a fitted force estimator.
+We study this tracking error as an additional input to behavior cloning on a
+low-cost SO-101 arm. In simulation, placement success increases from 6.2\% with
+position observations to 21.8\% with tracking error across five training seeds,
+but position history reaches 20.3\% across three seeds, leaving the specific
+benefit of tracking error unresolved. On hardware, policies trained on the same
+50 demonstrations achieve 9/20 and 14/20 placements with tracking error against
+5/20 and 1/20 for their position-only counterparts in two completed
+evaluations. These
+results support tracking error as a useful candidate observation while exposing
+substantial variation across training seeds and limits to its interpretation as
+contact feedback, and a study of archived teleoperation data shows why large
+tracking error alone is an unreliable grasp-success label.
 \end{abstract}
-
-\keywords{Imitation Learning, Force Estimation, Low-Cost Manipulation}
-
-%===============================================================================
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.9\linewidth]{fig_teaser.png}
-  \caption{Two policies, identical scene and data budget (280
-  demonstrations). Top: the stock observation (joint positions only)
-  reaches, grips, and releases without lifting. Bottom: the same network
-  with the contact channel appended to its state vector places the block.
-  The traces plot $|\delta|$ on the jaw joint; the contact plateau in both
-  is the signal the top policy never receives. Both are computed from the
-  same log fields.}
-  \label{fig:teaser}
-\end{figure}
+\keywords{Behavior Cloning, Proprioception, Low-Cost Manipulation}
 
 \section{Introduction}
-\label{sec:intro}
+A position command describes an intended motion, and during manipulation the
+gap between that command and the position actually reached can persist for many
+steps---because a finger has met an object, because a joint is carrying a load,
+or simply because the actuator has not caught up. A policy given only the
+current joint position must infer all of this from its remaining observations,
+whereas supplying the previous command makes the discrepancy directly
+available.
 
-Low-cost servo arms and open imitation-learning stacks have made
-manipulation research broadly accessible: ACT on ALOHA-class
-hardware~\citep{zhao2023act}, diffusion policies~\citep{chi2023diffusion},
-and the LeRobot ecosystem~\citep{cadene2024lerobot} with its VLA
-descendants~\citep{kim2024openvla, black2024pi0, shukor2025smolvla,
-nvidia2025groot} all train behavior cloning on teleoperated
-demonstrations, and all share one proprioceptive default: the current
-measured joint positions, one timestep, nothing else
-(Sec.~\ref{sec:related}).
+This is an attractive observation for inexpensive robots because it requires
+neither an added sensor nor a force-estimation model, and wherever recorded
+commands correspond to the goals applied to the robot at a known cadence it can
+be reconstructed from demonstrations that already exist. Convenience is not
+value, though: tracking error mixes contact with motion lag and actuator
+effects, and richer temporal inputs may carry the same useful information. The
+practical question is whether exposing this discrepancy helps an imitation
+policy, and what evidence would justify attributing any benefit to contact.
 
-This default fails at contact. The arms carry no force or tactile sensors,
-so a position-only policy cannot distinguish a seated grasp from an empty
-close; the failures are crushed objects, unseated grips, and drops during
-transport. The information needed to distinguish these cases is present
-in the logs. The servos are proportional position controllers, so when the jaw meets an object the measured position stalls
-while the command deepens, and the gap reflects the servo's deflection
-under load. The authors of ACT state the physics directly: force ``is
-implicitly defined by the difference between'' leader and follower
-positions~\citep{zhao2023act}, and a recent intervention study shows on real
-hardware, across four force-critical tasks, that removing this
-discrepancy signal from ACT's action labels breaks
-them~\citep{wong2026beyond}. Yet the stack keeps one
-operand of that subtraction in the action labels and never provides the
-difference as an observation; the LeRobot Feetech driver reads only
-\texttt{Present\_Position} into the state vector, and the reference ACT
-implementation raises on \texttt{n\_obs\_steps != 1}~\citep{cadene2024lerobot}.
+We investigate that question through a simulation comparison, which lets us set
+explicit tracking error against raw action history, position history and a
+compensated residual, and a small hardware study, which asks whether the
+simplest of those features transfers to human demonstrations on one SO-101. The
+two completed hardware comparisons favour tracking error. The experiments motivate
+retaining command history in policy interfaces, and they fall well short of a
+generally reliable force-aware controller.
 
-The channel has a property no current- or torque-based estimator shares:
-it is recoverable retroactively. Wherever a recorded dataset's
-\texttt{action} field holds joint-position commands synchronized with
-\texttt{observation.state} in a common frame,
-$\delta = a[t{-}1] - s[t]$ can be computed after the fact; 16 of the 20
-public datasets we targeted passed our frozen inclusion gates
-(Sec.~\ref{sec:corpus}, which also details the caveats on action
-semantics).
+\section{Related work}
+Sensorless force estimation has a longer history than its use in learned
+manipulation. Hwang et al.~\citep{hwang2018virtual} develop a virtual torque
+sensor for RC servos using dynamic system identification. More recently,
+FACTR~2~\citep{oh2026factr2} learns external-torque estimates from free-motion
+data and uses force-informed resampling to improve policy learning. We study
+a simpler input, the uncalibrated command--position difference itself, which
+requires no fitted estimator and makes correspondingly weaker claims about
+physical force.
 
-That property is what separates this channel from the alternatives, and
-the separation is concrete rather than rhetorical. A recent survey of
-force sensing for manipulation learning organises the field into families
---- finger-mounted optical, finger force, finger audio, joint torque,
-wrist force/torque, and combinations --- every one of which adds
-hardware. That survey states the premise of this work in its own terms:
-``current robot foundation models focus exclusively on visual input and
-position control. Relying on position alone might not be sufficient to
-achieve true dexterity, as small errors in position may lead to large
-errors in force in stiff systems''~\citep{xie2025forceful}. It instances
-Gemini Robotics, 2000--5000 episodes per task over twelve months, as not
-including force. Recovering the quantity from logs never instrumented for
-it is not among the options it catalogues, and the phrase ``tracking
-error'' does not appear in it. Of 123 archived
-SO-100/SO-101 datasets we could read, every one records
-\texttt{observation.state} as joint positions alone --- no load, no
-current. The remedy of \citet{wong2026beyond} needs motor current or
-joint effort, which the recording stack caps at half scale on the gripper
-of every follower it connects (App.~\ref{app:hardware}); FACTR~2's estimator
-infers external torque as the residual between motor torque read from
-current and a predicted free-space torque, requiring no dedicated
-force-torque sensor at collection or deployment~\citep{oh2026factr2} ---
-but requiring current, which those logs do not carry;
-\citet{hwang2018virtual} needs a per-servo system identification
-performed on the hardware itself. None of those requirements is
-satisfiable from a position-only log. The tracking error needs two fields
-such logs already store.
-The same signal supports runtime enforcement from bus telemetry alone
-(Sec.~\ref{sec:guard}).
+Wong et al.~\citep{wong2026beyond} show that leader--follower discrepancies in
+teleoperation can carry interaction cues: removing them from ACT's action
+labels degrades performance in force-critical phases, while torque proxies
+restore contact-aware behavior. Our intervention instead adds the discrepancy
+to the policy observation, which makes this an observation-design study rather
+than a new sensorless-force principle. The distinction matters statistically as
+well, since adding the feature adds access to a previous command, and history
+that helps under partial observability can equally support shortcuts that
+predict previous actions instead of the actions the task
+needs~\citep{wen2020copycat}. We therefore compare several temporal
+observations in simulation rather than reading every improvement over a
+position-only baseline as evidence for force estimation.
 
-We ask what a small-data policy must observe to use this channel, and
-compare six observation designs that differ only in which function of the
-logged pair enters the state vector. The best tested form is the
-\emph{lag excess} $e[t] = \delta[t] - \hat{K} r[t]$, which subtracts a
-per-joint free-motion following-lag model fit on the jaw-open frames of
-the training demonstrations, label-free and frozen before training
-(Sec.~\ref{sec:formulation}; implementation details in
-App.~\ref{app:impl}).
-
-Three results are established at our pre-declared seed resolution
-(Sec.~\ref{sec:grid}). Channel-bearing observation beats channel-free in
-every input form. The tested auxiliary-prediction baseline recovers none
-of the direct-input gain: the same information moves performance as an
-input and not as a training target. And the lag excess is the only tested
-design to beat raw action history (26.6\% vs.\ 13.8\%, CI
-$[+2.8, +22.6]$), though that baseline reads one fewer frame of action
-history than the lag excess does; against a control matched on those raw
-inputs the margin is $+11.9$ points (CI $[+3.3, +20.7]$ at three seeds).
-Whether its edge over raw $\delta$ comes from the subtraction is not
-resolved at this budget, so we present it as the recommended
-instantiation, not a finding about the subtraction itself. On
-the public corpus, a pre-registered prediction fails: high $\delta$ at
-grasp time accompanies failed grasps, and the traces attribute this to
-operators over-commanding at contact (Sec.~\ref{sec:corpus}). A 40-line guard on the same telemetry removes
-96\% of simulated crush events without retraining (Sec.~\ref{sec:guard}).
-
-We summarize our contributions below:
-\begin{itemize}
-  \item Characterization of servo tracking error as a contact/load proxy
-  with a validity envelope and a resolution-vs-margin design rule
-  (Sec.~\ref{sec:channel}, \ref{sec:validity}).
-  \item A pre-registered six-design observation study at 280
-  demonstrations: the channel helps as an input and not as an auxiliary
-  prediction target (Sec.~\ref{sec:grid}).
-  \item A pre-registered 16-dataset corpus study associating high
-  $\delta$ at grasp with proxy-defined failure (Sec.~\ref{sec:corpus}).
-  \item A runtime jaw guard from bus telemetry alone, with paired
-  deleted-success accounting (Sec.~\ref{sec:guard}).
-\end{itemize}
-
-%===============================================================================
-
-\section{Related Work}
-\label{sec:related}
-
-\textbf{Sensorless force estimation.} Momentum-residual observers recover
-external torque on torque-controlled arms~\citep{deluca2005sensorless,
-haddadin2017collisions}; virtual force sensors extend the idea to
-low-cost platforms~\citep{yen2019virtual}, and \citet{hwang2018virtual}
-estimate torque from commanded and measured positions on hobby servos,
-prior art for the raw channel --- though their estimator is built on a
-dedicated per-servo dynamic system identification, so while its inference
-inputs are positions, the model it needs cannot be obtained from an
-archived log without access to the hardware that produced it; series-elastic actuation made
-deflection-as-force a design principle~\citep{pratt1995sea,
-williamson1995sea}.
-NeuralActuator~\citep{dou2026neuralactuator} learns per-actuator models
-for external-force perception on this servo class, and
-FACTR~2~\citep{oh2026factr2, liu2025factr} feeds estimated external
-torque into behavior cloning on commodity arms. Our lag excess is a
-deliberate special case of FACTR~2's central idea, a linear free-motion
-baseline fit on positions alone; the restriction makes the signal
-retroactive, since every method above consumes live current or load
-telemetry, a calibration stage, or both. Their own input ablation is the
-closest independent test of our premise: comparing histories of joint
-positions, of positions and velocities, and of positions, velocities and
-tracking error, they report that the last ``consistently outperforms the
-other inputs, suggesting that tracking error provides useful information
-about controller effort and actuator response.'' That is measured on
-hardware, and it concerns the inputs to a force estimator rather than to
-a policy --- but it is the estimator-side form of the question our
-position-history control asks of a policy, namely whether joint history
-already subsumes the tracking-error channel. Closest to this work,
-\citet{wong2026beyond} identify the same channel and test it by
-subtraction: across four real-world force-critical tasks --- surface
-following, insertion, stiffness discrimination, force-based stopping ---
-they remove the leader--follower discrepancy from ACT's action labels and
-report severe failures in exactly the force-critical phases, restoring
-competence with torque proxies drawn from motor current or joint effort.
-That is the real-hardware form of the observability claim our grid can
-only make in simulation, and it establishes the core of that claim
-independently of us. Two differences remain, and they are the ones that
-matter for a fleet of archived data. Their intervention is subtractive,
-establishing that the cue matters; ours is additive, asking which
-function of it a small-data policy should observe. The hardware class
-differs too: they evaluate on an ALOHA-class pair with three cameras
-including a wrist-mounted view, where we target arms an order of
-magnitude cheaper whose archived logs carry one scene camera or none.
-And their remedy estimates joint torque from motor current, $\tau = k_t
-I$ --- telemetry the recording stack caps on the contact joint
-(App.~\ref{app:hardware}), that none of the archived datasets in our
-corpus records, and whose retroactive recovery from such logs they do
-not address --- while the channel studied here needs two position fields
-every one of those logs already stores.
-
-\citet{xie2025forceful} temper this: they judge that outside a few task
-classes ``the performance of imitation learning models is not at a level
-of dynamics where force truly matters''. The exceptions they name are
-pouring precise volumes, tight-tolerance insertion, and grasping fragile
-and deformable objects --- the last being the class our force-band task
-belongs to. We read that as bounding where a force channel pays rather
-than as disputing that it does, and we adopt the bound: the grid measures
-observation design on a force-critical task, not manipulation in
-general.
-
-\textbf{Observation design in imitation learning.}
-ACT~\citep{zhao2023act}, Diffusion Policy~\citep{chi2023diffusion},
-OpenVLA~\citep{kim2024openvla}, $\pi_0$~\citep{black2024pi0},
-SmolVLA~\citep{shukor2025smolvla}, and GR00T~N1~\citep{nvidia2025groot}
-all condition on measured joint positions at one or two timesteps; none
-states a rationale for excluding actuator-error signals. The field's
-argument against richer observations is causal confusion: past actions
-invite copycat shortcuts~\citep{dehaan2019causal, wen2020copycat,
-torne2025pasttoken}. Our grid places both effects in one table.
-
-\textbf{Grasp monitoring and runtime safety.} Industrial grippers ship
-grasp verification from actuator feedback as firmware: Robotiq's
-object-detection register fires on commanded-vs-actual discrepancy under
-a current limit, and the two are separable in their firmware --- the
-current limit stops the fingers, while the detection flag is defined on
-finger position against requested position~\citep{robotiq2019manual}.
-That is the observation-and-enforcement split of this paper, shipping in
-a commercial gripper. The same manual records its failure mode: detection
-``may not detect an object even if it is successfully grasped'', for
-instance a thin object in a fingertip grasp --- a binary detector cannot
-separate a light grasp from none, which is the distinction between
-detecting contact and measuring it. SCHUNK advertises workpiece-loss
-detection integrated with gripping-force maintenance~\citep{schunk_egk};
-tactile alternatives require added sensing~\citep{calandra2017feeling}.
-Academic safety filters for learned policies~\citep{alshiekh2018shielding,
-hsu2024safetyfilter, brunke2022safelearning} consume a dynamics model, a
-state estimate, or exteroception; the guard of Sec.~\ref{sec:guard}
-applies the industrial telemetry-only approach to wrap learned policies,
-and we have not found a filter in the academic literature that runs from
-servo-bus telemetry alone.
-
-%===============================================================================
-
-\section{Method}
-\label{sec:method}
-
-\subsection{Problem formulation}
-\label{sec:formulation}
-
-Let $q[t]$ denote measured joint positions in integer encoder counts and
-$g[t]$ commanded goal positions, both logged at every control step (in
-LeRobot format, \texttt{observation.state} and \texttt{action}). The
-tracking error and lag excess are
+\section{Observation and experimental design}
+Let $q_t$ be the measured joint position and $g_{t-1}$ the preceding applied
+position goal, expressed in the same coordinate system. We define
 \begin{equation}
-  \delta[t] = g[t{-}1] - q[t], \qquad
-  e[t] = \delta[t] - \hat{K} \cdot r[t], \qquad r[t] = g[t{-}1] - g[t{-}2],
+\delta_t = g_{t-1}-q_t,\qquad
+ o_t^{\mathrm{base}}=[I_t,\widetilde q_t],\qquad
+ o_t^{\delta}=[I_t,\widetilde q_t,\delta_t/c],
 \end{equation}
-where $r[t]$ is the one-step command rate and $\hat{K}$ is a per-joint
-coefficient fit by least squares through the origin on the free-motion
-(jaw-open) frames of the training demonstrations, computed once and
-frozen before training (full computation, alignment convention, and
-normalization in App.~\ref{app:impl}). Each servo runs a proportional
-position loop, so joint torque obeys $\tau \approx K_p \cdot \delta$ and
-jaw grip force obeys $F \approx \kappa \cdot \delta_{\text{jaw}}$ for a
-calibration constant $\kappa$ in newtons per count. Two conditions make
-$\delta$ meaningful: the logged action must be the command actually
-applied to the servo, and command-to-state timing must be known and
-stable. Both hold by construction in our simulated plant; on real logs
-they are empirical properties of the recording stack
-(Sec.~\ref{sec:corpus}). We study which function of the logged pair
-$(q, g)$ a policy trained on $N = 280$ demonstrations should observe.
+where $I_t$ is the camera observation and $\widetilde q_t$ uses training-set
+normalization. The scale $c=8$ is fixed in each dataset's joint-coordinate
+units and is not a conversion to torque. Under approximately static contact,
+tracking error may reflect load on a position servo, but during motion it also
+contains following error, so we use it as an observation without assigning
+every nonzero value to external contact.
 
-\subsection{The channel and its envelope}
-\label{sec:channel}
+\textbf{Simulation.} We train ACT policies~\citep{zhao2023act} on 280 scripted
+pick-and-place demonstrations with randomized object and scene properties.
+All designs use the same data and training budget: 12,000 steps with 96-pixel
+front and gripper-camera images. Each trained policy is evaluated on 100
+episodes with shared scene seeds across designs, five training seeds being
+available for the original designs and three for the position-history control.
+The learning comparison uses placement success with the crush threshold
+disabled, so it tests grasping and transport rather than regulation within a
+safe force band.
 
-On our simulated plant the jaw calibration is $\kappa = 2.00$\,N per
-count, linear while the jaw is seated and quasi-static, with held-out
-RMSE 4.3\,N over 4--78\,N. The same fit carries an intercept of
-$-3.6$\,N. It is not a measured offset: the fitted forces span
-4--78\,N, so the smallest $\delta$ the fit ever saw is near 3.8 counts and
-$\delta = 0$ lies outside its domain --- the intercept is an
-extrapolation artifact, which is why the proportional law of
-Sec.~\ref{sec:formulation} carries none. Within the fitted range $\kappa$
-converts \emph{differences} in $\delta$ to differences in force; it is used here only in the quantization rule
-below, which depends on the slope alone, and a reader mapping an absolute
-$\delta$ to newtons with $\kappa$ and no intercept is off by that
-constant. These constants describe the modeled plant:
-the simulator implements the servo loop of Sec.~\ref{sec:formulation}, so
-its $\delta$-to-force map is clean by construction; real STS3215 hardware
-adds stiction, backlash, deadband, saturation, and thermal drift. Bench
-measurement confirms the saturation and characterizes the baseline
-registers (App.~\ref{app:hardware}); the remainder is still unmeasured. What
-simulation can characterize is the structure of the proxy: outside the
-seated quasi-static regime the signal is not a load reading, since free
-motion contributes following lag (which $e[t]$ removes) and fast
-transport contributes inertial deflection
-(App.~\ref{app:mech}, Fig.~\ref{fig:mech}). Encoder quantization yields a
-design rule: a safe-grip window of force margin $M$ requires an observed
-quantum on the order of $M / \kappa$. We state this as an order and not as
-a threshold. Treated as a necessary condition it is falsified by our own
-sweep, which retains most of its success at quanta coarser than
-$M / \kappa$ in every margin tested; the rule fires conservatively, ahead
-of the degradation it predicts, by factors of 1.2--3.1 across three
-margins (Sec.~\ref{sec:validity}). What survives is the mechanism: the
-failure is a cliff, and its location moves with the margin.
+\textbf{Hardware.} We collect 50 teleoperated demonstrations of placing an
+adapter inside a tape roll using one SO-101 and one overhead camera. Both
+policies use the same 18,549 training frames after removal of stationary
+prefixes, 96-pixel images, and 6,000 training steps. The proprioceptive input
+has six dimensions for the base and twelve for tracking error; all other
+architecture and optimization settings are shared. Three seeds are trained, one
+checkpoint per observation design and seed.
 
-\subsection{System, task, and data}
-\label{sec:system}
+Evaluation begins after replaying 115 commands from a fixed demonstration,
+which places the arm near the grasp, after which each policy controls up to 400
+steps. ACT predicts and executes 30-command chunks, so observations inform the
+next chunk rather than each command within it. A relative-target limiter is
+shared by both policies, and the tracking-error input uses the command returned
+\emph{after} limiting. Trials are paired by training seed and physical reset,
+with base-first and delta-first order alternating across pairs, and an operator
+records whether the adapter is placed inside the roll. We plan 20 pairs per
+seed and retain failures, including outcomes from completed rollouts whose
+shutdown reports an error. Appendix~\ref{app:protocol} gives implementation
+and interruption details.
 
-All experiments except Sec.~\ref{sec:corpus} run on a simulated
-STS3215-class arm (five joints plus a one-DoF jaw, six servos) with a
-calibrated contact model. The task is pick-and-place of an object whose
-retention requires grip force above a lift threshold and whose integrity
-fails above a crush threshold. A privileged-force oracle passes an
-admission test on this task and, as a negative control, shows that
-standard rigid-block pick-and-place cannot distinguish force-aware from
-force-blind control at all. Demonstrations come from a scripted
-closed-loop teacher (280 episodes, success-filtered) whose grip regulator
-acts on the same bus-observable tracking error the arms study, with
-per-episode grip-depth targets drawn from $U[12, 45]$ counts and injected
-recovery perturbations; no privileged force sensing enters collection, the
-teacher's commands are the applied commands by construction, and the
-observation arms see only functions of $(q, g)$. Policies are
-ACT~\citep{zhao2023act}, trained for 12{,}000 steps at 96\,px, identical
-across arms; at
-this resolution we cannot rule out a camera deformation cue, but the base
-arm's floor performance shows any such cue is insufficient alone. Seed
-variance was measured before any comparison:
-$\sigma_{\text{seed}} \approx 10$ points at $n = 100$ evaluation
-episodes, so 5-seed comparisons resolve gaps of roughly 11 points and we
-claim nothing finer. Evaluation episodes are common-random-number paired:
-every arm and seed rolls out the identical episode sequence.
+\section{Results}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fig_observation_evidence.pdf}
+\caption{Tracking error improves on position-only observations in simulation
+and in two completed hardware comparisons. Left: bars are means; dots are
+individual training seeds (five per design, three for position history).
+Right: hardware success counts for the two completed evaluations. The full
+evaluation record, including an interrupted third comparison, appears in
+Appendix~\ref{app:protocol}.}
+\label{fig:evidence}
+\end{figure}
 
-\subsection{Observation designs}
-\label{sec:arms}
+\textbf{Temporal information helps in simulation; its best representation is
+unresolved.} Mean placement success is 6.2\% for the position-only base,
+13.8\% with the previous action appended, and 21.8\% with explicit tracking
+error. A compensated residual reaches 26.6\%, while position history alone
+reaches 20.3\% (Fig.~\ref{fig:evidence}). Because the residual subtracts a
+fitted free-motion term from tracking error and uses two previous commands,
+comparing it against one-command history changes both the information available
+and its representation. More importantly, position history performs comparably
+to tracking error without observing commands at all, so the grid supports
+supplying temporal information without resolving whether explicit tracking
+error is preferable to a suitable history. Predicting tracking error as an
+auxiliary training target gives 6.6\%: this particular auxiliary objective does
+not recover the benefit of supplying it as input.
 
-Six arms share the training recipe and differ only in the proprioceptive
-observation. \textbf{Base (A).} Measured positions $s[t]$ only: the stock
-LeRobot observation. \textbf{History (B).} $s[t]$ plus the previous
-action $a[t{-}1]$: the minimal change that makes $\delta$ recoverable in
-principle, and the arm the copycat literature~\citep{dehaan2019causal,
-wen2020copycat} warns about. \textbf{Delta (C).} $s[t]$ plus raw
-$\delta[t]$: the channel with its motion confound intact.
-\textbf{Auxiliary target (D).} $s[t]$ only, with $\delta[t]$ predicted as
-an auxiliary target through a small head at loss weight 0.1: the same
-information as supervision rather than input. \textbf{Lag excess (E).}
-$s[t]$ plus $e[t]$: the channel with free-motion lag subtracted.
-\textbf{Seat token (F).} $s[t]$ plus a latched binary seat bit from the
-guard's frozen stall detector run causally over $(s[t], a[t{-}1])$: the
-channel compressed to one bit.
-
-%===============================================================================
-
-\section{Experiments}
-\label{sec:experiments}
-
-We evaluate: \emph{(i) over what envelope is $\delta$ a valid
-contact/load proxy; (ii) which observation design exploits it at small
-data; (iii) does the channel predict grasp outcomes on the public
-corpus?}
-
-\subsection{Channel behavior on the simulated plant}
-\label{sec:validity}
-
-The calibration of Sec.~\ref{sec:channel} holds in the seated
-quasi-static regime. Because the simulator implements the servo loop that
-generates $\delta$, these numbers validate the proxy against our own
-plant model; their value is in mapping where the proxy's structure
-breaks. A stall detector on net travel and lag excess localizes seat
-events, and constructed adversarial negatives (free-space reversals,
-transport shakes) do not fire it within the declared envelope. Coarsening
-the observed channel eventually collapses force-aware grasping, and
-rerunning the sweep at a different margin moves the cliff accordingly ---
-which is the signature separating a resolution limit from the mere
-deletion of input bits. The collapse does not occur at $M / \kappa$: at a
-100\,N limit the channel holds 92\% and 75\% of its baseline placements at
-quanta of 4 and 8, both coarser than the predicted threshold, and the
-observed cliff runs 1.2--3.1$\times$ beyond the prediction across the
-three margins. The scale constant here is the pre-registered
-2.4\,N/count of the sweep rather than the $\kappa = 2.00$ of
-Sec.~\ref{sec:channel}; the discrepancy is reported rather than
-reconciled, since refitting a constant frozen before the sweep ran would
-defeat the pre-registration. \texttt{TYPICAL\_PEAK\_N}, a single median
-standing in for a contact peak-grip distribution spanning 19--56\,N, is
-the likely source, and the rule should be re-derived from that
-distribution before it is claimed quantitatively.
-
-\subsection{Observation design at 280 demonstrations}
-\label{sec:grid}
-
-Table~\ref{tab:grid} and Fig.~\ref{fig:grid} give the grid: 6 arms
-$\times$ 5 seeds $\times$ 100 paired evaluation episodes, identical
-otherwise. Arm definitions and directional predictions were frozen before
-implementation, with E vs.\ B declared the headline comparison; frozen
-documents, per-seed outcomes, and all runs are in the released
-repository. Alongside Welch's $t$ across seed means we report 95\% CIs
-from a hierarchical bootstrap resampling seeds, then episodes.
-
-One property of this evaluation bounds what the grid can show. All cells
-are scored with the crush limit disabled, so of the two bounds that make
-the task force-critical --- retention requires grip above a lift
-threshold, integrity fails above a crush threshold --- only the lower one
-is active. Under that setting a policy succeeds by gripping hard enough
-and is never penalised for gripping harder: detecting contact suffices,
-and force \emph{magnitude}, which is what distinguishes the tracking-error
-channel from a generic temporal observation, cannot pay. The choice
-isolates observation design from enforcement and we would make it again,
-but it means the headline comparison does not exercise the property the
-channel is for.
-
-We attempted to exercise it after the fact and report the attempt as a
-failed prediction. Re-evaluating the existing checkpoints at 120\,N and
-60\,N crush tiers, we predicted in advance that the channel arms would
-beat the position-history control, since regulating grip into a band
-requires magnitude and that control carries almost none. They did not:
-the lag-excess arm places 0 of 50 at both tiers against 8 of 150 pooled
-for position history, and at 60\,N every arm places zero. Crush counts do
-not separate the arms either --- the single lag-excess seed falls inside
-the three-seed spread of the control at both tiers.
-
-The screen could not have supported the prediction, for a reason already
-in our own measurements: force bounds in the demonstrations do not bound
-the clone. A policy trained on grips at or below 40\,N still crushed 15
-of 30 episodes at the 60\,N tier, and every policy at the larger budget
-crushes heavily at 120\,N. Respecting a ceiling the demonstrations never
-respected is not available to imitation on this data, whatever the
-observation carries. Testing whether the channel enables force regulation
-therefore requires training against a crush tier, which we have not run,
-and that is the clearest single piece of future work these experiments
-identify.
+\textbf{Hardware improvements depend on the trained policy.}
+Table~\ref{tab:hardware} reports each comparison separately, and tracking error
+improves placement by 20 percentage points for seed 0 and 65 points for seed 1.
+The exact two-sided McNemar tests compare discordant pairs within each seed:
+six versus two favour tracking error in seed 0, and fourteen versus one in
+seed 1, so the first comparison is inconclusive while the second shows a
+substantial difference between these two checkpoints. These tests quantify
+trial variation conditional on a trained policy, not variation over training
+seeds.
 
 \begin{table}[t]
-  \centering
-  \caption{Placement success (\%), mean $\pm$ std over 5 seeds (500
-  paired episodes per arm), with differences against the channel-free
-  base (A) and the action-history baseline (B). Brackets are
-  hierarchical-bootstrap 95\% CIs (resampling seeds, then episodes
-  within seeds); an interval containing zero is unresolved at this
-  budget. Best in bold.}
-  \label{tab:grid}
-  \small
-  \begin{tabular}{llccc}
-    \toprule
-    Arm & Observation & Success (\%) & vs.\ A & vs.\ B \\
-    \midrule
-    A base & $s[t]$ & $6.2 \pm 5.9$ & & \\
-    B history & $s + a[t{-}1]$ & $13.8 \pm 7.7$ & $+7.6\ [-0.8, +16.0]$ & \\
-    C delta & $s + \delta$ & $21.8 \pm 9.7$ & $+15.6\ [+5.6, +25.2]$ & $+8.0\ [-2.8, +18.6]$ \\
-    D aux-target & $s$; $\delta$ predicted & $6.6 \pm 4.0$ & $+0.4\ [-6.2, +6.4]$ & \\
-    E lag excess & $s + e$ & $\mathbf{26.6 \pm 7.8}$ & $\mathbf{+20.4}\ [+11.6, +29.0]$ & $\mathbf{+12.8}\ [+2.8, +22.6]$ \\
-    F seat token & $s +$ seat bit & $21.8 \pm 9.5$ & $+15.6\ [+6.0, +25.2]$ & $+8.0\ [-2.6, +18.6]$ \\
-    \bottomrule
-  \end{tabular}
+\centering
+\small
+\caption{Hardware placements and paired outcomes for the two completed evaluations.
+Discordances list tracking-error-only / base-only successes. See
+Appendix~\ref{app:protocol} for the interrupted evaluation.}
+\label{tab:hardware}
+\input{generated/hardware_table.tex}
 \end{table}
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.95\linewidth]{fig_decomposition.png}
-  \caption{What each comparison in the grid holds fixed. Blue circles vary
-  the \emph{form} of the observation at matched raw content; red diamonds are
-  presented as form comparisons but also differ in content, since the lag
-  excess consumes $a[t{-}2]$ through the commanded rate and the history
-  baseline does not; the grey square is a content comparison, which is the
-  point of that pair. The shaded band is the below-resolution zone, declared before the
-  grid ran as $15\sqrt{3/n}$ points at $\sigma_{\text{seed}} \approx 10$:
-  15 points at three seeds, 11.6 at five. Intervals are the hierarchical bootstrap
-  of Table~\ref{tab:grid}, resampling seeds and then episodes within seeds.}
-  \label{fig:decomposition}
-\end{figure}
+A third evaluation was interrupted by recurring hardware faults; its partial
+results and missing outcomes are reported in Appendix~\ref{app:protocol}.
 
-Three results resolve. First, channel-bearing observation beats
-channel-free in every input form: C, E, and F each clear the base by at
-least 15 points with intervals excluding zero (Table~\ref{tab:grid}).
-Second, the tested auxiliary-prediction design does not recover the
-direct-input gain: arm D lands equal to base while the same information
-as an input triples success; other auxiliary weightings and architectures
-could in principle close this gap, and none was tuned here. Third, in the
-comparison declared as headline before the confound below was known, only
-the lag-excess form beats action history at resolution, by 12.8 points
-(Welch's $t = 2.6$ across seed means, against a bar of 11.6 at five
-seeds); raw $\delta$'s 8-point margin over history does not resolve. That
-pair is confounded: $E$ consumes $a[t{-}2]$ through the commanded rate and
-the baseline does not, so it varies content as well as form, and it is
-superseded by the information-matched control $B2 = [s[t], a[t{-}1],
-a[t{-}2]]$, which $E$ exceeds by $+11.9$ (three seeds, CI $[+3.3,
-+20.7]$, below the three-seed bar of 15). We report $E{-}B$ because it was
-declared, and rest the form claim on $E{-}B2$. The
-remaining pairs stay open, including E against C (difference $+4.8$, CI
-$[-6.2, +15.8]$), so whether E's edge comes from the subtraction or from
-$\delta$ at all is not attributable at this budget;
-resolving $E{-}C$ by seed expansion would require roughly 40--60 seeds
-per arm at this $\sigma_{\text{seed}}$, and evaluation is already
-episode-paired. The frozen prediction named E the sharpest arm and
-expected D, E, and F to clear B; D's share of that prediction failed, as
-reported above. An interim 3-seed analysis flagged E's margin as resolved
-and F's as at-the-floor, and the expansion to 5 seeds confirmed both
-calls, collapsing F's margin over B and preserving E's. Caveats: five seed means per arm, a
-headline difference of similar magnitude to the declared resolution, and
-uncorrected secondary comparisons beyond the designated primary one.
-A best-seed robustness probe under object-property shifts (block mass
-$\times 0.5$ and $\times 1.5$, friction $\times 0.5$; $n{=}50$ paired
-episodes per condition, orderings only) shows the channel arms' margins
-persist under every shift while the channel-free base returns
-byte-identical outcomes in all conditions -- the signature of a policy
-that never interacts with the object's dynamics -- supporting the reading
-that channel-bearing policies regulate contact rather than replay a
-visual sequence (protocol and per-condition table in the repository).
+\textbf{A useful input is not necessarily an outcome label.} We also test a
+preregistered prediction that larger tracking error at detected grasp onset
+accompanies successful grasps in archived teleoperation data. Sixteen datasets
+with 546 episodes pass the inclusion gates, of which only two meet the
+predicted positive effect-size threshold; the pooled within-dataset effect is
+negative ($d=-0.39$), scored against a gripper-retention proxy rather than
+manually verified placements. The result rejects this proposed labeling rule
+and illustrates why a discrepancy can indicate resistance without identifying a
+successful grasp (Appendix~\ref{app:corpus}).
 
-Within those limits the ordering supports one design statement: at small
-data on this force-critical task, observing the channel is the change
-that moves performance, and the free-motion-compensated form is the best
-tested way to observe it.
+\section{Discussion and conclusion}
+Tracking error appeals for a practical reason: it exposes actuator response
+using signals the command interface already carries. The simulation comparison
+and the two completed hardware comparisons show that it can help behavior
+cloning at a small demonstration budget, but nothing here establishes that the
+policy learns force regulation---position history is competitive in simulation,
+no history control has been evaluated on hardware, and the hardware task never
+requires respecting a measured force threshold.
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.85\linewidth]{fig2_grid.png}
-  \caption{The observation-design grid. Bars are 5-seed means, dots
-  individual seeds (100 episodes each). The gray band spans the
-  below-resolution zone around base given
-  $\sigma_{\text{seed}} \approx 10$. The lag-excess arm (E) is the only
-  design whose margin over the history baseline (B) exceeds seed
-  resolution.}
-  \label{fig:grid}
-\end{figure}
+Variation across seeds is central to the result: a large advantage for one
+checkpoint pair coexists with a smaller advantage for another. Covering one physical arm, one task and a
+fixed demonstration-assisted start, the study cannot speak to end-to-end task
+reliability, transfer across objects or robots, or independence from the
+command limiter. Observing a contact-related signal does not itself enforce
+acceptable loading.
 
-\subsection{Ecosystem study: a pre-registered negative}
-\label{sec:corpus}
+Tracking error is therefore a useful candidate for observation design, with
+an empirical benefit that should be tested against temporal baselines and
+across training seeds. When it adds information beyond history, and
+whether a policy can use that information to regulate contact, are the two
+questions we would put to the next round of experiments.
 
-Does $\delta$ predict grasp outcomes corpus-wide? The protocol was frozen
-before the run: seat detection by the stall detector of
-Sec.~\ref{sec:validity}, $\delta$-at-seat as unsigned tracking error,
-success proxy defined as the gripper staying closed through transport,
-and the prediction that successes carry higher $\delta$ with Cohen's
-$d > 0.5$ in at least 10 of 20 datasets. Of the 20 targeted
-SO-100/SO-101 datasets, 16 passed the frozen inclusion gates with
-connectivity: 546 episodes, 283 proxy successes.
-
-\textbf{The prediction fails: 2/16 datasets} (pooled within-dataset
-$d = -0.39$). The channel is informative with the opposite sign:
-$|d| > 0.5$ in 10/16 datasets, 7/16 significantly inverted
-(Fig.~\ref{fig:corpus}). The traces explain the physics. Teleop leader
-devices have no hard stop, so operators over-command every close; the
-seat flag fires in nearly every episode of 14/16 datasets because empty
-jaws stall at the mechanical limit exactly as loaded ones do. Successful
-grasps are stereotyped low-$\delta$ closes (in one dataset every clean
-episode rests at the same 7-count gap), while failures carry
-40--80-count frames of an operator forcing a jammed grasp. High $\delta$
-at grasp time is associated with failure under the frozen proxy. This
-rules out mining the corpus for success labels through this channel
-alone, and it supports enforcement: the high-$\delta$ events the corpus
-associates with failure are what the guard caps.
-
-The result also bounds Sec.~\ref{sec:grid}'s transfer to retroactive
-training on real teleop data. When the seat event fires in essentially
-every episode, a latched seat bit (arm F) carries no information, and raw
-$\delta$ at close time reads commanded depth as much as contact; what
-stays informative is $\delta$ magnitude and its dynamics, which is what
-the inverted effect sizes measure. Whether the lag-excess form retains
-its simulated advantage when trained on over-commanded human
-demonstrations is an open empirical question, not a corollary. Two
-caveats attach to the corpus numbers: the recorded \texttt{action} is the
-leader position, which approximates but need not equal the applied
-follower command, and action-to-state timing is characterized only up to
-an integer-offset sweep over $k \in \{0, \dots, 5\}$, which leaves these
-conclusions unchanged (the median per-dataset shift in Cohen's $d$ across
-offsets is 0.12) while estimating the physical alignment at three to four
-recorded frames (App.~\ref{app:impl}).
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.85\linewidth]{fig1_corpus.png}
-  \caption{Per-dataset Cohen's $d$ of $\delta$-at-seat between proxy
-  successes and failures, bootstrap 95\% CIs, for the 16 datasets passing
-  the frozen gates (attrition documented in the repository). Positive $d$
-  was the pre-registered direction. Two datasets exceed $d = 0.5$ as
-  predicted; six are significantly inverted; two task-repetitive datasets
-  reach $d \approx -16$ and $-20$ because their stereotyped successes
-  have near-zero $\delta$ variance.}
-  \label{fig:corpus}
-\end{figure}
-
-\subsection{Runtime guard}
-\label{sec:guard}
-
-The same telemetry supports enforcement. A 40-line jaw guard (net-travel
-stall and lag-excess seat detection, a 12-count squeeze budget past seat,
-a closing-rate limit) runs from bus signals with no dynamics model, no
-retraining, and no object knowledge; all results are simulated. Paired
-its detection thresholds make it insensitive to closes slower than its
-rate gates, so it engages on aggressive closers and not on the gentle
-scripted teacher (App.~\ref{app:guard}), and on three learned checkpoints
-over identical paired episodes its
-first-generation detector (App.~\ref{app:guard}) reduced crush events
-from 85 to 3 of 180 (96\%) across the crush-capable tiers, with median
-peak force over those same episodes dropping from 33--92\,N to
-13--26\,N. It also removes every success in the experiment: 12 of 270
-unguarded become 0 of 270, and no guarded cell scores above zero. The
-policies are weak to begin with here (4.4\% unguarded, and the
-channel-free arm scores zero either way), so this is the guard deleting
-the few successes that existed rather than dismantling a working policy
---- but a wrapper that never succeeds is not yet a deployable one. The
-shape of the trade is not peculiar to us: \citet{nakamura2025latentcbf}
-report a least-restrictive latent safety filter on hardware that drives
-failures from 62\% to zero while stalls rise from zero to 62\% and task
-success is unchanged at 38\%, converting every failure into a stall and
-adding nothing. Ours is the more severe instance of that mode, since it
-removes the successes as well, and the comparison names what a deployable
-version needs rather than excusing what ours does: intervention selective
-enough to leave the succeeding trajectories intact. Demonstrations must record applied
-commands, and wrapped controllers must be closed-loop on contact.
-Details, figure, and integration accounting in App.~\ref{app:guard}. On
-hardware the register this guard would otherwise read is capped by the
-recording stack itself and saturates through contact, while the channel
-does not (App.~\ref{app:hardware}).
-
-%===============================================================================
-
-\section{Limitations}
-\label{sec:limitations}
-
-All learning and guard results are simulation, on one gripper and one
-object family; every quantity in newtons inherits the simulator's servo
-and contact model: the hardware appendix settles which bus signal carries
-contact, and does not put a newton on it
-(App.~\ref{app:hardware}). The task is constructed to require force-band
-control, so the grid measures observation design on a force-critical
-task, not manipulation in general. The lag-excess model is a first-order
-correction; an offline ladder of richer free-motion predictors (intercept,
-direction and acceleration terms, short causal FIR) improves held-out
-free-motion residual by at most 1.9\% over the scalar model on the jaw,
-so the linear choice is not leaving obvious compensation on the table,
-though learned predictors in the style of~\citet{oh2026factr2} remain
-untested as policy inputs. The seed budget leaves $C{-}B$ and
-$E{-}C$ open; the subtraction is addressed below against an
-information-matched control rather than by those pairs.
-
-The most consequential open question concerns operating point. The grid
-runs at 280 demonstrations, 96\,px and 12k steps. At a larger budget --- 600
-demonstrations, 224\,px, 50k steps, where absolute success reaches 57--63\%
-rather than the 6--27\% reported here --- a two-seed comparison of the raw
-channel against the action-history baseline is indistinguishable (60\% vs.\
-57\%, with a within-policy seed spread of 12 points, four times the
-between-policy gap). That cell tested $C$ against $B$; $E$, the design this
-paper recommends, has not been run at that budget. Two readings are
-therefore live and we cannot currently separate them: that the channel's
-advantage is a small-data effect which disappears where policies become
-useful, or that the free-motion subtraction is precisely what survives
-scaling and the raw form is not. What the small-data ladder does support
-independently of either is that policies with no action-history input in
-any form plateau at 16--24\% lift commitment across three data recipes
-while channel-bearing policies reach 47--76\%: the information appears
-necessary, and it is the \emph{form} whose value at scale is unresolved.
-This pattern is not peculiar to our setup:
-\citet{zeng2026revisiting} sweep context length against dataset size and find
-the ordering between short- and long-context policies reverses between 200 and
-1000 demonstrations, with dataset size disproportionately favouring the
-longer-context policy. Their own recommendation applies directly to us: they observe that
-datasets of 50--100 demonstrations remain common and ``encourage
-evaluating results across dataset sizes to ensure results hold at
-scale''. Our 280-to-600 window sits inside their crossover, so the tie we
-observe is the expected behaviour of a known effect rather than an
-unexplained inconsistency --- which also means a single budget cannot identify
-the mechanism, and any arm we compare must be compared at more than one.
-
-The next caveat bears on the comparison declared as primary. The lag excess
-$e[t] = \delta[t] - \hat{K} r[t]$ depends on $a[t{-}2]$ through the commanded
-rate, while the action-history baseline $B$ observes $s[t]$ and $a[t{-}1]$
-only, and $\hat{K}$ is far from zero (0.74--0.84 across joints, 0.80 on the
-jaw). $E$ therefore consumes one more frame of action history than the
-baseline it is compared against, and $E{-}B$ confounds the free-motion
-subtraction with that additional frame. The comparison that isolates the
-subtraction holds the raw inputs fixed: $E$ against a two-step raw history
-$B2 = [s[t], a[t{-}1], a[t{-}2]]$, information-matched to $E$ by construction.
-We ran it at three seeds under a rule frozen beforehand. $B2$ reaches
-$14.7 \pm 3.2$ and $E$ exceeds it by $+11.9$ ($t = 3.03$, CI
-$[+3.3, +20.7]$): against a control with identical raw inputs the advantage
-persists, which answers the confound directly. We decline the available
-decomposition. $B2$ over the one-frame baseline is $+0.9$ with CI
-$[-7.7, +9.0]$, a null wide enough to be consistent with the extra frame
-carrying most of $E{-}B$ or none of it, so the point estimates do not
-partition $E{-}B$ and we do not report them as though they did. Neither
-difference clears the 15-point bar declared in advance, and $B2$ is
-18-dimensional against $E$'s 12, so the comparison is matched in information
-and not in width.
-
-A wider
-audit of the arms' information dependence sharpens this: of the design
-comparisons the grid draws conclusions from, only $C{-}B$ and $D{-}A$ hold raw
-content fixed while varying form. $F$ in particular consumes an entire episode
-prefix, because its seat detector latches once and never resets, yet does not
-beat $E$ --- so a simple information ordering does not explain the grid either.
-$D{-}A$ is matched by construction, the channel entering only as an auxiliary
-target, which makes the observe-versus-predict null the grid's most securely
-grounded design result. Nothing here bears on the channel-versus-channel-free
-result ($E{-}A = +20.4$, $t = 4.7$); what is unresolved is the narrower claim
-that the lag excess specifically improves on action history. Running $E$ and
-the matched two-step baseline at both budgets is the experiment we would
-prioritize.
-
-A further control bears on the mechanism, and it does not favour the
-strong reading. Arm $G$ observes $[s[t], s[t{-}8]]$ --- joint history only, from
-which $\delta$ is not computable even in principle --- and is width-matched
-to $E$. At three seeds it reaches $20.3 \pm 4.7$. It is indistinguishable
-from the raw-channel arm $C$ ($-1.5$, $t = -0.29$) and from $E$ itself
-($E{-}G = +6.3$, CI $[-3.2, +16.0]$), while clearing the channel-free base
-by $+14.1$ ($t = 3.73$, CI $[+5.9, +22.1]$) --- 69\% of $E$'s own margin
-over that base. The ordering across arms is therefore base 6.2, position
-history 20.3, raw channel 21.8, lag excess 26.6: the large step is from no
-temporal information to some, and the step from generic history to this
-channel does not resolve at this budget. Under the declared bar,
-$E{-}G$ would need roughly 18 seeds.
-
-We state the consequence plainly. What this grid establishes is that an
-observation beyond $s[t]$ is necessary; \emph{which} form it must take is
-open, and the reading on which the servo tracking error specifically is the
-enabling observation is not established by these experiments. That
-proposition and the long-context account of \citet{zeng2026revisiting} are
-both consistent with what we measured. We do not claim that position
-history fails to substitute for the channel; at three seeds we cannot
-distinguish the two, which is a different statement and the one the
-success rates support. The observations themselves are not equivalent.
-Measured against ground-truth grip force over the 80,907 demonstration
-frames where an eight-step lookback exists, the joint-history signal
-detects contact markedly worse than the tracking error (AUC 0.78 against
-0.95, the direction inverted for joint history since a blocked jaw moves
-\emph{less}) and carries far less force magnitude ($R^2 = 0.12$ against
-$0.76$ within contact frames). Whatever produces $G$'s success, it is
-unlikely to be a force estimate.
-$C{-}B$ is by contrast a clean representation test, since $C$ and $B$ observe
-the same raw quantities --- and it does not resolve at our seed budget
-($+8.0$, $t = 1.44$). The decomposition is exact:
-$E{-}B = (E{-}C) + (C{-}B) = +4.8\ (t{=}0.86) + 8.0\ (t{=}1.44) = +12.8$, so
-the one pair clearing our resolution bar is significant only as the sum of two
-components neither of which is separately claimable at $n=5$ seeds. On real logs, $\delta$ depends on action semantics and timing that the
-corpus study characterizes only up to an integer-offset sweep. The corpus
-success proxy is unvalidated against ground truth, and multi-grasp tasks
-were excluded by design. The grid is measured on one demonstration
-collection; a three-seed recollection (App.~\ref{app:guard}) surfaces
-collection-level resampling variance that our comparisons do not yet
-average over. The channel is valid only seated and quasi-static.
-
-%===============================================================================
-
-\section{Conclusion}
-\label{sec:conclusion}
-
-Position-command logs contain a retrospectively computable contact proxy:
-the servo tracking error, valid within a quasi-static envelope our
-simulated plant makes measurable. At 280 demonstrations, policies must
-observe this channel; predicting it as the tested auxiliary target
-recovers none of the gain, and the free-motion-compensated form is the
-best tested instantiation. Across 16 public datasets high $\delta$ at
-grasp time accompanies failure, which rules out free outcome labels from
-this channel alone and supports its use for enforcement. What remains
-open requires hardware: bench calibration, retroactive training on real
-teleop logs, and a copycat-style probe of when history helps versus hurts
-in behavior cloning.
-
-%===============================================================================
-
-% \clearpage
-% \acknowledgments{}
-
+\clearpage
 \bibliography{refs}
-
-%===============================================================================
-
 \clearpage
 \appendix
 
-\section{Channel computation and implementation details}
-\label{app:impl}
-
-All signals are in integer encoder counts at the recorded cadence
-(stride-2 frames of a 30\,Hz bus, i.e.\ 15\,Hz):
-$\delta_j[t] = a_j[t{-}1] - s_j[t]$, where $a$ is the commanded and $s$
-the measured position, the $k{=}1$ alignment convention. An offset sweep
-over $k \in \{0, \dots, 5\}$ on the public corpus leaves every
-Sec.~\ref{sec:corpus} conclusion unchanged (the median per-dataset shift
-in Cohen's $d$ across offsets is 0.12) while estimating the physical
-alignment at three to four recorded frames; the bench latency measurement
-(App.~\ref{app:hardware}) will pin it. The commanded rate is the first difference of commands,
-$r_j[t] = a_j[t{-}1] - a_j[t{-}2]$, zero at the first two frames of an
-episode. The lag model is a single per-joint scalar through the origin,
-$\hat{K}_j = \sum r\delta / \sum r^2$, fit over frames whose jaw command
-exceeds its 30th percentile; the jaw is the task's only contact, so
-jaw-open frames are free motion. Fitted values span
-$\hat{K} = 0.74$--$0.84$ across joints on our training set (and move by at
-most $0.09$ when the free-motion percentile criterion is varied from the
-10th to the 50th), computed once on the training demonstrations and
-frozen. The policy input
-is the concatenation
-$[s_{\text{norm}},\, (\delta - \hat{K} r - \mu_\delta)/\sigma_\delta]$;
-joint states and actions are standardized by dataset statistics, while
-$\delta$, $e$, and the aux target use a fixed scale of
-$\sigma_\delta = 8$ counts with $\mu_\delta = 0$, so no channel statistic
-leaks from evaluation. The same statistics are saved beside the
-checkpoint and applied identically at evaluation, where $a[t{-}1]$ is the
-previously issued command, so the feature is computable from exactly what
-the deployed stack already has. Appended channels concatenate onto the
-state vector, leaving the network otherwise unchanged.
-
-\section{Mechanism on a single grasp}
-\label{app:mech}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\linewidth]{fig_mech.png}
-  \caption{The channel on one servo and one grasp. The commanded position
-  (dashed) and measured position (solid) track closely through the free
-  close, separated only by the small following lag. At first contact
-  (marked) the measured position stalls while the command continues to
-  deepen; the growing gap is the load reading, $\kappa \approx 2$\,N per
-  count on the simulated plant. The detector's seat event (marked) fires
-  when net travel stalls while lag excess grows. The lower panel plots
-  $|\delta|$ and the lag excess $|e|$ over the same frames; $|e|$ sits
-  near zero through the free close by construction and inherits the load
-  reading after contact.}
-  \label{fig:mech}
-\end{figure}
-
-\section{Guard details}
-\label{app:guard}
-
-The guard combines net-travel stall and lag-excess seat detection, a
-squeeze budget of 12 counts ($\approx +24$\,N on the simulated plant)
-past seat, and a closing-rate limit. Two regimes follow from the
-detector's thresholds. On aggressive closers it binds: learned policies
-commanding fast or deep closes are capped near 40\,N against raw peaks of
-99--127\,N, and an open-loop clamp reference commanding 360\,N grips is
-held to 10--28\,N. On the gentle closed-loop teacher it never fires,
-and all three of its mechanisms have to be accounted for: the teacher's
-$\sim$0.3 counts per frame in its fine pass sits below both detection
-gates, and the closing-rate limiter --- which applies unconditionally,
-before and independent of seat detection --- is set at 4 counts per
-policy step against roughly 0.6 demanded, a factor of seven clear. A
-paired run shows 25/30 placements wrapped versus 28/30 raw at
-statistically indistinguishable $\sim$39\,N grips: no mechanism bound, so
-the run measures wiring overhead and not a cost of enforcement. Whether
-threshold-level insensitivity to gentle closes is acceptable
-conservatism or a coverage gap depends on the deployment's hazard model;
-we state it as a measured property of these thresholds.
-
-An independently recollected demonstration set (same teacher, recipe, and
-budget; fresh episodes) trained at three seeds per arm neither resolves
-any per-arm difference from the original grid nor reproduces its
-point-estimate ordering at that reduced seed count (the lag-excess arm's
-fresh-collection seeds span 7--27 against the original 17--36, Welch's
-$t = 1.6$). Across the six arms the three channel-bearing designs' point
-estimates fell while the three channel-free designs' rose, none
-individually resolving; four marginal statistics of the two collections
-(tracking-error distributions, command floors, command-rate
-distributions, per-episode grip-depth diversity) are indistinguishable,
-so we treat this as unattributed collection-level resampling variance --
-a component above seed variance that the headline comparison of
-Sec.~\ref{sec:grid} does not yet average over, and that hardening it
-requires spanning with seed expansion over multiple collections.
-The crush-elimination A/B predates the detector's final revision: on
-three learned checkpoints over identical paired episodes the
-first-generation detector (single-step stall test, 4-count budget)
-reduced crush events from 85 to 3 of 180 across the two crush-capable
-tiers (Fig.~\ref{fig:guard}), with median peak force over those same 180
-episodes dropping from 33--92\,N to 13--26\,N; across all nine cells,
-including the no-crush tier where crushing is impossible, the unguarded
-range is 33--131\,N. A rerun under the final detector is pending
-alongside hardware validation. The guard also deletes successes, and it
-deletes all of them: unguarded totals are 12 successes in 270 episodes,
-guarded totals are 0 in 270, and every one of the nine cells scores
-0/30 guarded. The losses fall on two arms --- the quantized arm gives up
-7/30 at a 131\,N median and 1/30 at the 120\,N tier, the delta arm 2/30
-and 2/30 --- while the channel-free arm scores zero with and without the
-guard. Since the unguarded rate is 4.4\%, this is a guard removing the
-few successes that existed rather than a working policy being
-dismantled, but it means the enforcement layer as tested trades all
-measured task success for a 96\% crush reduction. Integration requires two
-properties: demonstrations must record applied commands rather than
-intentions, and any wrapped controller must be closed-loop on contact,
-since the rate limiter breaks open-loop grasp timing by construction.
-Collecting demonstrations under \emph{active} guard enforcement would
-require a detector variant sensitive to gentle closes and remains
-untested.
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.75\linewidth]{fig2_guard.png}
-  \caption{Crush events per 30 paired episodes for three learned
-  checkpoints (base, delta, and a 16-count-quantized delta arm) at two
-  crush tiers, raw (orange) versus guarded (blue), under the
-  first-generation detector. Identical checkpoints and episode seeds; the
-  guard acts only through bus telemetry at runtime. Totals: 85 of 180
-  raw, 3 of 180 guarded.}
-  \label{fig:guard}
-\end{figure}
-
-\section{Hardware: the reviewer's baseline on a physical STS3215}
-\label{app:hardware}
-
-The first question this paper invites is why estimate contact from
-tracking error when the servo already reports \texttt{Present\_Load} and
-\texttt{Present\_Current} over the same bus. This appendix answers that
-question on hardware and states plainly what it does not answer: the
-newton scale is not yet measured, so every force quantity in the body
-still inherits the simulator's contact model.
-
-\subsection{Static: the register is the channel, rescaled}
-
-\textbf{Protocol.} A payload staircase on one STS3215 in an SO-101
-shoulder-lift joint. Twelve hanging masses spanning 63.7--319\,g, each held
-at five arm poses, logging \texttt{Present\_Load} (address 60),
-\texttt{Present\_Current} (69), \texttt{Present\_Position} (56) and
-\texttt{Goal\_Position} (42) at static equilibrium;
-$\delta = \texttt{Goal} - \texttt{Present}$, in encoder counts. Masses are
-known from package labelling rather than weighed, so their systematic error
-is unquantified. Three masses were measured twice
-(106, 149, 191\,g), and those replicates are used below as the
-repeatability estimate; they bound the random component only.
-
-\textbf{Poses are fit separately.} Pooling them regresses across five
-different lever arms at once and inflates every residual. All intervals
-below are 95\% bootstrap percentiles over 10{,}000 resamples of the twelve
-masses.
-
+\section{Hardware protocol and complete evaluation record}
+\label{app:protocol}
 \begin{table}[h]
 \centering
 \small
-\begin{tabular}{lrrrrr}
-\toprule
-pose & $\delta$ slope (counts/g) & $R^2_\delta$ & $R^2_{\mathrm{load}}$ & $R^2_{\mathrm{curr}}$ & replicate $|\Delta_\delta|$ \\
-\midrule
-3 & $-0.0194 \pm 0.0019$ & 0.910 [0.85, 0.98] & 0.910 & 0.014 & 0.33 \\
-1 & $-0.0323 \pm 0.0044$ & 0.845 [0.72, 0.95] & 0.845 & 0.726 & 1.33 \\
-2 & $-0.0435 \pm 0.0145$ & 0.473 [0.10, 0.81] & 0.473 & 0.503 & 7.00 \\
-0 & $-0.0236 \pm 0.0126$ & 0.261 [0.01, 0.71] & 0.279 & 0.041 & 4.00 \\
-4 & $-0.0115 \pm 0.0119$ & 0.085 [0.00, 0.63] & 0.077 & 0.034 & 2.67 \\
-\bottomrule
-\end{tabular}
-\caption{Per-pose fits against true hanging mass, ordered by $R^2_\delta$.
-Replicate $|\Delta_\delta|$ is the mean absolute difference in $\delta$
-between the two independent measurements at each repeated mass, in counts.}
-\label{tab:appd}
+\caption{Full hardware evaluation record. The interrupted seed has six recorded
+pairs, with 0/6 placements for each policy; its planned budget was 20 pairs.
+No confirmatory test is assigned to the incomplete comparison.}
+\input{generated/hardware_table_all.tex}
 \end{table}
 
-\textbf{The register carries the same information as the channel.}
-Pooled over all sixty measurements,
-$\texttt{Present\_Load} = -4.70\,(\pm 0.10)\,\delta + 0.1$ with
-$R^2 = 0.976$ $[0.969, 0.982]$ (Fig.~\ref{fig:appd}, right). Per pose the
-two track the true mass to within 0.017 of each other in $R^2$, agreeing to
-three decimals in three of five poses. They are one signal on this joint, so
-the register cannot be a better instrument than the channel --- only a
-differently scaled one. This is the claim the appendix is for, and it is
-the one the data supports most strongly.
+\textbf{Training.} The recording contains 21,476 frames from 50 demonstrations
+at 30\,Hz. Position and action statistics are computed on the recording; the
+training index then removes stationary prefixes, retaining 18,549 frames. Both
+policies use the same index and normalization, and recorded load channels are
+excluded from policy inputs. The real-data coordinates follow the recording
+interface; in particular, gripper position is not a calibrated force or a
+common angular coordinate shared with the arm joints.
 
-\textbf{What limits it is repeatability, not lever arm.} The spread in
-Table~\ref{tab:appd} is large, and it does not follow slope magnitude: pose
-2 has the steepest response to mass and still resolves poorly, while pose 3
-has a middling slope and the tightest fit. It follows the replicate column
-instead. Dividing repeatability by slope gives the mass a single
-measurement can distinguish: about 17\,g at pose 3 and 41\,g at pose 1,
-against 160--230\,g at the three poorly repeating poses. The channel's
-usable resolution on this joint is therefore a property of where the arm is
-standing, not a single number, and the favourable figure is the exception
-rather than the summary.
+The ACT configuration uses a ResNet-18 image backbone, model width 256,
+four attention heads, feedforward width 1024, two encoder layers and one
+decoder layer. The action chunk and execution horizon are both 30 steps,
+with no temporal ensembling. Optimization uses AdamW at learning rate
+$10^{-4}$, weight decay $10^{-4}$, batch size 8 and gradient clipping at 10.
+All reported checkpoints are the final checkpoint at 6,000 steps. The
+observation projection necessarily changes width when six features are added;
+the remaining architecture and training settings are shared.
 
-\textbf{Current is not established as the better instrument, or the worse
-one.} $\delta$ attains the higher $R^2$ in four of five poses, which under an
-exact paired sign test is $p = 0.375$ --- at $n = 5$ poses that is
-uninformative in either direction, four coin flips landing the same way. We
-report the ordering and claim nothing from it.
+\textbf{Execution and command semantics.} Each rollout homes the arm to the
+mean demonstration start, replays the first 115 actions from demonstration 0,
+and hands control to the policy, so the reported task excludes autonomous
+approach from an arbitrary initial state. Each requested command passes through
+a relative-target limit of 8 in the interface's joint units---a
+target-displacement bound rather than a force or velocity guarantee---and
+during both replay and policy execution the returned limited command supplies
+the next tracking-error calculation. The servo's native goal quantization sits
+below this software interface. State and images are read at each control step,
+but ACT consults them only when its 30-step action queue is empty.
 
-\subsection{Dynamic: the baseline loses its range exactly at contact}
+An offline replay check reproduces the training and inference state vectors
+on all 21,476 recorded frames for the base, tracking error, action history,
+position history and compensated residual designs. In seed 0, the saved
+tracking-error observations after the first rollout step also reproduce from
+logged applied commands, which checks software consistency rather than physical
+command-to-encoder latency. Collection-time command limiting has not been
+established from the available metadata, so archived action labels should be
+read as recorded goals, which need not equal the goals applied to a servo if
+collection used an additional limiter.
 
-Fifty teleoperated demonstrations on the physical arm pair (21{,}476 frames,
-a pick-and-place with a single overhead camera and no wrist view) show what
-the static staircase cannot. \texttt{Present\_Load} pins at 500 in 16.5\% of
-frames, and all fifty episodes reach it. The saturation is not spread evenly:
-it coincides with contact, where $|\delta|$ averages $12.35^\circ$ against
-$2.09^\circ$ elsewhere. Inside those frames the register reports a single
-constant value while $\delta$ still spans $8.01$--$31.01^\circ$, twenty-three
-degrees of range the baseline cannot express. Where the register is not
-clipped the two agree as the static data predicts ($r = -0.853$
-unsaturated, $-0.922$ overall).
+\textbf{Pairing and inference.} Hardware resets are manual, and within each
+seed consecutive trials form a pair with AB/BA order alternating between pairs.
+The operator knows the policy identity, so outcomes are not blinded. Seeds 1
+and 2 were scheduled after observing seed 0, with their training recipe and
+evaluation budget fixed before their evaluations, and no policy was selected by
+hardware performance. The primary paired test is exact, two-sided McNemar with
+an improvement criterion of positive effect and $p<0.05$; for the completed
+seeds, paired percentile bootstrap intervals (20,000 pair resamples, random
+seed 0) are $[-5,+45]$ and $[+40,+90]$ percentage points, describing trial
+uncertainty for fixed checkpoints rather than confidence intervals over
+retraining. The equal-weight mean of the three observed seed differences is
+28.3 points, but the third difference uses only six pairs and is censored by
+hardware failure, so we do not read that mean as a balanced estimate of method
+performance.
 
-\subsection{The ceiling belongs to the stack, not to this arm}
+\textbf{Interruptions and missing data.} Seed 0 has 40 outcomes and 40
+trajectories; seed 1 has 40 outcomes and 39. Trials 35 (tracking error) and 37
+(base) completed their control horizons but reported a gripper overload while
+disabling torque, and both are operator-labeled failures. Trial 35's outcome
+was recovered from the operator after the process stopped, but its trajectory
+was lost because the earlier cleanup path saved data only after disconnecting.
+Saving was moved before disconnect, without changing policy observations or
+commanded actions, and trial 37's trajectory was retained. Evaluation resumed
+with the original pair identifiers and order.
 
-Reading the torque-limit register (address 48) returns 1000 for joints one
-through five and 500 for the gripper alone. \texttt{Present\_Load} is
-full-scale 1000, so 500 is a configured cap on the one joint that makes
-contact. It is not a local misconfiguration: LeRobot~\citep{cadene2024lerobot}
-writes it for every SO-100/SO-101 follower it connects, inside the
-configuration path that connection always invokes, together with a matching
-halving of the current-protection register --- both justified, reasonably, as
-burnout protection.
+Seed 2 has twelve labeled rollouts, all failures, forming six complete pairs,
+with shutdown overloads recorded on trials 8, 10 and 12. Trial 13 also
+completed its control horizon and has a trajectory and shutdown-failure record,
+but its outcome was not entered, and the remaining planned trials were never
+evaluated. We preserve the unrecorded outcome as missing rather than infer it
+from joint motion. We have established neither a diagnosis of the recurring
+overload nor random missingness, and this interrupted evaluation is part of the
+evidence against claiming broad hardware reliability.
 
-Both baselines are therefore capped, on the contact joint, by the library the
-fleet records through. $\delta$ requires no register and no limit; it is
-arithmetic over two numbers every one of those logs already stores, and is
-untouched by the same configuration.
+\section{Exploratory trajectory analysis}
+The seed-0 tracking-error successes follow similar jaw trajectories and settle
+near a common final position, while failures show more varied jaw motion. Over
+the last 100 steps, median summed joint-coordinate travel---a descriptive
+mixed-coordinate sum rather than a physical path length---is 14.3 for successes
+and 93.6 for failures, and the median fractions of steps affected by command
+limiting are 26\% and 5.75\% respectively. More limiting in successful trials
+could simply follow from progressing further through the task. The traces were
+grouped by observed outcome after evaluation and contain no video, object pose
+or ground-truth force, so they cannot identify a missed grasp, a slip or a
+placement error, and the endpoint separation is not a validated success
+detector.
 
-The register read is from one arm, and we state the limit rather than leave
-it inferred: a single follower reading 500 on its gripper is equally
-consistent with that unit having been flashed that way. The load-bearing
-evidence is therefore the code path, which writes the value unconditionally
-on every connection, not the measurement, which confirms the value is present
-on the one unit we have. We ran the discriminating test and it did not
-discriminate. The leader configuration path performs no torque-limit write, so
-a leader gripper at full scale beside a follower gripper at 500 would have
-shown the stack writing the cap; instead both grippers on our pair read 500,
-with joints one through five reading 1000 on each. Two explanations survive
-and our hardware cannot separate them: the units may ship with the gripper
-capped, or the leader may at some point have been connected through a follower
-class --- a port swap this bench's own tooling explicitly anticipates --- which
-would have written the value and erased the evidence permanently.
+\section{Measurement context}
+Tracking error is not introduced here as a new torque sensor. A separate
+static experiment on one shoulder-lift STS3215 uses twelve hanging masses
+at five poses (60 measurements). Across those measurements, the fitted
+relationship between the load register and tracking error is
+$\texttt{Present\_Load}=-4.70\delta+0.1$, with $R^2=0.976$.
+Its relation to applied mass is far less stable, with per-pose $R^2$ for
+tracking error ranging from 0.085 to 0.910, so the tight load-register
+association does not establish an equally accurate physical-load measurement.
 
-The claim therefore rests on the source rather than on our measurement.
-LeRobot writes 500 on every follower it connects, which any reader can check
-in the configuration path, and our registers are consistent with that without
-confirming it. A clean test needs a follower that has never been connected
-through the library, and we did not have one.
+In the 50 teleoperation demonstrations, the gripper load register reaches
+500 in every episode and remains there in 16.5\% of frames, while tracking
+error continues to vary across those same frames. The inspected follower
+configuration sets a reduced gripper torque limit, consistent with that
+observed plateau. This motivates inspecting the command--position discrepancy
+when telemetry saturates, but it does not calibrate the remaining discrepancy
+in newtons: no jaw load-cell calibration is available, and simulator force
+conversions such as the fitted 2.00\,N/count slope and 4.3\,N held-out RMSE
+over 4--78\,N describe the simulated plant only.
 
-\subsection{What is still not measured}
+\section{Additional simulation and hardware comparisons}
+Simulation recordings use integer encoder counts at 15\,Hz, obtained by
+subsampling the 30\,Hz controller. The scripted teacher regulates the jaw
+using tracking error, and the successful demonstration set includes randomized
+grip depth and recovery perturbations. These collection choices are shared
+across observation designs, of which the position-history control observes
+$[q_t,q_{t-8}]$ and one-command history observes $[q_t,g_{t-1}]$. Neither
+comparison makes the simulation and hardware tasks identical: camera views,
+demonstrations and recording cadence all differ between the two settings.
 
-Four gaps, stated because they bound the claims above.
+The original simulation study includes an auxiliary tracking-error target
+and a latched seat token in addition to the designs in
+Fig.~\ref{fig:evidence}, with mean placement rates of 6.6\% and 21.8\% across
+five seeds. The compensated residual is
+$e_t=\delta_t-\widehat K(g_{t-1}-g_{t-2})$, where each joint's coefficient
+is fitted once on presumed free-motion demonstration frames. A two-command
+history control reaches 14.7\% over three seeds; comparing it with the residual
+holds available raw information fixed but does not match input width. Under the
+original study's preregistered practical resolution rule, $15\sqrt{3/n}$
+percentage points for $n$ training seeds, neither this comparison nor the
+residual--position-history comparison resolves at three seeds, and the stronger
+feature-specific interpretation remains open.
 
-No load cell has been applied, so the newton scale is unmeasured and the
-simulator's 2.0\,N/count remains the provenance of every force figure in
-the body. Hanging masses give torque in the gravity direction on one joint;
-they do not give newtons per count in the jaw's closing direction, which is
-the quantity the task actually depends on. The static staircase is one
-joint, leaving stiffness measured at $n=1$ and its per-servo-versus-per-joint
-prediction untested. It is static only: no three-speed sweep, no opening
-and closing branches for hysteresis, no drift checks, and no
-command-to-state latency distribution --- the last of which
-Sec.~\ref{sec:formulation}'s alignment argument still resolves by corpus
-sweep rather than by measurement. Finally, the current half of the
-saturation result is inferred from the configuration write rather than
-observed, since these recordings log position and load but not current.
+An earlier hardware comparison, run before the raw-error study, evaluated the
+compensated residual: the base placed 7/10 objects and the residual 0/10. The
+coefficients fitted from these real demonstrations differ markedly from the
+simulation fits, and a free-motion labeling heuristic includes contact frames.
+These are plausible sources of model mismatch rather than a causal diagnosis,
+since coefficients above one are not by themselves proof that a regression
+against one command increment is invalid, and the earlier runner also fed back
+requested rather than post-limit commands. That comparison differs in
+preprocessing and execution from the raw-error study and is reported
+separately; the later improvement does not isolate the compensation term as
+the cause of failure.
 
-Comparison rows for a completed calibration remain the simulator's
-2.0\,N/count, \citet{hwang2018virtual}, and
-NeuralActuator~\citep{dou2026neuralactuator}.
+The simulation task admits a crush threshold, but the learning grid does not
+activate it. A post-hoc screen of existing checkpoints at 120 and 60\,N
+produces heavy crushing and near-floor success, failing the predicted
+advantage of the compensated signal. A separate runtime guard reduces crush
+events from 85 to 3 across 180 crush-tier episodes, while eliminating all
+12 unguarded placements across its broader 270-episode comparison. We do not
+present either result as successful learned force regulation or deploy that
+guard in the hardware comparisons.
+
+Larger-budget experiments do not establish a scaling advantage. An earlier
+600-demonstration comparison of raw tracking error and one-command history
+reaches 57\% and 60\%, respectively, over two seeds at 224 pixels and 50,000
+steps. A later 600-demonstration screen saved at 26,000 steps contains three
+base and three residual evaluations, each with 0/100 placements. These
+floor results are reported separately from the 280-demonstration grid; they
+support neither a positive scaling claim nor equivalence between
+observations.
+
+\section{Archived teleoperation study}
+\label{app:corpus}
+The preregistered corpus prediction was that tracking error at a detected
+seat event would be larger in proxy-successful episodes, with Cohen's
+$d>0.5$ in at least ten of twenty targeted datasets. Sixteen datasets and 546
+episodes pass the frozen gates, including 283 proxy successes under a success
+proxy of continued gripper closure through transport. Only two datasets exceed
+the positive threshold, and the pooled within-dataset effect is
+$d=-0.39$---a failure of the proposed direction and labeling rule, though not
+proof that no function of command and position history can predict outcome.
+
+Empty closure against a mechanical stop and closure on an object can both
+produce a seat event, and a large command discrepancy can equally reflect an
+operator continuing to close against resistance. These ambiguities explain why
+a contact-related feature need not be a success label, although the corpus does
+not isolate their causal contributions. Recorded leader commands may differ
+from applied follower goals and the timing is only approximately aligned, but
+an offset sweep from zero to five recorded frames leaves the qualitative
+conclusion unchanged, with median per-dataset effect-size shift 0.12.
 
 \end{document}

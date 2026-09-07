@@ -1,0 +1,22 @@
+{
+  "base": {
+    "frames": 21476,
+    "max_abs_error": 0.0
+  },
+  "delta": {
+    "frames": 21476,
+    "max_abs_error": 0.0
+  },
+  "excess": {
+    "frames": 21476,
+    "max_abs_error": 0.0
+  },
+  "ghist": {
+    "frames": 21476,
+    "max_abs_error": 0.0
+  },
+  "hist": {
+    "frames": 21476,
+    "max_abs_error": 0.0
+  }
+}

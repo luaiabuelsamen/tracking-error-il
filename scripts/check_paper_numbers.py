@@ -1,126 +1,75 @@
-"""Check the paper's load-bearing numbers against the frozen result files.
+"""Check the publication rewrite against saved results and generated evidence.
 
-Twice in one day the paper stated a number the data did not support: the guard
-paragraph said "one policy" where the result was every policy, and a crush count
-over 180 episodes was quoted beside a force range over 270. Both were recorded in
-docs/findings.md and neither reached main.tex. The failure mode is the paper
-drifting from data that a script already reproduces, so this is that script.
-
-It recomputes each claim from results/ and asserts the value appears in the
-paper. It is deliberately literal: it does not parse LaTeX, it checks that the
-rendered number is present, which is enough to catch a stale edit and cheap
-enough to run on every build.
-
-    python scripts/check_paper_numbers.py          # exits non-zero on drift
+The pre-rewrite checker is preserved as check_legacy_paper_numbers.py.
+Run after build_paper_evidence.py and latexmk from the repository root.
 """
-
-import glob
 import json
 import re
-import statistics as st
-import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
-TEX = REPO / "paper" / "main.tex"
+from build_paper_evidence import collect
 
-
-def grid_means():
-    out = {}
-    for pat, name in [("grid_A_base_s*", "A"), ("grid_B_base_hist_s*", "B"),
-                      ("grid_C_delta_s*", "C"), ("grid_D_resid_s*", "D"),
-                      ("grid_E_excess_s*", "E"), ("grid_F_token_s*", "F")]:
-        vals = []
-        for f in sorted(glob.glob(str(REPO / "results" / f"{pat}.json"))):
-            for r in json.loads(Path(f).read_text())["results"]:
-                if r["crush"] == -1.0:
-                    vals.append(r["success"])
-        if vals:
-            out[name] = st.mean(vals)
-    return out
-
-
-def guard_totals():
-    rows = json.loads((REPO / "results" / "guard_ab.json").read_text())
-    keyed = {(r["arm"], r["crush"], bool(r["guarded"])): r for r in rows}
-    live = [r for r in rows if r["crush"] > 0]
-    t = dict(
-        crush_u=sum(r["crushed"] for r in live if not r["guarded"]),
-        crush_g=sum(r["crushed"] for r in live if r["guarded"]),
-        eps_live=sum(r["episodes"] for r in live if not r["guarded"]),
-        succ_u=sum(r["success"] for r in rows if not r["guarded"]),
-        succ_g=sum(r["success"] for r in rows if r["guarded"]),
-        eps_all=sum(r["episodes"] for r in rows if not r["guarded"]),
-        zero_cells=sum(1 for r in rows if r["guarded"] and r["success"] == 0),
-        n_cells=sum(1 for r in rows if r["guarded"]),
-    )
-    pf_live_u = [r["peak_force_median"] for r in live if not r["guarded"]]
-    pf_live_g = [r["peak_force_median"] for r in live if r["guarded"]]
-    pf_all_u = [r["peak_force_median"] for r in rows if not r["guarded"]]
-    t["pf_live"] = (min(pf_live_u), max(pf_live_u), min(pf_live_g), max(pf_live_g))
-    t["pf_all_u"] = (min(pf_all_u), max(pf_all_u))
-    _ = keyed
-    return t
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
-    tex = TEX.read_text()
-    # collapse whitespace so a claim split across lines still matches
-    flat = re.sub(r"\s+", " ", tex)
-    fails, checks = [], 0
+    actual = collect()
+    generated = ROOT / 'paper/generated'
+    assert json.loads((generated / 'evidence.json').read_text()) == actual, 'regenerate paper evidence'
+    tex = (ROOT / 'paper/main.tex').read_text()
+    flat = re.sub(r'\s+', ' ', tex)
+    for phrase in ('generated/hardware_table.tex', 'fig_observation_evidence.pdf',
+                   'third evaluation was interrupted', 'its outcome was not entered', 'not variation over training seeds',
+                   'recorded leader commands'):
+        # Case-insensitive: prose checks concern disclosures, not typography.
+        assert phrase.lower() in flat.lower(), f'missing disclosure/input: {phrase}'
+    expected = [(20, 5, 9, 6, 2), (20, 1, 14, 14, 1), (6, 0, 0, 0, 0)]
+    table = (generated / 'hardware_table_all.tex').read_text()
+    for r, target in zip(actual['hardware'], expected):
+        assert (r['pairs'], r['base'], r['delta'], r['delta_only'], r['base_only']) == target, 'hardware changed; revise prose'
+        assert f"{r['base']}/{r['pairs']} & {r['delta']}/{r['pairs']}" in table
+    completed_table = (generated / 'hardware_table.tex').read_text()
+    assert '0/6' not in completed_table and '0/6' in table
+    assert 'generated/hardware_table_all.tex' in tex
+    assert actual['hardware'][1]['shutdown_errors'] == 2
+    assert actual['hardware'][1]['missing_trajectories'] == 1
+    assert actual['hardware'][2]['shutdown_errors'] == 3
+    assert actual['hardware'][0]['bootstrap_ci'] == [-.05, .45]
+    assert actual['hardware'][1]['bootstrap_ci'] == [.4, .9]
+    for name, expected_mean, seeds in (
+        ('Position', 6.2, 5), ('Action history', 13.8, 5), ('Tracking error', 21.8, 5),
+        ('Lag excess', 26.6, 5), ('Auxiliary target', 6.6, 5), ('Position history', 20.3, 3)):
+        vals = actual['simulation'][name]
+        assert len(vals) == seeds and round(sum(vals)/len(vals), 1) == expected_mean
+        assert f'{expected_mean:.1f}\\%' in tex, f'missing simulation value: {name}'
+    corpus = [r for r in json.loads((ROOT/'results/corpus_delta_outcome.json').read_text()) if r.get('cohen_d') is not None]
+    assert len(corpus) == 16 and sum(r['episodes'] for r in corpus) == 546
+    assert sum(r['cohen_d'] > .5 for r in corpus) == 2
+    assert '546 episodes' in flat and '$d=-0.39$' in tex
+    pending = json.loads((ROOT/'results/real_delta_v3_s2_trials_pending.json').read_text())
+    assert pending['trial'] == 12 and pending['rollout_complete']
+    assert Path(pending['trajectory']).exists()
+    guards = json.loads((ROOT/'results/guard_ab.json').read_text())
+    assert sum(r['crushed'] for r in guards if r['crush']>0 and not r['guarded']) == 85
+    assert sum(r['crushed'] for r in guards if r['crush']>0 and r['guarded']) == 3
+    assert sum(r['success'] for r in guards if not r['guarded']) == 12
+    assert sum(r['success'] for r in guards if r['guarded']) == 0
+    for arm, n in (('P_base', 3), ('Q_excess', 3)):
+        files = list((ROOT/'results').glob(f'grid600_{arm}_s*.json'))
+        assert len(files) == n, 'scale screen changed; update appendix'
+        for p in files:
+            record = json.loads(p.read_text())
+            assert record['steps'] == 26000
+            assert all(r['success'] == 0 and r['episodes'] == 100 for r in record['results'])
+    bib = (ROOT/'paper/refs.bib').read_text()
+    for cites in re.findall(r'\\cite\w*\{([^}]+)\}', tex):
+        for key in cites.split(','):
+            assert re.search(r'@\w+\{' + re.escape(key.strip()) + ',', bib), key
+    log = (ROOT/'paper/main.log').read_text()
+    assert not re.search(r'undefined|Overfull|^!', log, re.M), 'LaTeX references/layout need attention'
+    assert '[URL]' not in tex and 'TODO' not in tex
+    print('PASS: hardware outcomes, paired tables, simulation means, corpus counts, guard and scale disclosures, citations, and LaTeX checks')
 
-    def want(label, needle, note=""):
-        nonlocal checks
-        checks += 1
-        if needle not in flat:
-            fails.append(f"{label}: {needle!r} not in main.tex {note}")
 
-    g = grid_means()
-    for arm, v in g.items():
-        pass  # means are quoted selectively; the pairs below are what the paper claims
-
-    if {"E", "A", "B"} <= g.keys():
-        want("E mean", f"{g['E']:.1f}\\%")
-        want("A mean", f"{g['A']:.1f}\\%")
-        want("B mean", f"{g['B']:.1f}\\%")
-    if {"E", "C", "B"} <= g.keys():
-        eb, ec, cb = g["E"] - g["B"], g["E"] - g["C"], g["C"] - g["B"]
-        want("E-B decomposition", f"+{eb:.1f}")
-        want("E-C component", f"+{ec:.1f}")
-        want("C-B component", f"+{cb:.1f}", "(the clean representation test)")
-
-    # corpus study: counts recomputed from the frozen scoring file
-    corpus = [r for r in json.loads(
-        (REPO / "results" / "corpus_delta_outcome.json").read_text())
-        if r.get("cohen_d") is not None]
-    n = len(corpus)
-    want("corpus datasets", f"{n} passed the frozen inclusion gates")
-    want("corpus episodes", f"{sum(r['episodes'] for r in corpus)} episodes")
-    want("prediction hits",
-         f"{sum(r['cohen_d'] > 0.5 for r in corpus)}/{n} datasets")
-    want("|d|>0.5 count",
-         f"$|d| > 0.5$ in {sum(abs(r['cohen_d']) > 0.5 for r in corpus)}/{n}")
-    want("significantly inverted",
-         f"{sum(r['cohen_d'] < 0 and r['d_ci'][1] < 0 for r in corpus)}/{n} significantly inverted")
-
-    t = guard_totals()
-    want("crush reduction", f"{t['crush_u']} to {t['crush_g']} of {t['eps_live']}")
-    want("guarded successes", f"{t['succ_g']} of {t['eps_all']}")
-    want("unguarded successes", f"{t['succ_u']}")
-    lo_u, hi_u, lo_g, hi_g = t["pf_live"]
-    want("peak force, crush tiers",
-         f"{lo_u:.0f}--{hi_u:.0f}\\,N to {lo_g:.0f}--{hi_g:.0f}\\,N",
-         "(must be the 180-episode range, not the 270-episode one)")
-
-    print(f"checked {checks} claims against results/")
-    if fails:
-        print("\nDRIFT — the paper does not match the data:")
-        for f in fails:
-            print(f"  {f}")
-        return 1
-    print("all load-bearing numbers match the frozen results")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+if __name__ == '__main__':
+    main()

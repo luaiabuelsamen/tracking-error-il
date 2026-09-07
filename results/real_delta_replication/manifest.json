@@ -1,0 +1,20 @@
+{
+  "created_utc": "2026-09-06T04:14:12.648646+00:00",
+  "sha256": {
+    "scripts/train_act_real.py": "1ed9e4666536fa8e136ad68a3d1ca43b911d146bfa96bd6e887ecfb4fd393c78",
+    "scripts/run_real_delta_replication.sh": "016c26cdd4a1bc06ccb88c5d7b406a5c223dea01cf8368c99242da2091d4136d",
+    "docs/real_delta_replication.md": "12453ec59c804891170e9dd03917e7924ba758bdf95f48416b428f5eb013b0e4",
+    "data/real/pickplace_real_v0/data/chunk-000/file-000.parquet": "f87abce8930c8dbf3c49f5ab81bffefe995abfdaec3cd3e9fb6041de74a50b79",
+    "data/real/pickplace_real_v0/data/chunk-000/file-001.parquet": "d72c64cbe3fc672b7fcc51e68d71c43a2344a46a78587781cee6b40761cf6567",
+    "data/real/pickplace_real_v0/frames_96.npy": "de5683410b833542517436841bf40a85925aceb0959d3e70e8314142ec973431",
+    "data/real/pickplace_real_v0/meta/info.json": "03194ba32c3e0b758e48299f8514dd4e4595daeb7ad448c9890a3e59ede39961"
+  },
+  "packages": {
+    "torch": "2.7.1a0+gite2d141d",
+    "torchvision": "0.22.1+59a3e1f",
+    "lerobot": "0.3.4",
+    "numpy": "2.2.6",
+    "pyarrow": "21.0.0"
+  },
+  "gpu": "Orin"
+}

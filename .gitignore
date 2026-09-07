@@ -8,6 +8,8 @@ dist/
 data/
 outputs/
 *.mp4
+!portfolio/media/*.mp4
+MUJOCO_LOG.TXT
 vendor/
 checkpoints/
 modal_outputs/

@@ -1,0 +1,402 @@
+[
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 0,
+    "arm": "base_v2",
+    "pair": 0,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_00_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 1,
+    "arm": "delta_v3",
+    "pair": 0,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_01_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 2,
+    "arm": "delta_v3",
+    "pair": 1,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_02_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 3,
+    "arm": "base_v2",
+    "pair": 1,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_03_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 4,
+    "arm": "base_v2",
+    "pair": 2,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_04_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 5,
+    "arm": "delta_v3",
+    "pair": 2,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_05_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 6,
+    "arm": "delta_v3",
+    "pair": 3,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_06_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 7,
+    "arm": "base_v2",
+    "pair": 3,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_07_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 8,
+    "arm": "base_v2",
+    "pair": 4,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_08_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 9,
+    "arm": "delta_v3",
+    "pair": 4,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_09_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 10,
+    "arm": "delta_v3",
+    "pair": 5,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_10_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 11,
+    "arm": "base_v2",
+    "pair": 5,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_11_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 12,
+    "arm": "base_v2",
+    "pair": 6,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_12_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 13,
+    "arm": "delta_v3",
+    "pair": 6,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_13_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 14,
+    "arm": "delta_v3",
+    "pair": 7,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_14_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 15,
+    "arm": "base_v2",
+    "pair": 7,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_15_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 16,
+    "arm": "base_v2",
+    "pair": 8,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_16_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 17,
+    "arm": "delta_v3",
+    "pair": 8,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_17_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 18,
+    "arm": "delta_v3",
+    "pair": 9,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_18_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 19,
+    "arm": "base_v2",
+    "pair": 9,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_19_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 20,
+    "arm": "base_v2",
+    "pair": 10,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_20_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 21,
+    "arm": "delta_v3",
+    "pair": 10,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_21_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 22,
+    "arm": "delta_v3",
+    "pair": 11,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_22_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 23,
+    "arm": "base_v2",
+    "pair": 11,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_23_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 24,
+    "arm": "base_v2",
+    "pair": 12,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_24_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 25,
+    "arm": "delta_v3",
+    "pair": 12,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_25_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 26,
+    "arm": "delta_v3",
+    "pair": 13,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_26_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 27,
+    "arm": "base_v2",
+    "pair": 13,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_27_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 28,
+    "arm": "base_v2",
+    "pair": 14,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_28_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 29,
+    "arm": "delta_v3",
+    "pair": 14,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_29_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 30,
+    "arm": "delta_v3",
+    "pair": 15,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_30_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 31,
+    "arm": "base_v2",
+    "pair": 15,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_31_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 32,
+    "arm": "base_v2",
+    "pair": 16,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_32_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 33,
+    "arm": "delta_v3",
+    "pair": 16,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_33_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 34,
+    "arm": "delta_v3",
+    "pair": 17,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_34_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 35,
+    "arm": "base_v2",
+    "pair": 17,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_35_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 36,
+    "arm": "base_v2",
+    "pair": 18,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_36_base_v2.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 37,
+    "arm": "delta_v3",
+    "pair": 18,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_37_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 38,
+    "arm": "delta_v3",
+    "pair": 19,
+    "checkpoint": "checkpoints/real50_delta_v3_s0",
+    "success": true,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_38_delta_v3.npz"
+  },
+  {
+    "session": "2026-09-05T18:50:04",
+    "trial": 39,
+    "arm": "base_v2",
+    "pair": 19,
+    "checkpoint": "checkpoints/real50_base_v2",
+    "success": false,
+    "jumpstart": 115,
+    "traj": "real_trial_traj/2026-09-05T185004_39_base_v2.npz"
+  }
+]

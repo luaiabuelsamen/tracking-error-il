@@ -1,0 +1,27 @@
+{
+  "recorded": 40,
+  "sessions": [
+    "2026-09-06T10:43:56"
+  ],
+  "complete_pairs": 20,
+  "incomplete_pairs": 0,
+  "base_success": 1,
+  "delta_success": 14,
+  "both": 0,
+  "neither": 5,
+  "base_only": 1,
+  "delta_only": 14,
+  "difference": 0.65,
+  "paired_bootstrap_95_ci": [
+    0.4,
+    0.9
+  ],
+  "exact_mcnemar_p": 0.0009765625,
+  "shutdown_error_trials": [
+    35,
+    37
+  ],
+  "missing_trajectory_trials": [
+    35
+  ]
+}

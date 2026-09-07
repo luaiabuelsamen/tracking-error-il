@@ -1,0 +1,18 @@
+{
+  "session": "2026-09-05T18:50:04",
+  "complete_pairs": 20,
+  "base_success": 5,
+  "delta_success": 9,
+  "both_success": 3,
+  "neither_success": 9,
+  "base_only": 2,
+  "delta_only": 6,
+  "delta_minus_base": 0.2,
+  "paired_bootstrap_95_ci": [
+    -0.05,
+    0.45
+  ],
+  "bootstrap_resamples": 20000,
+  "bootstrap_seed": 0,
+  "mcnemar_exact_two_sided_p": 0.2890625
+}

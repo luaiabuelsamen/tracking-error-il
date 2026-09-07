@@ -1,0 +1,828 @@
+{
+  "session": "2026-09-05T18:50:04",
+  "complete_pairs": 20,
+  "incomplete_pairs": 0,
+  "base_only": 2,
+  "delta_only": 6,
+  "both": 3,
+  "neither": 9,
+  "difference": 0.2,
+  "paired_bootstrap_95_ci": [
+    -0.05,
+    0.45
+  ],
+  "exact_mcnemar_p": 0.2890625,
+  "groups": {
+    "base_v2_failure": {
+      "n": 15,
+      "hz_median": 28.76727834144058,
+      "tail_path_joint_units_median": 124.68672180175781,
+      "clipped_frame_fraction_median": 0.2925,
+      "final_jaw_median": 2.0195438861846924
+    },
+    "base_v2_success": {
+      "n": 5,
+      "hz_median": 28.737707599707626,
+      "tail_path_joint_units_median": 29.714290618896484,
+      "clipped_frame_fraction_median": 0.35,
+      "final_jaw_median": 1.5635179281234741
+    },
+    "delta_v3_failure": {
+      "n": 11,
+      "hz_median": 28.779412341608356,
+      "tail_path_joint_units_median": 93.6130142211914,
+      "clipped_frame_fraction_median": 0.0575,
+      "final_jaw_median": 20.97719955444336
+    },
+    "delta_v3_success": {
+      "n": 9,
+      "hz_median": 28.787427613085484,
+      "tail_path_joint_units_median": 14.329673767089844,
+      "clipped_frame_fraction_median": 0.26,
+      "final_jaw_median": 2.0195438861846924
+    }
+  },
+  "order": {
+    "base_v2_position1": [
+      3,
+      10
+    ],
+    "base_v2_position2": [
+      2,
+      10
+    ],
+    "delta_v3_position1": [
+      5,
+      10
+    ],
+    "delta_v3_position2": [
+      4,
+      10
+    ]
+  },
+  "provenance_hashes_verified": 11,
+  "saved_observation_parity": "passed; delta t>=1",
+  "trials": [
+    {
+      "pair": 0,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.762702554737647,
+      "path_joint_units": 737.6834716796875,
+      "tail_path_joint_units": 124.68672180175781,
+      "clipped_frame_fraction": 0.555,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.075,
+        0.04,
+        0.4675,
+        0.04,
+        0.05
+      ],
+      "final_jaw": 2.0195438861846924
+    },
+    {
+      "pair": 0,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.807458756202816,
+      "path_joint_units": 568.69970703125,
+      "tail_path_joint_units": 109.21341705322266,
+      "clipped_frame_fraction": 0.0925,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.07,
+        0.01,
+        0.025,
+        0.0,
+        0.0025
+      ],
+      "final_jaw": 10.293159484863281
+    },
+    {
+      "pair": 1,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.747134339733208,
+      "path_joint_units": 493.6495666503906,
+      "tail_path_joint_units": 88.00001525878906,
+      "clipped_frame_fraction": 0.02,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0125,
+        0.0075,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "final_jaw": 18.17589569091797
+    },
+    {
+      "pair": 1,
+      "arm": "base_v2",
+      "success": true,
+      "order_in_pair": 1,
+      "hz": 28.669919379597356,
+      "path_joint_units": 1032.5047607421875,
+      "tail_path_joint_units": 303.32489013671875,
+      "clipped_frame_fraction": 0.415,
+      "per_joint_clipped_fraction": [
+        0.005,
+        0.235,
+        0.115,
+        0.0,
+        0.065,
+        0.17
+      ],
+      "final_jaw": 1.693811058998108
+    },
+    {
+      "pair": 2,
+      "arm": "base_v2",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.728599624827126,
+      "path_joint_units": 732.3978881835938,
+      "tail_path_joint_units": 29.69150161743164,
+      "clipped_frame_fraction": 0.3225,
+      "per_joint_clipped_fraction": [
+        0.015,
+        0.2125,
+        0.0975,
+        0.0,
+        0.055,
+        0.1525
+      ],
+      "final_jaw": 1.628664493560791
+    },
+    {
+      "pair": 2,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 1,
+      "hz": 28.734232135591828,
+      "path_joint_units": 620.6214599609375,
+      "tail_path_joint_units": 26.109893798828125,
+      "clipped_frame_fraction": 0.2575,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.18,
+        0.0725,
+        0.0,
+        0.0475,
+        0.1275
+      ],
+      "final_jaw": 2.0195438861846924
+    },
+    {
+      "pair": 3,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.62846193769512,
+      "path_joint_units": 663.107421875,
+      "tail_path_joint_units": 15.120877265930176,
+      "clipped_frame_fraction": 0.28,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.1775,
+        0.0875,
+        0.0,
+        0.0225,
+        0.135
+      ],
+      "final_jaw": 2.0195438861846924
+    },
+    {
+      "pair": 3,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.71687908403718,
+      "path_joint_units": 572.3343505859375,
+      "tail_path_joint_units": 79.64834594726562,
+      "clipped_frame_fraction": 0.5375,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0925,
+        0.0125,
+        0.0,
+        0.02,
+        0.5375
+      ],
+      "final_jaw": 14.136807441711426
+    },
+    {
+      "pair": 4,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.883950768645658,
+      "path_joint_units": 757.603515625,
+      "tail_path_joint_units": 125.44810485839844,
+      "clipped_frame_fraction": 0.545,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.075,
+        0.0625,
+        0.4125,
+        0.005,
+        0.025
+      ],
+      "final_jaw": 1.3680782318115234
+    },
+    {
+      "pair": 4,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.718460125257838,
+      "path_joint_units": 471.712158203125,
+      "tail_path_joint_units": 79.40147399902344,
+      "clipped_frame_fraction": 0.04,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0375,
+        0.0,
+        0.0,
+        0.0,
+        0.0025
+      ],
+      "final_jaw": 27.23126983642578
+    },
+    {
+      "pair": 5,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.629202147551645,
+      "path_joint_units": 554.3480224609375,
+      "tail_path_joint_units": 101.63252258300781,
+      "clipped_frame_fraction": 0.06,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0475,
+        0.0,
+        0.0,
+        0.0,
+        0.0125
+      ],
+      "final_jaw": 30.618892669677734
+    },
+    {
+      "pair": 5,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.60021438461767,
+      "path_joint_units": 845.6591796875,
+      "tail_path_joint_units": 208.7133026123047,
+      "clipped_frame_fraction": 0.2475,
+      "per_joint_clipped_fraction": [
+        0.0175,
+        0.1025,
+        0.0475,
+        0.11,
+        0.01,
+        0.0225
+      ],
+      "final_jaw": 1.1726384162902832
+    },
+    {
+      "pair": 6,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.717954438575198,
+      "path_joint_units": 1009.862060546875,
+      "tail_path_joint_units": 223.9649200439453,
+      "clipped_frame_fraction": 0.27,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.1625,
+        0.0875,
+        0.0,
+        0.035,
+        0.0625
+      ],
+      "final_jaw": 1.4332247972488403
+    },
+    {
+      "pair": 6,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.779412341608356,
+      "path_joint_units": 366.63201904296875,
+      "tail_path_joint_units": 53.066810607910156,
+      "clipped_frame_fraction": 0.0275,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0125,
+        0.0,
+        0.0,
+        0.0,
+        0.015
+      ],
+      "final_jaw": 20.97719955444336
+    },
+    {
+      "pair": 7,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.851651911816926,
+      "path_joint_units": 526.7105102539062,
+      "tail_path_joint_units": 93.6130142211914,
+      "clipped_frame_fraction": 0.0575,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.0425,
+        0.0,
+        0.0,
+        0.0025,
+        0.0125
+      ],
+      "final_jaw": 19.47882652282715
+    },
+    {
+      "pair": 7,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.810650523063998,
+      "path_joint_units": 660.4249267578125,
+      "tail_path_joint_units": 154.52252197265625,
+      "clipped_frame_fraction": 0.17,
+      "per_joint_clipped_fraction": [
+        0.0075,
+        0.0825,
+        0.045,
+        0.0575,
+        0.0,
+        0.0
+      ],
+      "final_jaw": 1.7589576244354248
+    },
+    {
+      "pair": 8,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.848986645780563,
+      "path_joint_units": 667.89990234375,
+      "tail_path_joint_units": 33.23075866699219,
+      "clipped_frame_fraction": 0.3275,
+      "per_joint_clipped_fraction": [
+        0.02,
+        0.19,
+        0.06,
+        0.0,
+        0.0625,
+        0.195
+      ],
+      "final_jaw": 1.628664493560791
+    },
+    {
+      "pair": 8,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.908699113829773,
+      "path_joint_units": 587.9432373046875,
+      "tail_path_joint_units": 92.75582885742188,
+      "clipped_frame_fraction": 0.09,
+      "per_joint_clipped_fraction": [
+        0.005,
+        0.0525,
+        0.0,
+        0.0,
+        0.0,
+        0.0675
+      ],
+      "final_jaw": 28.27361488342285
+    },
+    {
+      "pair": 9,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.685998066974825,
+      "path_joint_units": 614.7046508789062,
+      "tail_path_joint_units": 10.90109920501709,
+      "clipped_frame_fraction": 0.285,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.1725,
+        0.0675,
+        0.0,
+        0.0375,
+        0.165
+      ],
+      "final_jaw": 2.084690570831299
+    },
+    {
+      "pair": 9,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.97087389859598,
+      "path_joint_units": 376.23297119140625,
+      "tail_path_joint_units": 41.23078918457031,
+      "clipped_frame_fraction": 0.2325,
+      "per_joint_clipped_fraction": [
+        0.0125,
+        0.0575,
+        0.0,
+        0.0,
+        0.0,
+        0.2325
+      ],
+      "final_jaw": 14.20195484161377
+    },
+    {
+      "pair": 10,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.786360128108576,
+      "path_joint_units": 302.3763427734375,
+      "tail_path_joint_units": 54.769081115722656,
+      "clipped_frame_fraction": 0.0075,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0075
+      ],
+      "final_jaw": 14.006514549255371
+    },
+    {
+      "pair": 10,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 1,
+      "hz": 28.971416024090757,
+      "path_joint_units": 596.4580078125,
+      "tail_path_joint_units": 14.329673767089844,
+      "clipped_frame_fraction": 0.2425,
+      "per_joint_clipped_fraction": [
+        0.01,
+        0.185,
+        0.0675,
+        0.0,
+        0.045,
+        0.1175
+      ],
+      "final_jaw": 1.954397439956665
+    },
+    {
+      "pair": 11,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.765153133193678,
+      "path_joint_units": 606.565185546875,
+      "tail_path_joint_units": 12.04395866394043,
+      "clipped_frame_fraction": 0.26,
+      "per_joint_clipped_fraction": [
+        0.005,
+        0.1725,
+        0.07,
+        0.0,
+        0.035,
+        0.14
+      ],
+      "final_jaw": 2.084690570831299
+    },
+    {
+      "pair": 11,
+      "arm": "base_v2",
+      "success": true,
+      "order_in_pair": 1,
+      "hz": 28.80932449286103,
+      "path_joint_units": 667.5877685546875,
+      "tail_path_joint_units": 42.46154022216797,
+      "clipped_frame_fraction": 0.355,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.1975,
+        0.065,
+        0.0,
+        0.065,
+        0.225
+      ],
+      "final_jaw": 1.4983713626861572
+    },
+    {
+      "pair": 12,
+      "arm": "base_v2",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.773381456887495,
+      "path_joint_units": 644.0941772460938,
+      "tail_path_joint_units": 29.714290618896484,
+      "clipped_frame_fraction": 0.35,
+      "per_joint_clipped_fraction": [
+        0.01,
+        0.1725,
+        0.0575,
+        0.0,
+        0.0625,
+        0.225
+      ],
+      "final_jaw": 1.4332247972488403
+    },
+    {
+      "pair": 12,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.837800780624175,
+      "path_joint_units": 572.1676025390625,
+      "tail_path_joint_units": 111.4103775024414,
+      "clipped_frame_fraction": 0.0775,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.0625,
+        0.0,
+        0.0,
+        0.0,
+        0.015
+      ],
+      "final_jaw": 31.140064239501953
+    },
+    {
+      "pair": 13,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.831846977619502,
+      "path_joint_units": 478.75177001953125,
+      "tail_path_joint_units": 49.283470153808594,
+      "clipped_frame_fraction": 0.055,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.04,
+        0.0,
+        0.0,
+        0.0,
+        0.015
+      ],
+      "final_jaw": 19.087947845458984
+    },
+    {
+      "pair": 13,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.790427335008307,
+      "path_joint_units": 655.4517211914062,
+      "tail_path_joint_units": 171.6134033203125,
+      "clipped_frame_fraction": 0.1575,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.0825,
+        0.0175,
+        0.0,
+        0.0,
+        0.0575
+      ],
+      "final_jaw": 37.39413833618164
+    },
+    {
+      "pair": 14,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.75217274732064,
+      "path_joint_units": 654.7210693359375,
+      "tail_path_joint_units": 55.824188232421875,
+      "clipped_frame_fraction": 0.3025,
+      "per_joint_clipped_fraction": [
+        0.01,
+        0.1775,
+        0.0525,
+        0.0,
+        0.07,
+        0.175
+      ],
+      "final_jaw": 1.4332247972488403
+    },
+    {
+      "pair": 14,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.774763845357594,
+      "path_joint_units": 590.8905029296875,
+      "tail_path_joint_units": 110.93315124511719,
+      "clipped_frame_fraction": 0.0575,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.0475,
+        0.0,
+        0.0,
+        0.0,
+        0.01
+      ],
+      "final_jaw": 19.47882652282715
+    },
+    {
+      "pair": 15,
+      "arm": "delta_v3",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.683211066868516,
+      "path_joint_units": 493.8968505859375,
+      "tail_path_joint_units": 120.16822814941406,
+      "clipped_frame_fraction": 0.0425,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.0425,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "final_jaw": 22.605863571166992
+    },
+    {
+      "pair": 15,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.675828492311542,
+      "path_joint_units": 662.648681640625,
+      "tail_path_joint_units": 31.531360626220703,
+      "clipped_frame_fraction": 0.31,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.1825,
+        0.0625,
+        0.0,
+        0.0625,
+        0.1875
+      ],
+      "final_jaw": 1.693811058998108
+    },
+    {
+      "pair": 16,
+      "arm": "base_v2",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.737707599707626,
+      "path_joint_units": 641.828857421875,
+      "tail_path_joint_units": 26.54946517944336,
+      "clipped_frame_fraction": 0.3375,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.19,
+        0.0625,
+        0.0,
+        0.0425,
+        0.225
+      ],
+      "final_jaw": 1.5635179281234741
+    },
+    {
+      "pair": 16,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 1,
+      "hz": 28.819700326392432,
+      "path_joint_units": 609.165771484375,
+      "tail_path_joint_units": 10.17503547668457,
+      "clipped_frame_fraction": 0.2925,
+      "per_joint_clipped_fraction": [
+        0.005,
+        0.1725,
+        0.07,
+        0.0,
+        0.04,
+        0.1675
+      ],
+      "final_jaw": 2.0195438861846924
+    },
+    {
+      "pair": 17,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.827544933943994,
+      "path_joint_units": 596.3242797851562,
+      "tail_path_joint_units": 15.384612083435059,
+      "clipped_frame_fraction": 0.2325,
+      "per_joint_clipped_fraction": [
+        0.005,
+        0.18,
+        0.085,
+        0.0,
+        0.07,
+        0.1075
+      ],
+      "final_jaw": 1.954397439956665
+    },
+    {
+      "pair": 17,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.746059705448623,
+      "path_joint_units": 720.8223266601562,
+      "tail_path_joint_units": 169.05453491210938,
+      "clipped_frame_fraction": 0.3325,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.085,
+        0.005,
+        0.0,
+        0.0,
+        0.2425
+      ],
+      "final_jaw": 34.98371505737305
+    },
+    {
+      "pair": 18,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 0,
+      "hz": 28.799636512802135,
+      "path_joint_units": 619.956298828125,
+      "tail_path_joint_units": 39.931419372558594,
+      "clipped_frame_fraction": 0.1825,
+      "per_joint_clipped_fraction": [
+        0.0125,
+        0.155,
+        0.0575,
+        0.0,
+        0.005,
+        0.075
+      ],
+      "final_jaw": 2.5407166481018066
+    },
+    {
+      "pair": 18,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 1,
+      "hz": 28.787427613085484,
+      "path_joint_units": 599.143798828125,
+      "tail_path_joint_units": 15.736266136169434,
+      "clipped_frame_fraction": 0.2625,
+      "per_joint_clipped_fraction": [
+        0.0025,
+        0.145,
+        0.055,
+        0.0,
+        0.055,
+        0.165
+      ],
+      "final_jaw": 2.084690570831299
+    },
+    {
+      "pair": 19,
+      "arm": "delta_v3",
+      "success": true,
+      "order_in_pair": 0,
+      "hz": 28.872031573894468,
+      "path_joint_units": 606.8712768554688,
+      "tail_path_joint_units": 9.670328140258789,
+      "clipped_frame_fraction": 0.2575,
+      "per_joint_clipped_fraction": [
+        0.0,
+        0.1675,
+        0.0675,
+        0.0,
+        0.0475,
+        0.1325
+      ],
+      "final_jaw": 2.084690570831299
+    },
+    {
+      "pair": 19,
+      "arm": "base_v2",
+      "success": false,
+      "order_in_pair": 1,
+      "hz": 28.76727834144058,
+      "path_joint_units": 775.8160400390625,
+      "tail_path_joint_units": 225.7769775390625,
+      "clipped_frame_fraction": 0.2925,
+      "per_joint_clipped_fraction": [
+        0.005,
+        0.0825,
+        0.03,
+        0.0,
+        0.0,
+        0.18
+      ],
+      "final_jaw": 33.02931594848633
+    }
+  ],
+  "limitation": "No video, object pose or force saved; joint motion cannot identify grasp/drop/crush causes."
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "checkpoint": "checkpoints/real50_base_v3_s1",
+    "validation": "PASS",
+    "steps": 6000
+  },
+  {
+    "checkpoint": "checkpoints/real50_delta_v3_s1",
+    "validation": "PASS",
+    "steps": 6000
+  },
+  {
+    "checkpoint": "checkpoints/real50_base_v3_s2",
+    "validation": "PASS",
+    "steps": 6000
+  },
+  {
+    "checkpoint": "checkpoints/real50_delta_v3_s2",
+    "validation": "PASS",
+    "steps": 6000
+  }
+]

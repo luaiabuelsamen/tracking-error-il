@@ -288,6 +288,8 @@ resolution effect only appears once the quantum is coarsened well past 1 count.
 A finer approach near contact would tighten the entry distribution and move the
 whole family of cliffs toward finer quanta.
 
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. M/κ over-claim repaired in `3eb0fe4`; main.tex now states the conservatism and names both constants (2.00 and the pre-registered 2.4). Verified present.
+
 ## Phase 1: what the tracking-error signal actually measures
 
 An external audit correctly stopped the controller tournament: task success
@@ -835,6 +837,47 @@ Fix 2 from review (train through the guard) is now wired:
 where actions are recorded, so guard-collected demos carry applied
 (capped) actions by construction.
 
+**AUDIT 2026-09-05 — this entry over-reads its own pairing, and `main.tex` is
+the more conservative and correct reading.** Found by the gate scan
+(`scripts/check_paper_actions.py`), which flagged this as the one untagged
+candidate neither session had read.
+
+The entry concludes "the guard costs a competent controller ~3 episodes in 30"
+from 25/30 wrapped against 28/30 raw. App. C reads the same number as "no
+enforcement occurred and the run measures wiring overhead only". App. C is
+right: if nothing bound, 25 vs 28 is noise and no cost was measured.
+
+Checking the mechanism, because App. C's stated *reason* is incomplete.
+`guard.py:90-97` applies the closing-speed limit **unconditionally**, before and
+independent of seat detection:
+
+```python
+if self.last_out is not None:
+    jaw_cmd_counts = max(jaw_cmd_counts, self.last_out - self.max_close_rate)
+```
+
+Only the squeeze cap is gated on `seat_jaw`. So the guard has *three*
+mechanisms, one of which is always active, and App. C's "below both detection
+gates… it never fires" describes two of them. The conclusion survives anyway:
+guard v4 sets `max_close_rate = 4.0` counts per policy step and the teacher
+closes at ~0.3 counts/frame (≤0.6 per policy step), so the limiter is active but
+**non-binding by roughly seven-fold**. Nothing enforced, for a reason the paper
+does not state.
+
+Two consequences. The sentence should say the teacher is below both detection
+gates *and* an order of magnitude under the closing-rate limit, so no mechanism
+binds — otherwise a reviewer who opens `guard.py` finds an unconditional limiter
+and a paper claiming the guard "never fires". And this entry's "costs ~3
+episodes in 30" should not be quoted anywhere.
+
+**Notable as the first instance today of the opposite direction:** every other
+finding has been the paper claiming more than the lab record supports. Here the
+lab record claims more than the paper does, and the paper was already right.
+
+**PAPER ACTION:** add the closing-rate clause to App. C's gentle-teacher
+sentence. Do not import this entry's "~3 episodes in 30" cost figure.
+
+
 ## Fix 2 at small budget: floor-equal twins (2026-08-17, one seed each)
 
 Trained-through-guard delta (demos_v3g: the v3 recipe collected with guard
@@ -939,6 +982,8 @@ heavily -- the seat token drives commitment while retention lags.
 Cost note: dry + main = 9 H100 cells ~= $27 actual vs $23 estimated.
 Guarded column running locally (Cg s0 = 14 vs C s0 = 11).
 
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. The three "sentences the paper may carry" are in main.tex, and the observe-vs-predict one survives as "must be observed, not merely learned" (abstract). Superseded on the form claims by the B2/G cells.
+
 ## Grid at 5 seeds (2026-08-18, seeds45 phase, ~$36): the verdicts firm up
 
 A {0,15,4,3,9} 6.2 | B {4,15,15,10,25} 13.8 | C {11,25,31,12,30} 21.8 |
@@ -960,6 +1005,8 @@ beats channel-free; (2) only the confound-subtracted form resolvably beats
 raw action history; (3) the channel must be observed, not predicted.
 Pre-registration discipline paid twice in one table: F's marginal claim
 was flagged marginal and fell; E's was flagged resolved and held.
+
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. Same three sentences as above; resolution wording corrected to the seed-scaled bar. Verified present.
 
 ## Roadmap C.1 -- offset sweep (2026-08-18, CPU): the corpus result is
 alignment-robust, and the true alignment is k~3-4
@@ -1122,6 +1169,8 @@ nothing to prevent): 9 of the 12 lost successes. Deletion counts are net per
 cell, so they are lower bounds -- the stored rows carry aggregate counts, not
 episode-level pairing.
 
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. Both items repaired in `bf2db77`: 12/270 → 0/270 across nine cells, and the denominators split (33--92 N on the matched 180). Verified present.
+
 ## Real teleop, 50 episodes (2026-09-03): Present_Load saturates through contact
 
 First real-hardware demonstration set on the SO-101 pair: 50 teleop episodes of
@@ -1155,6 +1204,8 @@ one-line register read and it decides how strongly the paragraph can be written.
 
 Not claimed: nothing here is a policy result. These are demonstrations, not
 evaluations, and no arm has been trained on them.
+
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. The precondition was met — addr 48 was read on the follower before the paragraph shipped, and the result is in App. D.
 
 ## The 500 ceiling is lerobot's, fleet-wide (2026-09-03)
 
@@ -1202,6 +1253,8 @@ sensible safety default silently costs the baseline its range.
 Worth one confirmation before it ships: read addr 48 on a second SO-101 that has
 been through lerobot connect, to show the value is written rather than inherited
 from how this particular arm was flashed.
+
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. Second-arm confirmation was run and did not discriminate; App. D now states the n=1 limit, names the code path as load-bearing, and reports both surviving explanations. Verified present.
 
 ## The declared primary decomposes into two unresolved halves (2026-09-03)
 
@@ -1343,6 +1396,8 @@ paper text drifting from the lab record over eleven days. Worth a standing check
 `scripts/guard_pareto.py` reproduces all of it, so the guard paragraph can be
 verified against the data on every rebuild rather than by memory.
 
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. Superseded — the drift it records was repaired in `bf2db77`. Kept as the record of an 11-day propagation gap.
+
 ## Appendix D's sign test reports the p-value of an experiment that did not happen (2026-09-04)
 
 Audit of App. D against `scripts/appendix_d_stats.py` and
@@ -1393,6 +1448,8 @@ past its own conditional**. `check_paper_numbers.py` would not catch it, because
 the script's printed line was itself ambiguous. The fix is upstream: scripts
 should not print a statistic for a case other than the one observed.
 
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. Repaired in `2bb4fd8`: p = 0.375 with "suggestive" removed, and `appendix_d_stats.py` now computes the observed count. Verified present.
+
 ## Sec. 3.2 envelope audit: clean (2026-09-04)
 
 Recorded because a verified section is worth as much as a corrected one, and so
@@ -1441,6 +1498,8 @@ with them. Every newton quantity in `main.tex` was traced:
 The last one is the strongest possible placement — the hardware appendix itself
 tells the reader the body's newtons are simulator-derived, which is exactly where
 a reader in hardware mode will be. No gap found; no change needed.
+
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. The intercept clause was taken (`eb14e05`); main.tex states κ converts differences and names the −3.6 N intercept as outside the fit domain. Verified present.
 
 ## Sec. 4.1 audit: the M/κ design rule is stated as a threshold the data does not support (2026-09-04)
 
@@ -1495,6 +1554,8 @@ where degradation begins, and the observed halving point runs 1.2–3.1× beyond
 is right, but the constant is not… the law should be re-derived from the
 peak-grip distribution before it is claimed as quantitative" — so the repair is to
 propagate an existing lab-record verdict into two sentences, not to run anything.
+
+**PAPER ACTION:** none — cleared by the gate pass 2026-09-05. Repaired in `3eb0fe4`, same as the cliff entry above.
 
 ## Bibliography audit: six entries carried invented given names (2026-09-04)
 
@@ -1894,3 +1955,337 @@ claim, and it is ~18 seeds away (~24 h of Orin time at 1.6 h/cell). Until it
 runs, Limitations must state that a position-history control matches the raw
 channel arm at three seeds and that the channel-versus-context question is open.
 The paper must not say position history fails to substitute.
+
+## Why G matches C: it is NOT carrying contact information (2026-09-04, night)
+
+Analysis of `data/demos_v3` (80,907 valid frames, 280 episodes) against
+ground-truth `grip_force_N`. No GPU. The question was why arm G
+(`[s[t], s[t−8]]`) reaches 20.3 against C's 21.8 when the tracking error is not
+computable from its input at all.
+
+**Hypothesis tested and rejected: "position history is a stall detector."**
+`findings.md:161` established months ago that measured jaw motion is a cleaner
+contact detector than tracking error — "a free jaw follows the command at 0.0100
+rad/frame; a blocked one moves 0.0001", thresholding `|δ|` instead gave 0 picks
+in 20. The obvious explanation for G was that `s[t] − s[t−8]` hands the policy
+that stall signal directly. **It does not hold.**
+
+| signal | contact detection (AUC) | force magnitude, contact frames (R²) |
+|---|---|---|
+| `|s[t] − s[t−8]|` — G's jaw signal | **0.780** | **0.008** |
+| `|δ|` — C's channel | 0.948 | 0.749 |
+| `|e|` — E's lag excess | **0.967** | **0.764** |
+
+G's signal is markedly *worse* on both axes, and carries essentially **no** force
+magnitude at all (r = +0.089).
+
+**Why the stall signal underperforms its reputation.** The separation at the
+median is enormous — free-space jaw travel over 8 frames has median 30.0 counts,
+in-contact has median **0.0** — but AUC is only 0.780. Zero jaw motion is
+*necessary but not sufficient* for contact: the jaw is equally still whenever it
+is not commanded to move. Position history alone cannot separate "not moving
+because blocked" from "not moving because not commanded". δ resolves exactly that
+ambiguity, being large only when the command moves and the jaw does not, which is
+why it detects contact far better (0.948) despite `findings.md:161`'s
+single-trace argument. That earlier entry was about thresholding at one moment;
+this is the population-level statement and they are not in conflict.
+
+**So G does not reach C's success by carrying C's information.** It reaches
+comparable place rate by a different route — almost certainly generic temporal
+context (velocity, motion direction, task phase), which is the mechanism
+`zeng2026revisiting` describes for resolving an expert's hidden state. The two
+arms are **not substitutes; they are different mechanisms of comparable benefit
+at this budget.**
+
+**The grid never tested force regulation.** `scripts/grid_spec.json` sets
+`"eval_crush": [-1]` — every cell in the six-arm grid was evaluated with the
+crush limit **disabled**. The task is described as force-critical, but the
+comparison scores place rate only, where contact detection suffices and force
+*magnitude* — the one thing δ and e carry and G does not — cannot pay. That is
+why an arm with R² = 0.008 for force can match one with R² = 0.75.
+
+**Falsifiable prediction, and it is cheap.** At a crush tier, E and C should beat
+G, because regulating grip into a band requires magnitude and G has none. This is
+**eval-only on checkpoints already on disk** — `grid_G_ghist_s{0,1,2}` and
+`modal_E_s0` survive the cleanup — so it needs no training, only rollouts.
+
+**PAPER ACTION:** Limitations currently reads "we cannot distinguish". It should
+read that the position-history control reaches comparable place rate through a
+signal carrying almost no contact information (AUC 0.78, R² 0.008 against 0.97
+and 0.76), so the arms are not substitutes, and that the grid's crush-disabled
+evaluation cannot reward the channel's magnitude information. That is a stronger
+and more honest position than the current one, and it converts G from an
+unexplained threat into a characterised one.
+
+## Sec. 1's new survey citation attributes a claim the survey does not make (2026-09-04, night)
+
+`xie2025forceful` was added to Sec. 1 tonight (`d8ea6f1`) to anchor the novelty
+argument. Verified against the full text (arXiv:2504.11827v1 and ar5iv, 106k
+characters, two independent routes agreeing).
+
+**The citation itself is sound.** Title, authors (William Xie, Nikolaus Correll),
+arXiv id and year all verify against arXiv metadata. The six-family taxonomy is
+substantially supported — "finger-mounted optical", "finger force", "finger
+audio", "wrist F/T" and "wrist force" all appear.
+
+**The attributed claim does not appear.** `main.tex:121-123` reads: "observes
+that the large pre-training corpora do not carry force at all~\citep{xie2025forceful}".
+Searched the full text for eight phrasings — "not carry force", "do not carry",
+"lack of force data", "absence of force", "scarcity of force", "force is absent",
+"no force data", "lacking force" — **all absent**.
+
+The nearest passage is about coordinate frames, not force content, and cuts the
+other way: datasets "directly record joint-space positions, velocities **and
+torques**. While this sacrifices transferring policies between robots with
+different kinematics such as in the Open-X dataset…". The genuinely adjacent
+supportive line is "no work has fully explored first-class large force
+pretraining for a tactile robot foundation model", which is a claim about
+research effort, not about what corpora contain.
+
+**And the survey's own headline conclusion cuts against us**, verbatim: "the
+performance of imitation learning models is not at a level of dynamics where
+force truly matters." Citing this survey as an ally invites a reviewer who knows
+it to raise that. It should be cited for its taxonomy, not adopted as support.
+
+**What the survey does establish, and it is the strong part.** "tracking error"
+appears **nowhere** in 106k characters of a survey of force sensing for
+manipulation policy learning, and neither does any discussion of recovering force
+from position logs. That is real novelty evidence, it is an argument from
+absence, and the absence is now verified rather than assumed.
+
+**PAPER ACTION:** rewrite the sentence so the survey carries only its taxonomy
+and the absence is stated as our observation:
+*"A recent survey of force sensing for manipulation learning organises the field
+into families — finger-mounted optical, finger force, finger audio, joint torque,
+wrist force/torque, and combinations — every one of which adds hardware
+(Xie & Correll, 2025); recovering the quantity from logs never instrumented for
+it is not among the options it surveys."*
+That is checkable, it is what the source supports, and it loses nothing.
+
+Same failure class as the FACTR 40% and the Hang quotation: a plausible claim
+generated adjacent to real material. Third instance today, first to reach
+`main.tex`, and it was caught within the hour because the citation was checked on
+arrival rather than at submission.
+
+### RETRACTION, same night: the survey does make that claim, and my search was the flawed instrument
+
+`projects-a5` was right and the entry above is wrong. Corrected by literal regex
+over the locally-saved full text (`/tmp/xie.txt`, 107,470 chars extracted from
+ar5iv), not a summariser.
+
+The sentence exists, in **Section 2.5, Foundation Models**, verbatim:
+
+> "However, these robot foundation models are pre-trained on limited modalities:
+> vision, language, and robot joint and/or end effector data. This includes the
+> most recent Gemini Robotics, which has recorded 2000-5000 episodes per task
+> across six tasks and over a time-span of 12 months, **but does not include
+> force.**"
+
+**My error was search-term coverage, not instrument reliability.** I searched
+eight phrasings and none of them was "does not include" — the construction the
+source actually uses. An absent result was guaranteed regardless of whether the
+sentence was there. That is a worse mistake than the one I was accusing the peer
+of, because I reported an absence as a finding when I had only established that
+my particular guesses did not match.
+
+**The peer's second report also checks out, and my claimed contradiction was
+not one.** "Open X-Embodiment" appears exactly once, in the reference list.
+"Open-X dataset" appears separately in body text, in the coordinate-frame
+passage. Different strings; both statements true; no inconsistency in the tool.
+
+**Where the original main.tex sentence was still wrong, and it is a smaller
+thing.** It read "the large pre-training corpora do not carry force at all",
+generalising a passage whose explicit force clause names *Gemini Robotics*. The
+survey supports the general modality claim — foundation models pre-trained on
+"vision, language, and robot joint and/or end effector data" — and instantiates
+the force absence with one system. So the retraction was right for a narrower
+reason than the one I gave, and a better sentence is available:
+
+> *"A recent survey of force sensing for manipulation learning notes that
+> generalist robot foundation models are pre-trained on limited modalities —
+> vision, language, and robot joint and/or end-effector data — instancing Gemini
+> Robotics, 2000–5000 episodes per task over twelve months, as not including
+> force (Xie & Correll, 2025)."*
+
+Concrete, checkable, and stronger than the generalisation it replaces.
+
+**Methodological conclusion, against the peer's.** It proposed that neither of us
+can verify quotations in this document. That is falsified: a literal regex over
+saved extracted text verified it in one command. The rule is not "we cannot
+verify" but **save the text, grep it literally, and never accept a summariser's
+answer about presence or absence — including one's own guessed phrasings.** An
+absence claim additionally requires that the search terms could plausibly have
+matched, which is a condition I did not meet and did not check.
+
+## Manual citations audited: Robotiq verifies verbatim, SCHUNK does not (2026-09-05)
+
+Both checked against primary documents saved and grepped literally, per the
+standard adopted last night. Neither had been opened by either session.
+
+### Robotiq — verified on both halves, and it strengthens the paper
+
+`main.tex:263-264`: "Robotiq's object-detection register fires on
+commanded-vs-actual discrepancy under a current limit".
+
+Official PDF (`2F-85_2F-140_Instruction_Manual_CB-Series_20190122`, 165k chars
+extracted). Both halves are verbatim-supported:
+
+- *Discrepancy half*, gOBJ register: "0x01 — Fingers have stopped due to a
+  contact while opening **before requested position**. Object detected opening.
+  0x02 — … while closing before requested position. 0x03 — Fingers are **at
+  requested position**. No object detected or object has been loss / dropped."
+- *Current-limit half*, FORCE register: "The force will fix the maximum current
+  sent to the motor while in motion. **If the current limit is exceeded, the
+  fingers stop and trigger an object detection notification.**"
+
+Two things worth taking beyond the citation check.
+
+**The mechanism splits the way our paper does.** The *stop* is caused by the
+current limit; the *detection flag* is defined purely on position versus
+requested position. That is observation-and-enforcement factored exactly as this
+paper factors it — channel plus guard — in shipping industrial firmware. It is
+prior art for the mechanism, which the paper already correctly frames it as, and
+it is also independent evidence the factoring is the natural one.
+
+**Robotiq's detection is binary and has a documented false-negative mode:** "In
+some circumstances object detection may not detect an object even if it is
+successfully grasped. For example, picking up a thin object in a fingertip
+grasp." A detector without magnitude cannot tell a light grasp from none —
+which is the same detection-versus-magnitude distinction the G analysis found
+(AUC 0.78 / R² 0.008 for position history against 0.95 / 0.75 for δ).
+
+### SCHUNK — the claim joins two separate bullets
+
+`main.tex:264-265`: "SCHUNK advertises workpiece-loss detection **from an
+integrated encoder**". Fetched both the `/de/en` and `/us/en` EGK product pages;
+they agree.
+
+What the page actually says, as two distinct bullets:
+
+> "Maximum process reliability by avoiding workpiece loss due to **integrated
+> gripping force maintenance with loss detection**"
+>
+> "Always referenced both in the event of an emergency stop and a power failure
+> due to **integrated absolute encoder**"
+
+Loss detection is attributed to gripping-force maintenance. The absolute encoder
+is credited with *referencing after an emergency stop or power failure* — a
+different function. Nothing on the page attributes detection to the encoder. The
+body text repeats the first attribution: "The integrated gripping force
+maintenance prevents workpiece losses and holds the finger position even in the
+event of an emergency stop."
+
+Same failure class as the FACTR 2 error: two adjacent statements read as one
+causal claim. The physical guess is probably right — a parallel gripper almost
+certainly detects loss from jaw travel — but "advertises" makes it a claim about
+what SCHUNK says, and SCHUNK does not say it.
+
+**And it exposes an incoherent cell in `related_table.md`.** That row reads
+"SCHUNK workpiece-loss | beyond position: **yes (integrated encoder)**". An
+encoder *is* a position sensor. If the detection were encoder-based it would be
+position-only detection in commercial firmware — which would make SCHUNK closer
+prior art than the table admits, not further. The cell is wrong either way and
+its correction depends on a mechanism the vendor does not publish.
+
+**PAPER ACTION:** reduce the SCHUNK claim to what is advertised — "SCHUNK
+advertises workpiece-loss detection integrated with gripping-force maintenance"
+— and drop the encoder attribution. Fix the `related_table.md` row to record the
+mechanism as unpublished rather than asserting either cell.
+
+## Crush screen: prediction failed, and the screen could not have tested it (2026-09-05)
+
+I proposed this screen after the G mechanism analysis, predicting that at a crush
+tier E and C would beat G because regulating grip into a band needs magnitude and
+G's signal has none (R² = 0.008). Five cells run eval-only on surviving
+checkpoints. Recomputed independently from `results/crush_*.json`; agrees with
+`projects-a5` exactly.
+
+| tier | arm | success | crushed |
+|---|---|---|---|
+| 120 | B2 (1 seed) | 0/50 | 40% |
+| 120 | E (1 seed) | 0/50 | 70% |
+| 120 | G (3 seeds) | 8/150 = 5.3% [2.7, 10.2] | 59% |
+| 60 | all | 0 | 52 / 80 / 70% |
+
+**The prediction failed.** E scored zero at both tiers; G pooled 5.3%.
+
+**But the adverse diagnostic is not adverse — it is seed noise.** `projects-a5`
+read "E crushes MOST (70%) while B2 crushes least (40%)" as the magnitude
+argument going backwards. G's own three seeds crush at **42%, 76%, 58%** at
+tier 120 and **46%, 88%, 76%** at tier 60. E's single-seed 70% and 80% sit
+*inside* G's own seed range at both tiers. With one E seed against that spread,
+the crush column says nothing in either direction. Rule 1, and it applies to the
+unfavourable reading as much as the favourable one.
+
+**Why the screen could not have discriminated — and the reason is measured, not
+argued.** `projects-a5` proposed that the checkpoints are out of distribution
+because they never saw a crush penalty. That is the wrong mechanism: the crush
+tier is a *scoring criterion*, not a change to dynamics or inputs — the policy
+behaves identically and only success is redefined. The real reason is already in
+this lab record, twice:
+
+- `findings.md:744` — "every scaled policy crushes heavily at the 120 N tier —
+  the depth-diverse demos teach grips up to ~100 N and the policies imitate the
+  distribution."
+- `findings.md:857` — a policy trained on ≤40 N grips "still crushed 15/30 raw at
+  the 60 N tier". **Demonstration-level force bounds do not bound the clone.**
+
+So crush avoidance is not learnable by imitation on this data, whatever the
+observation carries. No channel can produce respect for a ceiling the
+demonstrations never respected. That is an empirical fact this project measured
+in August, and I proposed the screen without checking it. **My error, and the
+information to avoid it was on disk.**
+
+**Report as a failed prediction, not as void.** Void would discard real
+information: at both tiers every arm crushes heavily and none regulates, and the
+diagnostic column is inside seed noise. Rule 3 fires cleanly at 60 and
+substantially at 120 (0–5% is not a discriminating regime; G's CI [2.7, 10.2]
+overlaps E's [0.0, 7.1]).
+
+**PAPER ACTION:** strengthens the crush-disabled disclosure in 4.2 — the grid
+never exercised the force band, and a post-hoc attempt to exercise it on those
+checkpoints could not discriminate, for a reason the project already measured.
+The enabling experiment is training *with* a crush tier, which nobody has run.
+Nothing in arm G's Limitations paragraph changes; this screen does not rescue the
+channel's specificity and must not be written as though it might.
+
+### CORRECTION 2026-09-05: the R² above used a different transform than the AUC
+
+`projects-a5` recomputed and got R² = 0.123 for G against my 0.008. The gap is
+entirely a definitional inconsistency **in my analysis**, and its number is the
+better one.
+
+I applied `np.abs` for the detection AUC and then correlated the **signed**
+`s[t] − s[t−8]` for the magnitude R². The peer was consistent and used the
+absolute value for both. Full matrix:
+
+| signal | transform | R² at F>0.5 | R² at F>1.0 |
+|---|---|---|---|
+| motion8 | signed | 0.0056 | 0.0079 |
+| motion8 | **abs** | **0.1226** | 0.1140 |
+| δ | signed | 0.7445 | 0.7486 |
+| δ | abs | 0.7552 | 0.7588 |
+| e | abs | 0.7679 | 0.7696 |
+
+The absolute-value form is the right one to report: a network sees the raw signal
+and can take a magnitude itself, so `|s[t] − s[t−8]|` is the fairer upper bound on
+what is linearly extractable, and it is the number less favourable to my argument.
+
+**Corrected claim.** Position history carries **R² ≈ 0.12** of force magnitude
+against δ's **0.76** — a six-fold gap, not the ninety-fold one the signed figure
+implied. "Carries essentially no force magnitude" is **overstated** and must not
+be written. "Carries far less" is what the data supports.
+
+**Frame counts were never in disagreement.** 83,147 total − 280 episodes × 8
+lead-in frames = **80,907** exactly. The 2,240-row difference is the per-episode
+window where `s[t−8]` does not exist, correctly masked out.
+
+**The AUC difference is a direction convention only.** 0.220 = 1 − 0.780. G's
+signal runs backwards — a blocked jaw moves *less*, so less travel means contact —
+and any reader who recomputes it will hit the same inversion. Worth stating
+explicitly wherever the number appears.
+
+The conclusion survives with the smaller margin: G's observation is a markedly
+worse contact detector (AUC 0.78 against 0.95) and carries far less force
+magnitude (0.12 against 0.76), so whatever produces G's success it is not a force
+estimate. The mechanism argument stands; the rhetoric it was carrying does not.

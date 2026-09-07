@@ -1,0 +1,27 @@
+{
+  "session": "2026-09-06T10:43:56",
+  "args": {
+    "trials": 40,
+    "arms": "base_s1,delta_s1",
+    "jumpstart": 115,
+    "max_steps": 400,
+    "root": "data/real/pickplace_real_v0",
+    "out": "results/real_delta_v3_s1_trials.json",
+    "paired": true,
+    "resume": true
+  },
+  "sha256": {
+    "scripts/trial_runner.py": "efc60be94ee5658cd526515c93fa770ef26fb52818bcac0fa3f6e5b281623cab",
+    "scripts/run_policy_real.py": "aa0b0df06d96b787179fd944dc2f4f6bce6e91a216f971f24064585768921928",
+    "checkpoints/real50_base_v3_s1/train_args.json": "6aa6eddeabb2b5493df20573166c70d176524fe3c0df836b59d3f69bcaf844fe",
+    "checkpoints/real50_base_v3_s1/train_summary.json": "1e8f67e3430b654b4590eec910f0bc1579f07f94764de2e93e9b03f625eda7d0",
+    "checkpoints/real50_base_v3_s1/model.safetensors": "0b4fa4f1b810a47496edc0b8fc3612d4abbc7ee7e3b19b21367355bdcbcbc4c9",
+    "checkpoints/real50_base_v3_s1/norm_stats.npz": "98841255f46065460cdda67eae7c862cea828ee09f288ee0eb08d86b0607892b",
+    "checkpoints/real50_base_v3_s1/config.json": "dc89fc99b8aeb4aa1d1daa755b603ccb214070171dd2a9c537ba06c8bb52cae2",
+    "checkpoints/real50_delta_v3_s1/train_args.json": "9264bf5fa7288f56d17b5ca97f25fa63b186db1505df0734de933757a3a44134",
+    "checkpoints/real50_delta_v3_s1/train_summary.json": "0177a374790ea4beb31c623ee60b37a1ff679c011caeee674d6def4af53d608d",
+    "checkpoints/real50_delta_v3_s1/model.safetensors": "970d60c53a375eb1d52c8f1e8eff28141bae96733fb86c81a609955923d0ee46",
+    "checkpoints/real50_delta_v3_s1/norm_stats.npz": "98841255f46065460cdda67eae7c862cea828ee09f288ee0eb08d86b0607892b",
+    "checkpoints/real50_delta_v3_s1/config.json": "91b7974f3c79b363b54c806605c9facc6383f489484df50c175a9f56b26d4322"
+  }
+}

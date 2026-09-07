@@ -41,7 +41,7 @@ needs a calibration stage that no archived log can supply.
 | Leader-follower discrepancy `wong2026beyond` | no (action labels) | no | yes ⚠ | yes ⚠ |
 | **Grasp monitoring / runtime safety** | | | | |
 | Robotiq object-detection register `robotiq2019manual` | yes (current limit) | yes | no | no |
-| SCHUNK workpiece-loss `schunk_egk` | yes (integrated encoder) | yes | no | no |
+| SCHUNK workpiece-loss `schunk_egk` | **unpublished** ⚠ | yes | no | unknown |
 | Tactile grasp monitoring `calandra2017feeling` | yes (tactile) | yes | no | no |
 | Academic safety filters `alshiekh2018shielding, hsu2024safetyfilter, brunke2022safelearning` | yes (model / state est. / exteroception) | yes | no | no |
 | **This paper** | | | | |
@@ -98,6 +98,39 @@ a force channel. Arm G (`s[t−k:t]`, no `a[t−1]`) is the experiment that earn
 see `docs/reading_notes/thread_A_history_in_IL.md` Part 5. Until it runs, this table
 states a distinction we have argued and not demonstrated, and must not be captioned
 otherwise.
+
+## Manual-citation audit, 2026-09-05
+
+Both commercial citations checked against primary documents, saved and grepped
+literally.
+
+**`robotiq2019manual` — verified verbatim, row stands.** gOBJ fires on "stopped
+due to a contact **before requested position**"; the FORCE register states "if
+the current limit is exceeded, the fingers stop and trigger an object detection
+notification". Note for the caption: the *stop* is caused by the current limit
+but the *detection flag* is defined purely on position versus requested
+position, so Robotiq factors observation and enforcement the way this paper
+does. Robotiq also documents a false-negative mode — "may not detect an object
+even if it is successfully grasped… a thin object in a fingertip grasp" — which
+is the detection-versus-magnitude limit, in commercial firmware.
+
+**`schunk_egk` — row corrected, mechanism is unpublished.** The EGK page
+attributes loss detection to *gripping-force maintenance*, and the absolute
+encoder separately to *referencing after emergency stop or power failure*. It
+never says detection comes from the encoder. The old cell "beyond position: yes
+(integrated encoder)" was also internally incoherent — an encoder *is* a
+position sensor, so an encoder-based detector would be position-only detection
+in commercial firmware, i.e. **closer** prior art than the table claimed. Both
+cells now record what the vendor publishes, which is not enough to place the row.
+
+**`williamson1995sea` — verified, row stands.** MIT DSpace AITR-1524,
+"Williamson, Matthew M.", issued 7 September 1995; abstract confirms "a novel
+force controlled actuator… incorporates a series elastic element… for stable,
+low noise force control". The paper's characterisation (deflection-as-force as a
+design principle) is SEA's defining property and accurate, though the
+deflection-sensing mechanism is body text rather than abstract. Note the more
+commonly cited work is Pratt & Williamson, IROS 1995; citing the thesis is
+legitimate but unusual and worth a deliberate choice.
 
 ## Open cells (⚠)
 
