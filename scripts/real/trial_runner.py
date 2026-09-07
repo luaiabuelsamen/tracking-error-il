@@ -37,7 +37,7 @@ from pathlib import Path
 
 import numpy as np
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[2]
 # Always the venv interpreter, never sys.executable: this script is convenient
 # to launch with the system python, which has NumPy 2.x and cannot import the
 # cv2/torch build the rest of the pipeline uses.
@@ -140,7 +140,7 @@ def main():
         if recovering and (pending["arm"] != arm or not pending.get("rollout_complete")):
             ap.error("pending trial requires manual incident review")
         tag = f"{session.replace(':','')}_{t:02d}_{arm}"
-        cmd = [PY, str(REPO / "scripts" / "run_policy_real.py"),
+        cmd = [PY, str(REPO / "scripts" / "real" / "run_policy_real.py"),
                "--checkpoint", CKPT[arm], "--arm", arm.split("_")[0],
                "--home", args.root, "--jumpstart", str(args.jumpstart),
                "--max-steps", str(args.max_steps),

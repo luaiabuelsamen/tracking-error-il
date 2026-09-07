@@ -24,7 +24,8 @@ but position history reaches 20.3\% across three seeds, leaving the specific
 benefit of tracking error unresolved. On hardware, policies trained on the same
 50 demonstrations achieve 9/20 and 14/20 placements with tracking error against
 5/20 and 1/20 for their position-only counterparts in two completed
-evaluations that begin after a scripted approach. The benefit varies
+evaluations that begin after a scripted approach; a third evaluation was
+interrupted by hardware faults. The benefit varies
 substantially across training seeds and does not by itself show that the
 policy uses contact information. A study of 546 archived teleoperation
 episodes further shows that large tracking error at grasp onset does not
@@ -146,7 +147,13 @@ In simulation, temporal information helps and its best representation is
 unresolved. Mean placement success is 6.2\% for the position-only base,
 13.8\% with the previous action appended, and 21.8\% with explicit tracking
 error. A compensated residual reaches 26.6\%, while position history alone
-reaches 20.3\% (Fig.~\ref{fig:evidence}). Because the residual subtracts a
+reaches 20.3\% (Fig.~\ref{fig:evidence}). Tracking error exceeds the base by
+15.6 points (Welch 95\% CI 3.5 to 27.7) and position history by 1.5 points
+(CI $-11.1$ to 14.0); position history itself exceeds the base by 14.1 points
+(CI 4.5 to 23.8). Only the tracking-error and compensated-residual gains over
+the base clear the preregistered resolution rule of $15\sqrt{3/n}$ points for
+$n$ seeds, and no contrast among the 28 design pairs survives a Holm
+adjustment (Appendix~\ref{app:sim}). Because the residual subtracts a
 fitted free-motion term from tracking error and uses two previous commands,
 comparing it against one-command history changes both the information available
 and its representation. Position history performs comparably
@@ -163,7 +170,14 @@ tests use only the discordant pairs. Seed 0 has six pairs favouring tracking
 error and two favouring the base ($p=0.29$); seed 1 has fourteen and one
 ($p=0.001$). The first comparison is inconclusive and the second is not. Both
 tests describe trial-to-trial variation for a fixed pair of checkpoints, not
-variation over training seeds.
+variation over training seeds. Pooling the completed seeds gives 20 discordant
+pairs favouring tracking error against 3 (stratified exact test $p=0.0005$;
+conditional odds ratio 6.7, 95\% CI 2.0 to 35), and the two discordance
+ratios are not detectably different (Fisher $p=0.27$); these pooled figures
+still condition on two checkpoint pairs and are not an estimate over
+retraining. With 20 pairs the exact test has power 0.17 under seed 0's
+observed discordance structure and 0.97 under seed 1's, so the protocol could
+detect only large effects (Appendix~\ref{app:protocol}).
 
 \begin{table}[t]
 \centering
@@ -218,10 +232,24 @@ contact.
 \begin{table}[h]
 \centering
 \small
-\caption{Full hardware evaluation record. The interrupted seed has six recorded
-pairs, with 0/6 placements for each policy; its planned budget was 20 pairs.
-No confirmatory test is assigned to the incomplete comparison.}
-\input{generated/hardware_table_all.tex}
+\caption{Full hardware evaluation record: success counts with Wilson 95\%
+intervals in percentage points, discordant and concordant pair counts, exact
+McNemar $p$ per seed, and the stratified exact test over the completed seeds.
+The interrupted seed has six recorded pairs, with 0/6 placements for each
+policy; its planned budget was 20 pairs. No confirmatory test is assigned to
+the incomplete comparison.}
+\resizebox{\linewidth}{!}{\input{generated/hardware_table_ci.tex}}
+\end{table}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Power of the exact two-sided McNemar test with 20 pairs at
+$\alpha=0.05$, by the probability that a pair is discordant and the probability
+$q$ that a discordant pair favours tracking error. Seed 0's observed structure
+(8 discordant pairs, 6 favouring) gives 0.17; seed 1's (15, 14) gives 0.97.}
+\label{tab:power}
+\input{generated/power_table.tex}
 \end{table}
 
 \textbf{Training.} The recording contains 21,476 frames from 50 demonstrations
@@ -281,20 +309,50 @@ resumed. Seed 2 was stopped after twelve labeled rollouts, all failures,
 forming six pairs; three reported the same overload at shutdown, and a
 thirteenth rollout completed its horizon but its outcome was not entered. We
 leave that outcome missing rather than infer it from joint motion, and we have
-no diagnosis of the recurring overload. Trial-level detail is in the
-repository's evaluation records.
+no diagnosis of the recurring overload. In the seed-2 rollouts the jaw never
+closed in five of six position-only and three of six tracking-error trials,
+against three of 20 and one of 20 in seed 0 and two of 20 and none of 19 in
+seed 1 (Table~\ref{tab:traces}), which is consistent with a gripper fault
+rather than a policy difference, although the traces cannot prove it.
+Trial-level detail is in the repository's evaluation records.
 
 \section{Exploratory trajectory analysis}
-The seed-0 tracking-error successes follow similar jaw trajectories and settle
-near a common final position, while failures show more varied jaw motion. Over
-the last 100 steps, median summed joint-coordinate travel, a descriptive sum
-over mixed coordinates, is 14.3 for successes
-and 93.6 for failures, and the median fractions of steps affected by command
-limiting are 26\% and 5.75\% respectively. More limiting in successful trials
-could simply follow from progressing further through the task. Traces were
-grouped by outcome after the fact and contain no video, object pose or force,
-so they cannot say whether a failure was a missed grasp, a slip or a
-misplacement, and the endpoint separation is not a validated success detector.
+\label{app:traces}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fig_hardware_traces.pdf}
+\caption{Recorded jaw position for every hardware rollout, by seed and
+policy; green traces placed the adapter, orange did not. Policy control
+begins at step 0 after the scripted replay. The dotted line marks the closure
+threshold used in Table~\ref{tab:traces}.}
+\label{fig:traces}
+\end{figure}
+\begin{table}[h]
+\centering
+\caption{Jaw-trace classes for all recorded rollouts. Never closed: jaw never
+below 5 recorded units. Reopened: an excursion above 8 units after closing.
+Closure step is the median first step below the threshold. One seed-1
+tracking-error trajectory is missing.}
+\label{tab:traces}
+\resizebox{\linewidth}{!}{\input{generated/trace_taxonomy.tex}}
+\end{table}
+Every recorded rollout was classified from its jaw trace as never closed,
+closed then reopened, or closed and held (Table~\ref{tab:traces},
+Fig.~\ref{fig:traces}). All 23 tracking-error successes in seeds 0 and 1
+closed once and held to the end of the horizon, and 15 of their 16 failures
+either never closed or reopened. Position-only successes are too few to
+characterize. Successful tracking-error rollouts closed later, at median step
+165 and 206 against 83 and 115 for failures, and in seed 0 they requested
+smaller moves: the median fraction of steps altered by the command limiter is
+0.09 for tracking error and 0.32 for the base, while in seed 1 the fractions
+are 0.32 and 0.35. Over the last 100 steps of the seed-0 tracking-error
+rollouts, median summed joint-coordinate travel, a descriptive sum over mixed
+coordinates, is 14.3 for successes and 93.6 for failures. Later closure and
+less motion in successful trials could simply follow from progressing further
+through the task. Traces were grouped by outcome after the fact and contain no
+video, object pose or force, so they cannot say whether a failure was a missed
+grasp, a slip or a misplacement, and none of these regularities is a validated
+success detector.
 
 \section{Measurement context}
 A separate static experiment on one shoulder-lift STS3215 uses twelve hanging
@@ -308,7 +366,8 @@ association does not establish an equally accurate physical-load measurement.
 
 In the 50 teleoperation demonstrations, the gripper load register reaches
 500 in every episode and remains there in 16.5\% of frames, while tracking
-error continues to vary across those same frames. The inspected follower
+error continues to vary across those same frames (Fig.~\ref{fig:measurement});
+over all frames the two channels correlate at $r=-0.92$. The inspected follower
 configuration sets a reduced gripper torque limit, consistent with that
 observed plateau. This motivates inspecting the command--position discrepancy
 when telemetry saturates, but it does not calibrate the remaining discrepancy
@@ -316,7 +375,19 @@ in newtons: no jaw load-cell calibration is available, and simulator force
 conversions such as the fitted 2.00\,N/count slope and 4.3\,N held-out RMSE
 over 4--78\,N describe the simulated plant only.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{fig_measurement.pdf}
+\caption{Left: static bench, one shoulder-lift servo, load register against
+tracking error over twelve hanging masses at five poses, with the fitted line.
+Right: jaw load register against jaw tracking error on the teleoperation
+frames (log-count shading); the dashed lines are the configured $\pm500$
+torque limit.}
+\label{fig:measurement}
+\end{figure}
+
 \section{Additional simulation and hardware comparisons}
+\label{app:sim}
 Simulation recordings use integer encoder counts at 15\,Hz, obtained by
 subsampling the 30\,Hz controller. The scripted teacher regulates the jaw
 using tracking error, and the successful demonstration set includes randomized
@@ -337,7 +408,19 @@ holds available raw information fixed but does not match input width. Under the
 original study's preregistered practical resolution rule, $15\sqrt{3/n}$
 percentage points for $n$ training seeds, neither this comparison nor the
 residual--position-history comparison resolves at three seeds, and the stronger
-feature-specific interpretation remains open.
+feature-specific interpretation remains open. Table~\ref{tab:contrasts} lists
+the main design contrasts with Welch intervals; the Holm column adjusts across
+all 28 pairwise comparisons.
+
+\begin{table}[h]
+\centering
+\caption{Simulation design contrasts in placement-success points, with Welch
+95\% intervals, unadjusted and Holm-adjusted $p$ values across all 28 pairs,
+the preregistered resolution rule $15\sqrt{3/n}$ for the smaller seed count,
+and whether the difference clears it.}
+\label{tab:contrasts}
+\resizebox{\linewidth}{!}{\input{generated/sim_contrasts.tex}}
+\end{table}
 
 An earlier hardware comparison, run before the tracking-error study, evaluated the
 compensated residual: the base placed 7/10 objects and the residual 0/10. The
@@ -375,6 +458,20 @@ proxy of continued gripper closure through transport. Only two datasets exceed
 the positive threshold, and the pooled within-dataset effect is
 $d=-0.39$---a failure of the proposed direction and labeling rule, though not
 proof that no function of command and position history can predict outcome.
+Eleven of the sixteen point estimates are negative and seven of those
+intervals exclude zero; two are positive with intervals excluding zero
+(Fig.~\ref{fig:corpus}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{fig_corpus.pdf}
+\caption{Left: per-dataset Cohen's $d$ of tracking error at grasp onset
+between proxy-successful and failed episodes, with 95\% intervals, clipped to
+$\pm6$; marker area scales with episode count and the dashed line is the
+preregistered $d=0.5$ threshold. Right: the same effect sizes under assumed
+command offsets of zero to five frames.}
+\label{fig:corpus}
+\end{figure}
 
 Empty closure against a mechanical stop and closure on an object can both
 produce a seat event, and a large command discrepancy can equally reflect an

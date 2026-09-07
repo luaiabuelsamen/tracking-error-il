@@ -21,7 +21,7 @@ def main():
     for phrase in ('generated/hardware_table.tex', 'fig_observation_evidence.pdf',
                    'third evaluation was interrupted', 'its outcome was not entered', 'not variation over training seeds',
                    'fig_real_quantitative.pdf', 'not included in any count',
-                   'recorded leader commands'):
+                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'power 0.17'):
         # Case-insensitive: prose checks concern disclosures, not typography.
         assert phrase.lower() in flat.lower(), f'missing disclosure/input: {phrase}'
     expected = [(20, 5, 9, 6, 2), (20, 1, 14, 14, 1), (6, 0, 0, 0, 0)]
@@ -31,7 +31,47 @@ def main():
         assert f"{r['base']}/{r['pairs']} & {r['delta']}/{r['pairs']}" in table
     completed_table = (generated / 'hardware_table.tex').read_text()
     assert '0/6' not in completed_table and '0/6' in table
-    assert 'generated/hardware_table_all.tex' in tex
+    assert 'generated/hardware_table_ci.tex' in tex
+    for name in ('power_table.tex', 'trace_taxonomy.tex', 'sim_contrasts.tex'):
+        assert f'generated/{name}' in tex and (generated / name).exists(), name
+    for fig in ('fig_hardware_traces.pdf', 'fig_corpus.pdf', 'fig_measurement.pdf'):
+        assert fig in tex and (ROOT / 'figures/paper' / fig).exists(), fig
+    supp = json.loads((generated / 'supplementary.json').read_text())
+    st = supp['hardware']['stratified']
+    assert (st['delta_only'], st['base_only']) == (20, 3) and f"{st['exact_p']:.4f}" == '0.0005'
+    orr = st['conditional_odds_ratio']
+    assert f"{orr['estimate']:.1f}" == '6.7' and f"{orr['ci'][0]:.1f}" == '2.0' and round(orr['ci'][1]) == 35
+    assert f"{st['heterogeneity_fisher_p']:.2f}" == '0.27'
+    power = supp['power']['at_observed_structure']
+    assert f"{power['seed0']:.2f}" == '0.17' and f"{power['seed1']:.2f}" == '0.97'
+    tax = supp['hardware']['taxonomy']
+    assert tax['seed0_delta_success']['closed_and_held'] == 9 == tax['seed0_delta_success']['n']
+    assert tax['seed1_delta_success']['closed_and_held'] == 14 == tax['seed1_delta_success']['n']
+    fails = [tax[k] for k in ('seed0_delta_failure', 'seed1_delta_failure')]
+    assert sum(f['n'] for f in fails) == 16 and sum(f['never_closed'] + f['closed_then_reopened'] for f in fails) == 15
+    for key, never in (('seed2_base_failure', 5), ('seed2_delta_failure', 3), ('seed0_base_failure', 3),
+                       ('seed0_delta_failure', 1), ('seed1_base_failure', 2), ('seed1_delta_failure', 0)):
+        assert tax[key]['never_closed'] == never, key
+    for key, step in (('seed0_delta_success', 165), ('seed1_delta_success', 206), ('seed0_delta_failure', 83),
+                      ('seed1_delta_failure', 115)):
+        assert round(tax[key]['median_first_close_step']) == step, key
+    lim = supp['hardware']['limiter']
+    for key, frac in (('seed0_delta', .09), ('seed0_base', .32), ('seed1_delta', .32), ('seed1_base', .35)):
+        assert round(lim[key]['median_clipped_frame_fraction'], 2) == frac, key
+    con = {(c['b'], c['a']): c for c in supp['simulation']['contrasts']}
+    for pair, diff, lo, hi in ((('Tracking error', 'Position'), 15.6, 3.5, 27.7),
+                               (('Position history', 'Position'), 14.1, 4.5, 23.8),
+                               (('Tracking error', 'Position history'), 1.5, -11.1, 14.0)):
+        r = con[pair]
+        assert (round(r['diff'], 1), round(r['ci'][0], 1), round(r['ci'][1], 1)) == (diff, lo, hi), pair
+    assert all(r['holm_p'] >= .05 for r in con.values()) and len(con) == 28
+    assert [c for c in con.values() if c['resolved'] and c['a'] == 'Position'] and \
+        {c['b'] for c in con.values() if c['resolved'] and c['a'] == 'Position'} == {'Tracking error', 'Compensated residual', 'Seat token'}
+    corp = supp['corpus']
+    assert (corp['negative_point_estimates'], corp['ci_excludes_zero_negative'], corp['ci_excludes_zero_positive']) == (11, 7, 2)
+    meas = supp['measurement']['demonstrations']
+    assert f"{100*meas['saturated_fraction']:.1f}" == '16.5' and f"{meas['corr_load_delta_jaw']:.2f}" == '-0.92'
+    assert f"{supp['measurement']['static']['r2']:.3f}" == '0.976'
     assert actual['hardware'][1]['shutdown_errors'] == 2
     assert actual['hardware'][1]['missing_trajectories'] == 1
     assert actual['hardware'][2]['shutdown_errors'] == 3
@@ -69,7 +109,7 @@ def main():
     log = (ROOT/'paper/main.log').read_text()
     assert not re.search(r'undefined|Overfull|^!', log, re.M), 'LaTeX references/layout need attention'
     assert '[URL]' not in tex and 'TODO' not in tex
-    print('PASS: hardware outcomes, paired tables, simulation means, corpus counts, guard and scale disclosures, citations, and LaTeX checks')
+    print('PASS: hardware outcomes, paired and stratified tables, trace classes, power, simulation means and contrasts, corpus counts and figure, measurement context, guard and scale disclosures, citations, and LaTeX checks')
 
 
 if __name__ == '__main__':

@@ -1,7 +1,7 @@
 # Publication draft
 
 The current manuscript is `main.tex`, compiled to `main.pdf`: four pages of
-main text, one page of references, and three pages of supplementary details.
+main text, one page of references, and five pages of appendices.
 It is a standalone empirical paper, not a report of development sessions.
 An earlier manuscript on the same data is kept outside this repository.
 
@@ -18,12 +18,15 @@ Rebuild from the repository root:
 
 ```bash
 python scripts/paper/build_paper_evidence.py
+python scripts/paper/supplementary_analysis.py
 latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
 python scripts/paper/check_paper_numbers.py
 ```
 
-The figure and table are generated from trial/grid JSON rather than manually
-entered. `generated/evidence.json` records the inputs to those displays.
+Every table and figure is generated from the records under `results/`; nothing
+is typed. `generated/evidence.json` and `generated/supplementary.json` record
+the inputs to those displays, and `check_paper_numbers.py` asserts the text
+against them. `make paper` from the repository root runs all four steps.
 
 The five cited works were checked against primary records during the rewrite:
 

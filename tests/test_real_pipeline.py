@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
+SCRIPTS = Path(__file__).resolve().parents[1] / "scripts" / "real"
 sys.path.insert(0, str(SCRIPTS))
 import trial_runner
 from run_policy_real import send_target
@@ -50,9 +50,9 @@ class RealPipelineTests(TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             # The manifest includes these source paths and __file__.
-            (root / "scripts").mkdir()
+            (root / "scripts" / "real").mkdir(parents=True)
             for name in ("trial_runner.py", "run_policy_real.py"):
-                (root / "scripts" / name).write_text("# fixture")
+                (root / "scripts" / "real" / name).write_text("# fixture")
             ckpt = {"base_v2": "base", "delta_v3": "delta"}
             for name in ckpt.values():
                 (root / name).mkdir()

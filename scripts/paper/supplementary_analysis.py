@@ -297,10 +297,11 @@ def measurement():
         same = ep[1:] == ep[:-1]
         d_jaw = (action[:-1, JAW] - state[1:, JAW])[same]
         load_jaw = state[1:, 6 + JAW][same]
-        sat = np.abs(state[:, 6 + JAW]) >= 499.5
-        demo = dict(frames=int(len(state)), episodes=int(len(np.unique(ep))),
+        sat = np.abs(load_jaw) >= 499.5
+        ep_pairs = ep[1:][same]
+        demo = dict(frames=int(len(load_jaw)), episodes=int(len(np.unique(ep))),
                     saturated_fraction=float(sat.mean()),
-                    episodes_touching_saturation=int(len(np.unique(ep[sat]))),
+                    episodes_touching_saturation=int(len(np.unique(ep_pairs[sat]))),
                     corr_load_delta_jaw=float(np.corrcoef(d_jaw, load_jaw)[0, 1]),
                     delta_jaw_sd_when_saturated=float(d_jaw[np.abs(load_jaw) >= 499.5].std()),
                     delta_jaw_sd_when_not_saturated=float(d_jaw[np.abs(load_jaw) < 499.5].std()))
@@ -346,7 +347,7 @@ def simulation():
     names = [n for n, _ in DESIGNS]
     for i, a in enumerate(names):
         for b in names[i + 1:]:
-            w = welch(vals[a], vals[b])
+            w = welch(vals[b], vals[a])   # b minus a, matching the table label
             n = min(len(vals[a]), len(vals[b]))
             rule = 15 * math.sqrt(3 / n)
             contrasts.append(dict(a=a, b=b, n_a=len(vals[a]), n_b=len(vals[b]), resolution_rule=rule,
@@ -404,10 +405,10 @@ def tables(hw, power, sim):
     o = st["conditional_odds_ratio"]
     hi = f"{o['ci'][1]:.1f}" if math.isfinite(o["ci"][1]) else "$\\infty$"
     rows.append("\\midrule")
-    rows.append(f"Stratified (completed) & & & & {st['delta_only']} / {st['base_only']} & & {st['exact_p']:.4f} \\\\")
+    rows.append(f"0+1 & Stratified & & & {st['delta_only']} / {st['base_only']} & & {st['exact_p']:.4f} \\\\")
     (GEN / "hardware_table_ci.tex").write_text(
         "\\begin{tabular}{llllrrr}\n\\toprule\n"
-        "Seed & Evaluation & Base (Wilson 95\\%) & Tracking error (Wilson 95\\%) & TE-only / base-only & both / neither & $p$ \\\\\n\\midrule\n"
+        "Seed & Evaluation & Base [95\\% CI] & Tracking error [95\\% CI] & TE / base only & both / neither & $p$ \\\\\n\\midrule\n"
         + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
     (GEN / "odds_ratio.tex").write_text(f"{o['estimate']:.1f} (95\\% CI {o['ci'][0]:.1f} to {hi})")
 
@@ -450,7 +451,7 @@ def tables(hw, power, sim):
                   f"{c['p']:.3f} & {c['holm_p']:.2f} & {c['resolution_rule']:.1f} & {mark} \\\\")
     (GEN / "sim_contrasts.tex").write_text(
         "\\begin{tabular}{lrlrrrl}\n\\toprule\n"
-        "Contrast (points) & Difference & Welch 95\\% CI & $p$ & Holm $p$ & Rule & Resolved \\\\\n\\midrule\n"
+        "Contrast & Points & Welch 95\\% CI & $p$ & Holm $p$ & Rule & Clears \\\\\n\\midrule\n"
         + "\n".join(sl) + "\n\\bottomrule\n\\end{tabular}\n")
 
 
