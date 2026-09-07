@@ -1463,7 +1463,7 @@ exactly from `results/delta_characterization.json` (`pooled_fit`):
 | over 4–78 N | `force_range_n` = [4.0026, 78.1549] | exact |
 
 Fit is 468 train / 312 held-out points. The `±9.2 N` budget and `F_min = 20 N`
-that appear in `hardware/staircase_cal.py`'s docstring are project-internal
+that appear in `scripts/bench/staircase_cal.py`'s docstring are project-internal
 envelope figures and are **not** claimed anywhere in main.tex, so there is
 nothing to reconcile there.
 

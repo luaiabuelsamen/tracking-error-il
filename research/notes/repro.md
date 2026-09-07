@@ -61,7 +61,7 @@ with the cap and rate limit disabled).
 - Guard (v4) and its paired-reference test: `src/so101_bench/guard.py`,
   `scripts/eval_expert_guarded.py`, `results/expert_guarded_pairing.json`,
   `results/guard_h100*.json`.
-- Hardware staircase protocol (Sec. 4.5, pending): `hardware/staircase_cal.py`.
+- Hardware staircase protocol (Sec. 4.5, pending): `scripts/bench/staircase_cal.py`.
 
 ## Figures
 

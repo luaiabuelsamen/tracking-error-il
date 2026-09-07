@@ -21,17 +21,17 @@ broken tree.
 
 ```bash
 cd /home/jetson3/projects/clean_env/lerobot
-git checkout "$(cat /home/jetson3/projects/so101-bench/patches/lerobot-base-commit.txt)"
-git apply /home/jetson3/projects/so101-bench/patches/lerobot-local.patch
-tar xzf /home/jetson3/projects/so101-bench/patches/lerobot-untracked-scripts.tar.gz
+git checkout "$(cat /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-base-commit.txt)"
+git apply /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-local.patch
+tar xzf /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-untracked-scripts.tar.gz
 ```
 
 ## Refresh the snapshot after changing the lerobot tree
 
 ```bash
 cd /home/jetson3/projects/clean_env/lerobot
-git diff > /home/jetson3/projects/so101-bench/patches/lerobot-local.patch
-git rev-parse HEAD > /home/jetson3/projects/so101-bench/patches/lerobot-base-commit.txt
+git diff > /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-local.patch
+git rev-parse HEAD > /home/jetson3/projects/so101-bench/scripts/bench/lerobot-patch/lerobot-base-commit.txt
 ```
 
 ## Notable patch: `datasets/pyav_utils.py`

@@ -25,12 +25,12 @@ BENCH SETUP (your 20 minutes):
      (anything stiff; a wooden block works).
   2. Position the arm BY HAND (torque off) so the closed gripper's fixed jaw
      tip rests just above the spacer — a few mm gap. Note the scale's zero.
-  3. Run:  python hardware/staircase_cal.py --port /dev/ttyACM0 --joint wrist_flex
+  3. Run:  python scripts/bench/staircase_cal.py --port /dev/ttyACM0 --joint wrist_flex
      The script steps Goal_Position DOWN in 1-count increments, holding ~1 s
      per step. At each hold, READ THE SCALE and type the grams shown, Enter.
      Type 'x' + Enter to stop (do this when the scale stops rising = servo
      saturated, or at ~2 kg to be kind to the arm).
-  4. It saves hardware/staircase_<joint>.json and prints the fitted N/count,
+  4. It saves scripts/bench/staircase_<joint>.json and prints the fitted N/count,
      the linear range, and the saturation point.
 
 Repeat --direction up for the unloading branch (hysteresis), and optionally on

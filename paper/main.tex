@@ -14,9 +14,9 @@
 \maketitle
 
 \begin{abstract}
-When a robot records commanded and measured joint positions, their difference
-provides an observation of actuator response that can be reconstructed without
-an additional sensor or a fitted force estimator.
+The difference between a commanded joint position and the position actually
+reached is available on any position-controlled robot that logs both, with no
+added sensor or fitted force model.
 We study this tracking error as an additional input to behavior cloning on a
 low-cost SO-101 arm. In simulation, placement success increases from 6.2\% with
 position observations to 21.8\% with tracking error across five training seeds,
@@ -24,11 +24,11 @@ but position history reaches 20.3\% across three seeds, leaving the specific
 benefit of tracking error unresolved. On hardware, policies trained on the same
 50 demonstrations achieve 9/20 and 14/20 placements with tracking error against
 5/20 and 1/20 for their position-only counterparts in two completed
-evaluations. These
-results support tracking error as a useful candidate observation while exposing
-substantial variation across training seeds and limits to its interpretation as
-contact feedback, and a study of archived teleoperation data shows why large
-tracking error alone is an unreliable grasp-success label.
+evaluations that begin after a scripted approach. The benefit varies
+substantially across training seeds and does not by itself show that the
+policy uses contact information. A study of 546 archived teleoperation
+episodes further shows that large tracking error at grasp onset does not
+predict grasp success.
 \end{abstract}
 \keywords{Behavior Cloning, Proprioception, Low-Cost Manipulation}
 
@@ -41,45 +41,40 @@ current joint position must infer all of this from its remaining observations,
 whereas supplying the previous command makes the discrepancy directly
 available.
 
-This is an attractive observation for inexpensive robots because it requires
-neither an added sensor nor a force-estimation model, and wherever recorded
-commands correspond to the goals applied to the robot at a known cadence it can
-be reconstructed from demonstrations that already exist. Convenience is not
-value, though: tracking error mixes contact with motion lag and actuator
-effects, and richer temporal inputs may carry the same useful information. The
-practical question is whether exposing this discrepancy helps an imitation
-policy, and what evidence would justify attributing any benefit to contact.
+For inexpensive robots this is attractive: it needs neither an added sensor nor
+a force-estimation model, and it can be reconstructed from existing
+demonstrations wherever the logged commands are the goals the servos actually
+received. Cheapness is not the question. Tracking error mixes contact with
+motion lag and actuator dynamics, and a history of positions may carry the same
+information. The question is whether exposing it helps an imitation policy, and
+what would justify attributing any gain to contact.
 
-We investigate that question through a simulation comparison, which lets us set
-explicit tracking error against raw action history, position history and a
-compensated residual, and a small hardware study, which asks whether the
-simplest of those features transfers to human demonstrations on one SO-101. The
-two completed hardware comparisons favour tracking error. The experiments motivate
-retaining command history in policy interfaces, and they fall well short of a
-generally reliable force-aware controller.
+We run two experiments. A simulation grid sets explicit tracking error against
+action history, position history and a compensated residual under identical
+data and training budgets. A hardware study asks whether the simplest of these
+features helps ACT policies trained on 50 human demonstrations on one SO-101.
+Tracking error wins both completed hardware comparisons, by 4 and 13 placements
+out of 20, the second significantly. In simulation, position history matches
+it, so the results argue for keeping command history in policy interfaces
+without establishing that the policy reads contact.
 
 \section{Related work}
-Sensorless force estimation has a longer history than its use in learned
-manipulation. Hwang et al.~\citep{hwang2018virtual} develop a virtual torque
-sensor for RC servos using dynamic system identification. More recently,
-FACTR~2~\citep{oh2026factr2} learns external-torque estimates from free-motion
-data and uses force-informed resampling to improve policy learning. We study
-a simpler input, the uncalibrated command--position difference itself, which
-requires no fitted estimator and makes correspondingly weaker claims about
-physical force.
+Hwang et al.~\citep{hwang2018virtual} estimate torque on RC servos by system
+identification; FACTR~2~\citep{oh2026factr2} learns external-torque estimates
+from free-motion data and resamples training data by force. We use a simpler
+input, the uncalibrated command--position difference, and make
+correspondingly weaker claims about force.
 
 Wong et al.~\citep{wong2026beyond} show that leader--follower discrepancies in
 teleoperation can carry interaction cues: removing them from ACT's action
 labels degrades performance in force-critical phases, while torque proxies
 restore contact-aware behavior. Our intervention instead adds the discrepancy
 to the policy observation, which makes this an observation-design study rather
-than a new sensorless-force principle. The distinction matters statistically as
-well, since adding the feature adds access to a previous command, and history
-that helps under partial observability can equally support shortcuts that
-predict previous actions instead of the actions the task
-needs~\citep{wen2020copycat}. We therefore compare several temporal
-observations in simulation rather than reading every improvement over a
-position-only baseline as evidence for force estimation.
+than a new sensorless-force principle. Adding the feature also adds access to the
+previous command. History that helps under partial observability can equally
+support a shortcut that copies the previous action instead of the action the
+task needs~\citep{wen2020copycat}, so we compare several temporal observations
+rather than treating any gain over the base as evidence of force estimation.
 
 \section{Observation and experimental design}
 Let $q_t$ be the measured joint position and $g_{t-1}$ the preceding applied
@@ -100,8 +95,8 @@ every nonzero value to external contact.
 pick-and-place demonstrations with randomized object and scene properties.
 All designs use the same data and training budget: 12,000 steps with 96-pixel
 front and gripper-camera images. Each trained policy is evaluated on 100
-episodes with shared scene seeds across designs, five training seeds being
-available for the original designs and three for the position-history control.
+episodes with shared scene seeds across designs, with five training seeds for
+the original designs and three for the position-history control.
 The learning comparison uses placement success with the crush threshold
 disabled, so it tests grasping and transport rather than regulation within a
 safe force band.
@@ -120,18 +115,16 @@ steps. ACT predicts and executes 30-command chunks, so observations inform the
 next chunk rather than each command within it. A relative-target limiter is
 shared by both policies, and the tracking-error input uses the command returned
 \emph{after} limiting. Trials are paired by training seed and physical reset,
-with base-first and delta-first order alternating across pairs, and an operator
-records whether the adapter is placed inside the roll. We plan 20 pairs per
-seed and retain failures, including outcomes from completed rollouts whose
-shutdown reports an error. Appendix~\ref{app:protocol} gives implementation
-and interruption details.
+with base-first and tracking-error-first order alternating across pairs, and
+an operator records whether the adapter is placed inside the roll
+(Appendix~\ref{app:protocol}).
 
 \section{Results}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{fig_observation_evidence.pdf}
-\caption{Tracking error improves on position-only observations in simulation
-and in two completed hardware comparisons. Left: bars are means; dots are
+\caption{Placement success by observation design in simulation and in the two
+completed hardware evaluations. Left: bars are means; dots are
 individual training seeds (five per design, three for position history).
 Right: hardware success counts for the two completed evaluations. The full
 evaluation record, including an interrupted third comparison, appears in
@@ -142,38 +135,35 @@ Appendix~\ref{app:protocol}.}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{fig_real_quantitative.pdf}
-\caption{A qualitative physical rollout and its quantitative context. Top:
-three frames from a raw-tracking-error policy after the fixed demonstration
-replay. Bottom: placement success for the two completed paired hardware
-evaluations; labels give successes over pairs. The rollout is illustrative and
-is not added to the evaluation counts. The interrupted third evaluation is
-reported in the appendix.}
+\caption{Top: three frames from a tracking-error policy (seed 1) after the
+scripted replay, from a showcase rollout that is not included in any count.
+Bottom: placement successes over 20 pairs for the two completed hardware
+evaluations.}
 \label{fig:real}
 \end{figure}
 
-\textbf{Temporal information helps in simulation; its best representation is
-unresolved.} Mean placement success is 6.2\% for the position-only base,
+In simulation, temporal information helps and its best representation is
+unresolved. Mean placement success is 6.2\% for the position-only base,
 13.8\% with the previous action appended, and 21.8\% with explicit tracking
 error. A compensated residual reaches 26.6\%, while position history alone
 reaches 20.3\% (Fig.~\ref{fig:evidence}). Because the residual subtracts a
 fitted free-motion term from tracking error and uses two previous commands,
 comparing it against one-command history changes both the information available
-and its representation. More importantly, position history performs comparably
+and its representation. Position history performs comparably
 to tracking error without observing commands at all, so the grid supports
 supplying temporal information without resolving whether explicit tracking
 error is preferable to a suitable history. Predicting tracking error as an
 auxiliary training target gives 6.6\%: this particular auxiliary objective does
 not recover the benefit of supplying it as input.
 
-\textbf{Hardware improvements depend on the trained policy.}
-Table~\ref{tab:hardware} reports each comparison separately, and tracking error
-improves placement by 20 percentage points for seed 0 and 65 points for seed 1.
-The exact two-sided McNemar tests compare discordant pairs within each seed:
-six versus two favour tracking error in seed 0, and fourteen versus one in
-seed 1, so the first comparison is inconclusive while the second shows a
-substantial difference between these two checkpoints. These tests quantify
-trial variation conditional on a trained policy, not variation over training
-seeds.
+Hardware improvements depend on the trained policy. Table~\ref{tab:hardware}
+reports each comparison separately: tracking error improves placement by 20
+percentage points for seed 0 and 65 points for seed 1. Exact two-sided McNemar
+tests use only the discordant pairs. Seed 0 has six pairs favouring tracking
+error and two favouring the base ($p=0.29$); seed 1 has fourteen and one
+($p=0.001$). The first comparison is inconclusive and the second is not. Both
+tests describe trial-to-trial variation for a fixed pair of checkpoints, not
+variation over training seeds.
 
 \begin{table}[t]
 \centering
@@ -188,37 +178,35 @@ Appendix~\ref{app:protocol} for the interrupted evaluation.}
 A third evaluation was interrupted by recurring hardware faults; its partial
 results and missing outcomes are reported in Appendix~\ref{app:protocol}.
 
-\textbf{A useful input is not necessarily an outcome label.} We also test a
+A useful input is not necessarily an outcome label. We also test a
 preregistered prediction that larger tracking error at detected grasp onset
 accompanies successful grasps in archived teleoperation data. Sixteen datasets
 with 546 episodes pass the inclusion gates, of which only two meet the
-predicted positive effect-size threshold; the pooled within-dataset effect is
-negative ($d=-0.39$), scored against a gripper-retention proxy rather than
+predicted positive effect-size threshold ($d>0.5$); the pooled within-dataset
+effect is negative ($d=-0.39$), scored against a gripper-retention proxy, not
 manually verified placements. The result rejects this proposed labeling rule
 and illustrates why a discrepancy can indicate resistance without identifying a
 successful grasp (Appendix~\ref{app:corpus}).
 
 \section{Discussion and conclusion}
-Tracking error appeals for a practical reason: it exposes actuator response
-using signals the command interface already carries. The simulation comparison
-and the two completed hardware comparisons show that it can help behavior
-cloning at a small demonstration budget, but nothing here establishes that the
-policy learns force regulation---position history is competitive in simulation,
-no history control has been evaluated on hardware, and the hardware task never
-requires respecting a measured force threshold.
+Tracking error costs nothing to add: the command interface already carries
+both signals. In simulation and in two hardware comparisons it improved
+behavior cloning at a 50-demonstration budget. Whether the policy uses it as
+contact information is a separate question that this study leaves open.
+Position history is competitive in simulation, no history control has been run
+on hardware, and the hardware task never requires staying under a force
+threshold.
 
-Variation across seeds is central to the result: a large advantage for one
-checkpoint pair coexists with a smaller advantage for another. Covering one physical arm, one task and a
-fixed demonstration-assisted start, the study cannot speak to end-to-end task
-reliability, transfer across objects or robots, or independence from the
-command limiter. Observing a contact-related signal does not itself enforce
-acceptable loading.
+The two completed hardware seeds gave a 20-point and a 65-point improvement,
+and two seeds cannot bound that spread. The study uses one arm, one task and a
+fixed scripted approach, so it says nothing about full-task reliability, other
+objects or robots, or performance without the command limiter.
 
-Tracking error is therefore a useful candidate for observation design, with
-an empirical benefit that should be tested against temporal baselines and
-across training seeds. When it adds information beyond history, and
-whether a policy can use that information to regulate contact, are the two
-questions we would put to the next round of experiments.
+The next experiments are a position-history control on hardware, more training
+seeds per design, and a task with a measured force limit. Those three settle,
+respectively, whether tracking error adds information beyond history, how large
+the seed effect is, and whether a policy can use the signal to regulate
+contact.
 
 \clearpage
 \bibliography{refs}
@@ -240,9 +228,8 @@ No confirmatory test is assigned to the incomplete comparison.}
 at 30\,Hz. Position and action statistics are computed on the recording; the
 training index then removes stationary prefixes, retaining 18,549 frames. Both
 policies use the same index and normalization, and recorded load channels are
-excluded from policy inputs. The real-data coordinates follow the recording
-interface; in particular, gripper position is not a calibrated force or a
-common angular coordinate shared with the arm joints.
+excluded from policy inputs. Gripper position is in the interface's own units,
+not a calibrated force.
 
 The ACT configuration uses a ResNet-18 image backbone, model width 256,
 four attention heads, feedforward width 1024, two encoder layers and one
@@ -254,7 +241,7 @@ observation projection necessarily changes width when six features are added;
 the remaining architecture and training settings are shared.
 
 \textbf{Execution and command semantics.} Each rollout homes the arm to the
-mean demonstration start, replays the first 115 actions from demonstration 0,
+mean demonstration start, replays the first 115 commands from demonstration 0,
 and hands control to the policy, so the reported task excludes autonomous
 approach from an arbitrary initial state. Each requested command passes through
 a relative-target limit of 8 in the interface's joint units---a
@@ -262,13 +249,13 @@ target-displacement bound rather than a force or velocity guarantee---and
 during both replay and policy execution the returned limited command supplies
 the next tracking-error calculation. The servo's native goal quantization sits
 below this software interface. State and images are read at each control step,
-but ACT consults them only when its 30-step action queue is empty.
+but ACT consults them only when its 30-command queue is empty.
 
 An offline replay check reproduces the training and inference state vectors
 on all 21,476 recorded frames for the base, tracking error, action history,
 position history and compensated residual designs. In seed 0, the saved
 tracking-error observations after the first rollout step also reproduce from
-logged applied commands, which checks software consistency rather than physical
+logged applied commands, which checks software consistency, not physical
 command-to-encoder latency. Collection-time command limiting has not been
 established from the available metadata, so archived action labels should be
 read as recorded goals, which need not equal the goals applied to a servo if
@@ -279,51 +266,39 @@ seed consecutive trials form a pair with AB/BA order alternating between pairs.
 The operator knows the policy identity, so outcomes are not blinded. Seeds 1
 and 2 were scheduled after observing seed 0, with their training recipe and
 evaluation budget fixed before their evaluations, and no policy was selected by
-hardware performance. The primary paired test is exact, two-sided McNemar with
+hardware performance: every trained checkpoint was evaluated. The primary paired test is exact, two-sided McNemar with
 an improvement criterion of positive effect and $p<0.05$; for the completed
 seeds, paired percentile bootstrap intervals (20,000 pair resamples, random
-seed 0) are $[-5,+45]$ and $[+40,+90]$ percentage points, describing trial
-uncertainty for fixed checkpoints rather than confidence intervals over
-retraining. The equal-weight mean of the three observed seed differences is
-28.3 points, but the third difference uses only six pairs and is censored by
-hardware failure, so we do not read that mean as a balanced estimate of method
-performance.
+seed 0) are $[-5,+45]$ and $[+40,+90]$ points, describing trial uncertainty
+for fixed checkpoints, not confidence intervals over retraining.
 
 \textbf{Interruptions and missing data.} Seed 0 has 40 outcomes and 40
-trajectories; seed 1 has 40 outcomes and 39. Trials 35 (tracking error) and 37
-(base) completed their control horizons but reported a gripper overload while
-disabling torque, and both are operator-labeled failures. Trial 35's outcome
-was recovered from the operator after the process stopped, but its trajectory
-was lost because the earlier cleanup path saved data only after disconnecting.
-Saving was moved before disconnect, without changing policy observations or
-commanded actions, and trial 37's trajectory was retained. Evaluation resumed
-with the original pair identifiers and order.
-
-Seed 2 has twelve labeled rollouts, all failures, forming six complete pairs,
-with shutdown overloads recorded on trials 8, 10 and 12. Trial 13 also
-completed its control horizon and has a trajectory and shutdown-failure record,
-but its outcome was not entered, and the remaining planned trials were never
-evaluated. We preserve the unrecorded outcome as missing rather than infer it
-from joint motion. We have established neither a diagnosis of the recurring
-overload nor random missingness, and this interrupted evaluation is part of the
-evidence against claiming broad hardware reliability.
+trajectories. Seed 1 has 40 outcomes and 39 trajectories: two rollouts, one per
+policy, completed their control horizon but reported a gripper overload while
+torque was being disabled; both are operator-labeled failures, and one
+trajectory file was lost to a logging bug that was fixed before evaluation
+resumed. Seed 2 was stopped after twelve labeled rollouts, all failures,
+forming six pairs; three reported the same overload at shutdown, and a
+thirteenth rollout completed its horizon but its outcome was not entered. We
+leave that outcome missing rather than infer it from joint motion, and we have
+no diagnosis of the recurring overload. Trial-level detail is in the
+repository's evaluation records.
 
 \section{Exploratory trajectory analysis}
 The seed-0 tracking-error successes follow similar jaw trajectories and settle
 near a common final position, while failures show more varied jaw motion. Over
-the last 100 steps, median summed joint-coordinate travel---a descriptive
-mixed-coordinate sum rather than a physical path length---is 14.3 for successes
+the last 100 steps, median summed joint-coordinate travel, a descriptive sum
+over mixed coordinates, is 14.3 for successes
 and 93.6 for failures, and the median fractions of steps affected by command
 limiting are 26\% and 5.75\% respectively. More limiting in successful trials
-could simply follow from progressing further through the task. The traces were
-grouped by observed outcome after evaluation and contain no video, object pose
-or ground-truth force, so they cannot identify a missed grasp, a slip or a
-placement error, and the endpoint separation is not a validated success
-detector.
+could simply follow from progressing further through the task. Traces were
+grouped by outcome after the fact and contain no video, object pose or force,
+so they cannot say whether a failure was a missed grasp, a slip or a
+misplacement, and the endpoint separation is not a validated success detector.
 
 \section{Measurement context}
-Tracking error is not introduced here as a new torque sensor. A separate
-static experiment on one shoulder-lift STS3215 uses twelve hanging masses
+A separate static experiment on one shoulder-lift STS3215 uses twelve hanging
+masses
 at five poses (60 measurements). Across those measurements, the fitted
 relationship between the load register and tracking error is
 $\texttt{Present\_Load}=-4.70\delta+0.1$, with $R^2=0.976$.
@@ -354,7 +329,7 @@ demonstrations and recording cadence all differ between the two settings.
 The original simulation study includes an auxiliary tracking-error target
 and a latched seat token in addition to the designs in
 Fig.~\ref{fig:evidence}, with mean placement rates of 6.6\% and 21.8\% across
-five seeds. The compensated residual is
+five seeds; the seat token matches tracking error exactly. The compensated residual is
 $e_t=\delta_t-\widehat K(g_{t-1}-g_{t-2})$, where each joint's coefficient
 is fitted once on presumed free-motion demonstration frames. A two-command
 history control reaches 14.7\% over three seeds; comparing it with the residual
@@ -364,29 +339,25 @@ percentage points for $n$ training seeds, neither this comparison nor the
 residual--position-history comparison resolves at three seeds, and the stronger
 feature-specific interpretation remains open.
 
-An earlier hardware comparison, run before the raw-error study, evaluated the
+An earlier hardware comparison, run before the tracking-error study, evaluated the
 compensated residual: the base placed 7/10 objects and the residual 0/10. The
 coefficients fitted from these real demonstrations differ markedly from the
 simulation fits, and a free-motion labeling heuristic includes contact frames.
-These are plausible sources of model mismatch rather than a causal diagnosis,
-since coefficients above one are not by themselves proof that a regression
-against one command increment is invalid, and the earlier runner also fed back
-requested rather than post-limit commands. That comparison differs in
-preprocessing and execution from the raw-error study and is reported
-separately; the later improvement does not isolate the compensation term as
-the cause of failure.
+Both are plausible sources of mismatch, not a diagnosis. Coefficients above
+one do not by themselves invalidate the regression, and that runner also fed
+back requested rather than post-limit commands, so preprocessing and execution
+both differ from the tracking-error study.
 
 The simulation task admits a crush threshold, but the learning grid does not
 activate it. A post-hoc screen of existing checkpoints at 120 and 60\,N
 produces heavy crushing and near-floor success, failing the predicted
-advantage of the compensated signal. A separate runtime guard reduces crush
+advantage of the compensated residual. A separate runtime guard reduces crush
 events from 85 to 3 across 180 crush-tier episodes, while eliminating all
-12 unguarded placements across its broader 270-episode comparison. We do not
-present either result as successful learned force regulation or deploy that
-guard in the hardware comparisons.
+12 unguarded placements across its broader 270-episode comparison. Neither
+result is learned force regulation, and the guard was not used on hardware.
 
 Larger-budget experiments do not establish a scaling advantage. An earlier
-600-demonstration comparison of raw tracking error and one-command history
+600-demonstration comparison of tracking error and one-command history
 reaches 57\% and 60\%, respectively, over two seeds at 224 pixels and 50,000
 steps. A later 600-demonstration screen saved at 26,000 steps contains three
 base and three residual evaluations, each with 0/100 placements. These

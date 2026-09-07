@@ -1,18 +1,18 @@
 #!/bin/bash
 # One entry point for the physical SO-101 pair.
 #
-#   scripts/arms.sh ports              # list serial ports + which USB device
-#   scripts/arms.sh calibrate-leader   # one-time leader calibration (interactive)
-#   scripts/arms.sh calibrate-follower # redo follower calibration (interactive)
-#   scripts/arms.sh teleop             # leader-follower teleoperation loop
-#   scripts/arms.sh teleop-cam         # teleop + front camera preview
-#   scripts/arms.sh record NAME N      # record N teleop episodes -> data/real/NAME
-#   RESUME=1 scripts/arms.sh record NAME N   # append N more to an existing set
-#   scripts/arms.sh staircase          # bench calibration (delta/load/current vs load cell)
+#   scripts/bench/arms.sh ports              # list serial ports + which USB device
+#   scripts/bench/arms.sh calibrate-leader   # one-time leader calibration (interactive)
+#   scripts/bench/arms.sh calibrate-follower # redo follower calibration (interactive)
+#   scripts/bench/arms.sh teleop             # leader-follower teleoperation loop
+#   scripts/bench/arms.sh teleop-cam         # teleop + front camera preview
+#   scripts/bench/arms.sh record NAME N      # record N teleop episodes -> data/real/NAME
+#   RESUME=1 scripts/bench/arms.sh record NAME N   # append N more to an existing set
+#   scripts/bench/arms.sh staircase          # bench calibration (delta/load/current vs load cell)
 #
 # Convention (from the original working setup): FOLLOWER=/dev/ttyACM0,
 # LEADER=/dev/ttyACM1. If the wrong arm moves in teleop, the USB enumeration
-# swapped -- override with:  FOLLOWER=/dev/ttyACM1 LEADER=/dev/ttyACM0 scripts/arms.sh teleop
+# swapped -- override with:  FOLLOWER=/dev/ttyACM1 LEADER=/dev/ttyACM0 scripts/bench/arms.sh teleop
 set -euo pipefail
 SELF="$(readlink -f "$0")"
 
@@ -76,7 +76,7 @@ case "$cmd" in
   staircase)
     shift
     cd "$BENCH"
-    exec $PY hardware/staircase_cal.py --port "$FOLLOWER" "$@"
+    exec $PY scripts/bench/staircase_cal.py --port "$FOLLOWER" "$@"
     ;;
   *)
     sed -n '2,14p' "$SELF"

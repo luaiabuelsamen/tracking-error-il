@@ -52,3 +52,23 @@ following real_delta_replication.md. Do not tune on these 40 trials or reinterpr
 the excess failure as invalid. No additional hardware session is running.
 The raw-delta versus excess contrast changes checkpoint, training preprocessing
 and deployment command feedback, so it cannot isolate compensation as the cause.
+
+## Trial-level record of interruptions (moved from the paper appendix, 2026-09-07)
+
+Seed 1 (session 2026-09-06T104356): trials 35 (tracking error) and 37 (base)
+completed their 400-step control horizons but reported a gripper overload while
+torque was being disabled; both are operator-labeled failures. Trial 35's
+outcome was recovered from the operator after the process stopped, but its
+trajectory was lost because the cleanup path at the time saved data only after
+disconnecting. Saving was moved before disconnect, without changing policy
+observations or commanded actions, and trial 37's trajectory was retained.
+Evaluation resumed with the original pair identifiers and order (resume
+manifests under `results/`).
+
+Seed 2 (session 2026-09-06T165544): twelve labeled rollouts, all failures,
+forming six complete pairs; shutdown overloads on trials 8, 10 and 12
+(incident files under `results/`). Trial 13 completed its control horizon and
+has a trajectory and shutdown-failure record, but its outcome was never
+entered (`results/real_delta_v3_s2_trials_pending.json`); the remaining planned
+trials were not run. Neither a diagnosis of the recurring overload nor random
+missingness has been established.

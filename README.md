@@ -71,9 +71,7 @@ paper/              main.tex, refs.bib, generated tables and the evidence JSON t
 figures/paper/      only the figures included by main.tex
 docs/               findings.md (lab record) and the hardware pre-registrations and diagnostics
 media/              the clips and stills used above
-tools/              bench operation: camera stream, record-config validation, episode export
-hardware/           servo load calibration against a load cell
-patches/            snapshot of the local lerobot modifications the real pipeline depends on
+scripts/bench/      hardware entry points, servo calibration, bench utilities, lerobot patch snapshot
 tests/              simulation environment tests
 research/           everything that is not part of the submission: thesis note, working notes,
                     reading notes, the pre-rewrite manuscript, the portfolio gallery
@@ -143,15 +141,15 @@ resolution knob, and the scripted-expert measurements are documented in
 ## Hardware pipeline
 
 The real pipeline uses a LeRobot checkout with local patches; see
-[`patches/README.md`](patches/README.md) for what changed and how to restore
+[`scripts/bench/lerobot-patch/README.md`](scripts/bench/lerobot-patch/README.md) for what changed and how to restore
 it. The Jetson-side entry points are:
 
 ```bash
-scripts/arms.sh record pickplace_real_v0 50        # teleoperate and record demonstrations
+scripts/bench/arms.sh record pickplace_real_v0 50        # teleoperate and record demonstrations
 python scripts/train_act_real.py --arm delta --root data/real/pickplace_real_v0 \
     --steps 6000 --seed 1 --out checkpoints/real50_delta_v3_s1
-bash run_hw_replication.sh 1                       # 20 paired base/delta trials for seed 1
-bash record_demo.sh                                # one showcase rollout with video
+bash scripts/bench/run_hw_replication.sh 1                       # 20 paired base/delta trials for seed 1
+bash scripts/bench/record_demo.sh                                # one showcase rollout with video
 ```
 
 Trials are paired by physical reset with alternating order, the operator
@@ -175,7 +173,7 @@ portfolio gallery. See [`research/README.md`](research/README.md).
   title  = {Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms},
   author = {Abuelsamen, Luai},
   year   = {2026},
-  note   = {Preprint. Code and evaluation records: https://github.com/luaiabuelsamen/so101-bench}
+  note   = {Preprint. Code and evaluation records: https://github.com/luaiabuelsamen/tracking-error-il}
 }
 ```
 

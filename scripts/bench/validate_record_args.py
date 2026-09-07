@@ -1,4 +1,4 @@
-"""Offline validation of the lerobot-record CLI args that scripts/arms.sh passes.
+"""Offline validation of the lerobot-record CLI args that scripts/bench/arms.sh passes.
 
 Parses the real RecordConfig via draccus with the real argv, but never opens a
 serial port or a camera. Catches unknown-arg / missing-required-field errors

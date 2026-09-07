@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.."
 mkdir -p results/showcase
 tag="$(date +%Y%m%dT%H%M%S)"
 echo "Showcase only: raw delta, seed 1. Fixed replay start, then 400 policy steps."
