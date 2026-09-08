@@ -179,7 +179,7 @@ discordant pairs: seed 0 has six pairs favouring tracking error and two
 favouring the base ($p=0.29$), seed 1 fourteen and one ($p=0.001$). Pooling
 the two seeds gives 23 of 40 placements against 6 of 40, with 20 discordant
 pairs favouring tracking error against 3 (stratified exact test $p=0.0005$;
-conditional odds ratio 6.7, 95\% CI 2.0 to 35). The registered analysis is
+conditional odds ratio \input{generated/odds_ratio.tex}). The registered analysis is
 per seed with an equal-weight mean, 42.5 points over the completed seeds; the
 stratified test and odds ratio are post hoc. These tests describe trial-to-trial
 variation for fixed checkpoints, not variation over training seeds; with 20
@@ -303,8 +303,8 @@ $q$ that a discordant pair favours tracking error. Seed 0's observed structure
 at 30\,Hz. Position and action statistics are computed on the recording; the
 training index then removes stationary prefixes, retaining 18,549 frames. Both
 policies use the same index and normalization, and recorded load channels are
-excluded from policy inputs. Gripper position is in the interface's own units,
-not a calibrated force.
+excluded from policy inputs. Gripper position is on the interface's 0--100
+opening scale, not a calibrated force.
 
 The ACT configuration uses a ResNet-18 image backbone, model width 256,
 four attention heads, feedforward width 1024, two encoder layers and one
@@ -319,7 +319,7 @@ the remaining architecture and training settings are shared.
 mean demonstration start, replays the first 115 commands from demonstration 0,
 and hands control to the policy, so the reported task excludes autonomous
 approach from an arbitrary initial state. Each requested command passes through
-a relative-target limit of 8 in the interface's joint units---a
+a relative-target limit of 8 degrees (8 opening units on the gripper)---a
 target-displacement bound rather than a force or velocity guarantee---and
 during both replay and policy execution the returned limited command supplies
 the next tracking-error calculation. The servo's native goal quantization sits
@@ -364,7 +364,7 @@ closed in five of six position-only and three of six tracking-error trials,
 against three of 20 and one of 20 in seed 0 and two of 20 and none of 19 in
 seed 1 (Table~\ref{tab:traces}), which is consistent with a gripper fault
 rather than a policy difference, although the traces cannot prove it.
-Trial-level detail is in the repository's evaluation records.
+Trial-level detail is in the supplementary evaluation records.
 
 \section{Exploratory trajectory analysis}
 \label{app:traces}
@@ -389,8 +389,9 @@ tracking-error trajectory is missing.}
 Every recorded rollout was classified from its jaw trace as never closed,
 closed then reopened, or closed and held (Table~\ref{tab:traces},
 Fig.~\ref{fig:traces}). All 23 tracking-error successes in seeds 0 and 1
-closed once and held to the end of the horizon, and 15 of their 16 failures
-either never closed or reopened. Position-only successes are too few to
+closed once and held to the end of the horizon, and 15 of the 16 failures
+with a recorded trajectory either never closed or reopened (one seed-1 failure
+has no trace). Position-only successes are too few to
 characterize. Successful tracking-error rollouts closed later, at median step
 165 and 206 against 83 and 115 for failures, and in seed 0 they requested
 smaller moves: the median fraction of steps altered by the command limiter is
@@ -414,7 +415,7 @@ the grasp closure occurs relative to the replayed prefix.
 \includegraphics[width=\linewidth]{fig_timing.pdf}
 \caption{Left: cumulative fraction of hardware rollouts (seeds 0 and 1) whose
 jaw has closed by a given policy step, by policy and outcome. Right: frame of
-the grasp closure in the 50 demonstrations; the dashed line is the 115-command
+the grasp closure in the 49 demonstrations that close; the dashed line is the 115-command
 replay.}
 \label{fig:timing}
 \end{figure}
@@ -452,11 +453,11 @@ closely (Fig.~\ref{fig:training}).
 \centering
 \includegraphics[width=.6\linewidth]{fig_training.pdf}
 \caption{Training loss, logged every 100 steps, for the checkpoints whose logs
-are in the repository.}
+are in the supplementary material.}
 \label{fig:training}
 \end{figure}
 
-\section{The shipped load register saturates at a vendor limit}
+\section{The shipped load register saturates at a configured torque limit}
 \label{app:measure}
 A separate static experiment on one shoulder-lift STS3215 uses twelve hanging
 masses
@@ -492,7 +493,9 @@ and coarsening the observation quantum destroys the task as a cliff whose
 position moves with the margin (Table~\ref{tab:plant}). This is why the
 learning grid could ask whether a policy uses the channel: in this plant the
 channel suffices for force regulation by a scripted controller at the real
-encoder's resolution. It does not show that the physical servo provides the
+encoder's resolution. Simulation tracking error is the actuator target minus
+the encoder reading, both rounded to integer counts; the position actuators
+use proportional gain 50 with force limited to $\pm35$. It does not show that the physical servo provides the
 same information; Appendix~\ref{app:measure} addresses that separately.
 
 \begin{table}[h]
@@ -622,8 +625,9 @@ conclusion unchanged, with median per-dataset range of $d$ across offsets 0.12.
 \label{app:history}
 The simulation grid leaves open whether the hardware gain from tracking error
 is specific to the command or would follow from any temporal input. A matched
-position-history control, $[q_t, q_{t-8}]$ with the seed-1 and seed-2 training
-recipe, is pre-registered in the repository together with the two paired
+position-history control, $[q_t, q_{t-8}]$ with the training recipe of
+Appendix~\ref{app:protocol}, is pre-registered in the supplementary material
+together with the two paired
 comparisons that would settle it: tracking error against position history for
 seed 1, and position only against position history for seed 0, each with 20
 pairs under the protocol of Appendix~\ref{app:protocol}.

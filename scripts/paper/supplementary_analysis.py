@@ -672,7 +672,7 @@ def trace_figure(trials):
             k = s[arm]
             title = f"Seed {seed}, {label}: {k}/{s['pairs']}" + (" (interrupted)" if not s["complete"] else "")
             axes[seed, col].set_title(title, fontsize=9, loc="left")
-        axes[seed, 0].set_ylabel("Jaw position (recorded units)")
+        axes[seed, 0].set_ylabel("Jaw opening (0--100 scale)")
     for ax in axes[-1]:
         ax.set_xlabel("Policy step after handoff")
     for ax in axes.ravel():
