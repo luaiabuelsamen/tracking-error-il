@@ -9,7 +9,8 @@ authors:
     email: luai_abuelsamen@berkeley.edu
 repository-code: https://github.com/luaiabuelsamen/tracking-error-il
 license: Apache-2.0
-year: 2026
+version: 0.1.0
+date-released: "2026-09-07"
 keywords:
   - behavior cloning
   - imitation learning

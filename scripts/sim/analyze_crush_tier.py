@@ -29,6 +29,11 @@ READING RULES, fixed here before the numbers are seen:
 
     python scripts/sim/analyze_crush_tier.py
 """
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
 
 import glob
 import json
@@ -50,7 +55,7 @@ def wilson(k, n, z=1.96):
 
 def main():
     rows = []
-    for f in sorted(glob.glob(str(REPO / "results" / "crush_*.json"))):
+    for f in sorted(glob.glob(str(REPO / "results" / "simulation" / "crush_*.json"))):
         rows += json.loads(Path(f).read_text())
     if not rows:
         raise SystemExit("no crush_*.json yet")

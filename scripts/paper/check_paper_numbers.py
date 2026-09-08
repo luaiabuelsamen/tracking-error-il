@@ -3,6 +3,11 @@
 The pre-rewrite checker is preserved as check_legacy_paper_numbers.py.
 Run after build_paper_evidence.py and latexmk from the repository root.
 """
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
 import json
 import re
 from pathlib import Path
@@ -119,7 +124,7 @@ def main():
     assert actual['hardware'][1]['bootstrap_ci'] == [.4, .9]
     for name, expected_mean, seeds in (
         ('Position', 6.2, 5), ('Action history', 13.8, 5), ('Tracking error', 21.8, 5),
-        ('Lag excess', 26.6, 5), ('Auxiliary target', 6.6, 5), ('Position history', 20.3, 3)):
+        ('Compensated residual', 26.6, 5), ('Auxiliary target', 6.6, 5), ('Position history', 20.3, 3)):
         vals = actual['simulation'][name]
         assert len(vals) == seeds and round(sum(vals)/len(vals), 1) == expected_mean
         assert f'{expected_mean:.1f}\\%' in tex, f'missing simulation value: {name}'

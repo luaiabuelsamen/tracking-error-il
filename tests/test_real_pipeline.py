@@ -7,6 +7,9 @@ from unittest import TestCase, main
 from unittest.mock import patch
 
 import numpy as np
+import pytest
+
+pytest.importorskip("torch", reason="the real-pipeline scripts import torch; install the real extra")
 
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts" / "real"
 sys.path.insert(0, str(SCRIPTS))

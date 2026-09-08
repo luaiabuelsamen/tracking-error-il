@@ -1,4 +1,9 @@
 """Reproduce paired outcomes and descriptive trajectory diagnostics, offline."""
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
 import hashlib
 import json
 import math

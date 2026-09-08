@@ -107,7 +107,8 @@ def main():
                              delta=goal - present, present_load=load,
                              present_current=current,
                              newtons=float(reading) / 1000.0 * G))
-        out = Path(__file__).parent / f"staircase_{args.joint}_{args.direction}.json"
+        out = Path(__file__).resolve().parents[2] / "results/calibration" / f"staircase_{args.joint}_{args.direction}.json"
+        out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(rows, indent=2))
         print(f"\nwrote {out} ({len(rows)} points)")
         if len(rows) >= 5:

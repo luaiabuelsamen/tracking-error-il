@@ -74,7 +74,7 @@ jaw angle (clamp), the quantised tracking error, or the true contact force
 
 | crush limit | tracking error, q=1 | q=4 | q=8 | q=16 | q=32 | clamp | oracle |
 |---|---|---|---|---|---|---|---|
-| none | 22 | | | | | 29 | 20 |
+| none | 22 | not run | not run | not run | not run | 29 | 20 |
 | 100 N | 11 | 11 | 9 | 1 | 0 | 0 | 12 |
 | 120 N | 17 | 17 | 16 | 10 | 0 | 0 | 14 |
 | 160 N | 20 | 20 | 19 | 17 | 11 | 0 | 17 |
@@ -110,12 +110,23 @@ appears in the paper's appendices.
 A matched position-history control on hardware. The simulation grid says
 position history performs like tracking error, so the hardware gain may come
 from any temporal input. The comparison is pre-registered in
-[`docs/hardware/preregistration_2026-09-07_history_control.md`](docs/hardware/preregistration_2026-09-07_history_control.md),
-the matched checkpoints train with `scripts/real/run_history_control_training.sh`,
-and the paired trials run with `scripts/bench/run_hw_history_control.sh 1`
-(then `0`). The paper's appendix on this comparison and its table are generated
-from the trial records and state the current status; until the trials are run
-the paper says the control is registered but not evaluated.
+[`docs/hardware/preregistration_2026-09-07_history_control.md`](docs/hardware/preregistration_2026-09-07_history_control.md);
+the matched checkpoints were trained with `scripts/real/run_history_control_training.sh`
+(logs under `results/hardware/real_delta_replication/`). The first seed-1
+session was interrupted after 9 complete pairs by a gripper servo that stopped
+following jaw commands, with a displaced camera; its 19 rollouts are kept in
+`results/hardware/real_history_control_s1_trials.json` and the paper's
+Appendix H reports the session as interrupted with no test assigned. A clean
+20-pair session is still needed for each seed:
+
+```bash
+bash scripts/bench/run_hw_history_control.sh 1 --out results/hardware/real_history_control_s1_trials_v2.json
+bash scripts/bench/run_hw_history_control.sh 0
+make paper
+```
+
+The appendix status sentence and table regenerate from whatever trial records
+exist.
 
 ## Media
 
@@ -145,15 +156,15 @@ results/
   calibration/     static load measurements on one servo
   showcase/        trajectory records of the showcase rollouts
 paper/             main.tex, refs.bib, generated tables and the evidence JSON they come from
-figures/paper/     the figures included by main.tex
+figures/paper/     manuscript figures (eight are included by main.tex; PNG twins for the README)
 docs/              simulation benchmark notes, hardware pre-registrations and diagnostics
 media/             the clips and stills used above
 tests/             simulation environment tests
 ```
 
-Every file under `results/` was produced by a script that is still in
-`scripts/`, and the paper's tables and figures are rebuilt from those files
-rather than typed. [`scripts/README.md`](scripts/README.md) and
+Every number in the paper is rebuilt from `results/` by `scripts/paper/`;
+the analysis scripts that produced each record are named in
+`results/README.md`, together with the few session notes written by hand. [`scripts/README.md`](scripts/README.md) and
 [`results/README.md`](results/README.md) index both trees and give the
 mapping between the design names in the paper and the identifiers in the code.
 
@@ -169,7 +180,8 @@ Training and hardware scripts additionally need the `train` extra (`torch`,
 `PYTHON=/path/to/python` when the project lives in a virtual environment that
 is not first on your `PATH`.
 
-Python 3.10 or newer. Rendering uses EGL and works headless. `make test` is
+Python 3.10 or newer. Rendering uses EGL and works headless. The real-pipeline
+test needs `torch` and is skipped when it is not installed. `make test` is
 used instead of bare `pytest` because a system ROS install registers pytest
 plugins globally that fail on import; the Makefile disables plugin
 autoloading. Nothing here uses ROS.
@@ -207,7 +219,8 @@ number in the paper is rebuilt. It does not yet host the raw inputs:
 | artifact | local path | status |
 |---|---|---|
 | 50 teleoperated SO-101 demonstrations (LeRobot dataset) | `data/real/pickplace_real_v0` | to be released with the paper |
-| hardware checkpoints, 3 seeds x 2 designs | `checkpoints/real50_{base,delta}_v3_s{0,1,2}` | to be released with the paper |
+| hardware checkpoints, 3 seeds x 2 designs | `checkpoints/real50_base_v2`, `real50_delta_v3_s0`, `real50_{base,delta}_v3_s{1,2}` | to be released with the paper |
+| public SO-100/101 datasets for the corpus study | `data/corpus/raw` | downloaded from the Hugging Face Hub by `scripts/corpus/corpus_delta_outcome.py --fetch`; dataset ids are in `results/corpus/corpus_delta_outcome.json` |
 | 280 scripted simulation demonstrations | `data/demos_v3` | regenerate with `scripts/sim/collect_guarded.py` |
 | simulation grid checkpoints | `checkpoints/grid_*` | regenerate with `scripts/sim/run_grid.sh` |
 

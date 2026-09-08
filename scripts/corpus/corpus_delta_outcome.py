@@ -275,10 +275,9 @@ def figure(rows, out_png: Path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--root", default=os.path.expanduser(
-        "~/projects/research/proprio-residual/data/raw"))
-    ap.add_argument("--quanta-jsonl", default=os.path.expanduser(
-        "~/projects/research/corpus_scale/results.jsonl"),
+    ap.add_argument("--root", default="data/corpus/raw",
+                    help="directory of downloaded SO-100/101 LeRobot datasets (see --fetch)")
+    ap.add_argument("--quanta-jsonl", default="data/corpus/quanta.jsonl",
         help="per-repo quantum from the prior 555-dataset resolution study")
     ap.add_argument("--fetch", type=int, default=0,
                     help="download up to N additional candidate datasets")

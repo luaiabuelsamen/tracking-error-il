@@ -4,6 +4,11 @@ Parses the real RecordConfig via draccus with the real argv, but never opens a
 serial port or a camera. Catches unknown-arg / missing-required-field errors
 without needing the robot plugged in.
 """
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
 
 import os
 import sys

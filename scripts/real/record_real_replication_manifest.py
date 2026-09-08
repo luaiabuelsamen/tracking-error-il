@@ -1,4 +1,9 @@
 """Capture inputs before the replication queue starts; requires CUDA."""
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
 import hashlib
 import importlib.metadata
 import json

@@ -1,4 +1,9 @@
 """Offline parity check on every recorded frame; never connects to hardware."""
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
 import json
 from pathlib import Path
 

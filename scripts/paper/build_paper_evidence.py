@@ -40,7 +40,7 @@ def collect():
                           ("Action history", "grid_B_base_hist_s*.json"),
                           ("Tracking error", "grid_C_delta_s*.json"),
                           ("Auxiliary target", "grid_D_resid_s*.json"),
-                          ("Lag excess", "grid_E_excess_s*.json"),
+                          ("Compensated residual", "grid_E_excess_s*.json"),
                           ("Seat token", "grid_F_token_s*.json"),
                           ("Position history", "grid_G_ghist_s*.json")):
         vals = []
@@ -79,7 +79,7 @@ def main():
     plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 9,
                          "axes.spines.top": False, "axes.spines.right": False})
     fig, axes = plt.subplots(1, 2, figsize=(8.1, 2.5), gridspec_kw={"width_ratios": [1.4, 1]})
-    order = ["Position", "Position history", "Action history", "Tracking error", "Lag excess"]
+    order = ["Position", "Position history", "Action history", "Tracking error", "Compensated residual"]
     colors = ["#777777", "#aaa08c", "#aaa08c", "#167e83", "#7eb8b4"]
     for i, name in enumerate(order):
         vals = data["simulation"][name]
@@ -126,11 +126,11 @@ def main():
     ax_bot.set_ylabel("Placement success (%)")
     ax_bot.legend(frameon=False, ncol=2, loc="upper left")
     ax_bot.set_title("Completed paired hardware evaluations", loc="left", fontsize=10)
-    fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.pdf", bbox_inches="tight")
+    fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.png", dpi=200, bbox_inches="tight")
     plt.close(fig2)
     path = ROOT / "figures/paper/fig_observation_evidence.pdf"
-    fig.savefig(path, bbox_inches="tight")
+    fig.savefig(path, bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(path.with_suffix(".png"), dpi=200, bbox_inches="tight")
     print(json.dumps(data, indent=2))
 

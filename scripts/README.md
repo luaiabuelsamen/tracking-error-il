@@ -20,7 +20,10 @@ result files use short identifiers.
 | Two-command history | `base_hist2` | $[q_t, g_{t-1}, g_{t-2}]$ | `grid_H_base_hist2` |
 
 Suffix `_sN` is the training seed. The `*g_*` prefixes are the guarded
-variants of the same designs and are not in the paper. On hardware the
+variants of the same designs and are not in the paper; `grid_O_oracle` gives
+the scripted expert's true contact force to the policy (an upper bound, not in
+the paper), and `train_act.py --arm delta_q16` evaluates tracking error
+quantised to 16 counts. On hardware the
 checkpoints are `real50_{base,delta}_v3_s{0,1,2}`; `base_v2` is the seed-0
 position-only checkpoint.
 
@@ -46,6 +49,8 @@ position-only checkpoint.
 | `audit_real_observations.py` | offline replay check that training and inference state vectors agree |
 | `record_real_replication_manifest.py`, `run_real_delta_replication.sh` | hash manifest and training queue for seeds 1 and 2, written before those seeds were evaluated |
 | `real_channel_saturation.py` | how often the gripper load register sits at its configured limit in the demonstrations |
+| `checkpoint_sensitivity.py` | offline: teacher-forcing error of the six evaluated checkpoints and their sensitivity to the tracking-error input (zeroed, permuted) |
+| `run_history_control_training.sh` | training queue for the matched position-history checkpoints (pre-registered 2026-09-07) |
 
 ## corpus/
 
@@ -62,13 +67,17 @@ position-only checkpoint.
 | `supplementary_analysis.py` | stratified hardware statistics, jaw-trace taxonomy, power table, corpus and measurement figures, simulation contrasts; `paper/generated/supplementary.json` |
 | `check_paper_numbers.py` | asserts every value and required disclosure in `main.tex` against the generated evidence |
 | `appendix_d_channels.py`, `appendix_d_stats.py` | static-bench relation between tracking error, load and current registers, and applied mass |
+| `check_anonymized.py` | fails if the double-blind PDF still carries identifying strings (run by `make paper-anon`) |
 
 ## bench/
 
-Hardware setup and operation; see [`bench/README.md`](bench/README.md).
+Hardware setup and operation, including `run_hw_history_control.sh` for the pre-registered position-history trials; see [`bench/README.md`](bench/README.md).
 
 ## Environment
 
 Scripts that need the patched LeRobot install read `SO101_VENV_PYTHON` (the
-interpreter it is installed in) and `LEROBOT` (the checkout). Without them
-they fall back to `python` and `~/projects/clean_env/lerobot`.
+interpreter it is installed in) and `LEROBOT` (the checkout). The Python
+scripts re-execute themselves under `SO101_VENV_PYTHON` when it exists and
+otherwise run under the current interpreter; the shell scripts fall back to
+`python`; the checkout defaults to `~/projects/clean_env/lerobot`. The corpus
+scripts read downloaded datasets from `data/corpus/raw` (or `CORPUS_RAW`).

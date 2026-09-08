@@ -268,7 +268,7 @@ def corpus():
     ax2.set_ylabel("Cohen's $d$")
     ax2.set_title("Offset sweep", fontsize=9, loc="left")
     fig.tight_layout(pad=.6)
-    fig.savefig(FIG / "fig_corpus.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_corpus.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_corpus.png", dpi=200, bbox_inches="tight")
     p.close(fig)
     return dict(datasets=len(rows), episodes=sum(r["episodes"] for r in rows),
@@ -286,7 +286,10 @@ def measurement():
     load = st["load"].ravel()
     slope, icpt, r, *_ = stats.linregress(delta, load)
     out = dict(static=dict(measurements=int(delta.size), slope=float(slope), intercept=float(icpt), r2=float(r * r)))
-    demo = None
+    # Demonstration-frame relation between the jaw load register and jaw tracking error.
+    # Computed from the raw dataset when it is present and cached under results/ so the
+    # figure and numbers rebuild from the repository alone.
+    cache = ROOT / "results/calibration/demonstration_load_vs_delta.npz"
     parquet = sorted((ROOT / "data/real/pickplace_real_v0/data").glob("**/*.parquet"))
     if parquet:
         import pandas as pd
@@ -299,13 +302,19 @@ def measurement():
         load_jaw = state[1:, 6 + JAW][same]
         sat = np.abs(load_jaw) >= 499.5
         ep_pairs = ep[1:][same]
-        demo = dict(frames=int(len(load_jaw)), episodes=int(len(np.unique(ep))),
-                    saturated_fraction=float(sat.mean()),
-                    episodes_touching_saturation=int(len(np.unique(ep_pairs[sat]))),
-                    corr_load_delta_jaw=float(np.corrcoef(d_jaw, load_jaw)[0, 1]),
-                    delta_jaw_sd_when_saturated=float(d_jaw[np.abs(load_jaw) >= 499.5].std()),
-                    delta_jaw_sd_when_not_saturated=float(d_jaw[np.abs(load_jaw) < 499.5].std()))
-        out["demonstrations"] = demo
+        hist, xe, ye = np.histogram2d(d_jaw, load_jaw, bins=(60, 60))
+        np.savez(cache, hist=hist, xedges=xe, yedges=ye, frames=len(load_jaw), episodes=len(np.unique(ep)),
+                 saturated_fraction=sat.mean(), episodes_touching_saturation=len(np.unique(ep_pairs[sat])),
+                 corr=np.corrcoef(d_jaw, load_jaw)[0, 1], sd_sat=d_jaw[sat].std(), sd_free=d_jaw[~sat].std())
+    if not cache.exists():
+        raise SystemExit("results/calibration/demonstration_load_vs_delta.npz is missing and the raw dataset is absent")
+    c = np.load(cache)
+    demo = dict(frames=int(c["frames"]), episodes=int(c["episodes"]),
+                saturated_fraction=float(c["saturated_fraction"]),
+                episodes_touching_saturation=int(c["episodes_touching_saturation"]),
+                corr_load_delta_jaw=float(c["corr"]),
+                delta_jaw_sd_when_saturated=float(c["sd_sat"]), delta_jaw_sd_when_not_saturated=float(c["sd_free"]))
+    out["demonstrations"] = demo
     p = _plt()
     fig, axes = p.subplots(1, 2, figsize=(8.1, 3.0))
     axes[0].scatter(delta, load, s=10, color="#167e83", alpha=.7)
@@ -315,14 +324,16 @@ def measurement():
     axes[0].set_ylabel("Present\\_Load (register units)")
     axes[0].set_title(f"Static bench, one joint: 12 masses $\\times$ 5 poses, $R^2={r*r:.3f}$", fontsize=9, loc="left")
     if demo is not None:
-        axes[1].hexbin(d_jaw, load_jaw, gridsize=45, bins="log", cmap="Greys", linewidths=0)
+        from matplotlib.colors import LogNorm
+        h = np.ma.masked_equal(c["hist"].T, 0)
+        axes[1].pcolormesh(c["xedges"], c["yedges"], h, cmap="Greys", norm=LogNorm(), shading="flat")
         axes[1].axhline(500, color="#c75d42", lw=.8, ls="--")
         axes[1].axhline(-500, color="#c75d42", lw=.8, ls="--")
         axes[1].set_xlabel("Jaw tracking error (recorded units)")
         axes[1].set_ylabel("Jaw Present\\_Load")
         axes[1].set_title(f"Teleoperation frames: {100*demo['saturated_fraction']:.1f}% at the $\\pm500$ limit", fontsize=9, loc="left")
     fig.tight_layout(pad=.6)
-    fig.savefig(FIG / "fig_measurement.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_measurement.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_measurement.png", dpi=200, bbox_inches="tight")
     p.close(fig)
     return out
@@ -393,9 +404,12 @@ def plant():
 # ----------------------------------------------------------------------------- demonstrations
 def demonstrations():
     """How much of the task the 115-command replay covers, from the demonstrations themselves."""
+    cache = ROOT / "results/hardware/demonstration_summary.json"
     parquet = sorted((ROOT / "data/real/pickplace_real_v0/data").glob("**/*.parquet"))
     if not parquet:
-        return None
+        if not cache.exists():
+            raise SystemExit("results/hardware/demonstration_summary.json is missing and the raw dataset is absent")
+        return json.loads(cache.read_text())
     import pandas as pd
     df = pd.concat([pd.read_parquet(f) for f in parquet]).sort_values(["episode_index", "frame_index"])
     state = np.stack(df["observation.state"].to_numpy())[:, :6]
@@ -417,12 +431,14 @@ def demonstrations():
         step = np.abs(np.diff(q, axis=0)).sum(1)
         travel_after.append(float(step[115:].sum() / step.sum()))
     closes = [c for c in close if c is not None]
-    return dict(episodes=len(lengths), median_frames=float(np.median(lengths)),
+    summary = dict(episodes=len(lengths), median_frames=float(np.median(lengths)),
                 frames_range=[int(min(lengths)), int(max(lengths))],
                 median_first_close_frame=float(np.median(closes)), closes_after_115=close_after,
                 never_closed=sum(c is None for c in close),
                 median_travel_fraction_after_115=float(np.median(travel_after)),
                 first_close_frames=closes)
+    cache.write_text(json.dumps(summary, indent=2) + "\n")
+    return summary
 
 
 def timing_figure(trials, demo):
@@ -450,7 +466,7 @@ def timing_figure(trials, demo):
         ax.set_ylabel("Demonstrations")
         ax.set_title("Demonstrations: closure relative to the 115-command replay", fontsize=9, loc="left")
     fig.tight_layout(pad=.6)
-    fig.savefig(FIG / "fig_timing.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_timing.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_timing.png", dpi=200, bbox_inches="tight")
     p.close(fig)
 
@@ -480,7 +496,7 @@ def learning_curves():
     ax.set_ylabel("Training loss (log)")
     ax.legend(frameon=False, fontsize=6)
     fig.tight_layout(pad=.5)
-    fig.savefig(FIG / "fig_training.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_training.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_training.png", dpi=200, bbox_inches="tight")
     p.close(fig)
     return dict(final_loss=final, logged=list(curves))
@@ -536,7 +552,7 @@ def sensitivity():
     ax.set_title("Tracking-error input zeroed or permuted", fontsize=9, loc="left")
     ax.legend(frameon=False, fontsize=6.5)
     fig.tight_layout(pad=.6)
-    fig.savefig(FIG / "fig_sensitivity.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_sensitivity.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_sensitivity.png", dpi=200, bbox_inches="tight")
     p.close(fig)
     summary = {k: dict(seed=d[k]["seed"], arm=d[k]["arm"], hardware=d[k]["hardware"],
@@ -558,7 +574,8 @@ def history_control():
     """Paired position-history evaluations, if they have been run; otherwise the current status."""
     status, rows_tex, out = [], [], {}
     for seed, arms in ((1, ("delta_s1", "ghist_s1")), (0, ("base_v2", "ghist_s0"))):
-        ckpt = ROOT / f"checkpoints/real50_ghist_v3_s{seed}/train_summary.json"
+        log = ROOT / f"results/hardware/real_delta_replication/ghist_s{seed}.log"
+        trained = log.exists() and "saved checkpoints/" in log.read_text()
         trials = ROOT / f"results/hardware/real_history_control_s{seed}_trials.json"
         if trials.exists():
             rows = json.loads(trials.read_text())
@@ -579,7 +596,7 @@ def history_control():
                             f"{rec['first']}/{rec['pairs']} & {rec['history']}/{rec['pairs']} & {d} / {b} & "
                             f"{rec['mcnemar_p']:.4f} & {faults} \\\\")
         else:
-            rec = dict(seed=seed, arms=arms, status="trained, not evaluated" if ckpt.exists() else "checkpoint not trained")
+            rec = dict(seed=seed, arms=arms, status="trained, not evaluated" if trained else "checkpoint not trained")
         out[f"seed{seed}"] = rec
     evaluated = [r for r in out.values() if r["status"] in ("evaluated", "interrupted")]
     if evaluated:
@@ -588,7 +605,7 @@ def history_control():
             + "\n".join(rows_tex) + "\n\\bottomrule\n\\end{tabular}\n")
         for r in evaluated:
             if r["status"] == "interrupted":
-                status.append(f"The seed-{r['seed']} comparison was run on 2026-09-07 and interrupted after {r['pairs']} complete pairs "
+                status.append(f"The seed-{r['seed']} comparison was run once and interrupted after {r['pairs']} complete pairs "
                               f"({r['rollouts']} rollouts, {r['shutdown_errors']} ending with a gripper overload error): the gripper servo stopped "
                               "following jaw commands in several rollouts and the overhead camera was found displaced relative to the "
                               "earlier sessions, so its outcomes are retained (Table~\\ref{tab:history}) but the comparison is not complete "
@@ -635,7 +652,7 @@ def trace_figure(trials):
         ax.set_xlabel("Policy step after handoff")
     axes[0, 0].axhline(CLOSED, color="#222222", lw=.5, ls=":")
     fig.tight_layout(pad=.5)
-    fig.savefig(FIG / "fig_hardware_traces.pdf", bbox_inches="tight")
+    fig.savefig(FIG / "fig_hardware_traces.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_hardware_traces.png", dpi=200, bbox_inches="tight")
     p.close(fig)
 

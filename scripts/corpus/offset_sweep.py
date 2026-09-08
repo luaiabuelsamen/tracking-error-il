@@ -37,7 +37,7 @@ from corpus_delta_outcome import (  # noqa: E402
     load_dataset,
 )
 
-RAW = os.path.expanduser("~/projects/research/proprio-residual/data/raw")
+RAW = os.environ.get("CORPUS_RAW", "data/corpus/raw")   # same directory as corpus_delta_outcome.py --root
 KS = range(0, 6)
 
 

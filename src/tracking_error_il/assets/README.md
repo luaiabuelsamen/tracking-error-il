@@ -7,7 +7,7 @@
 distributed under the Apache License 2.0; the meshes are used here under that
 license and remain the work of their original authors.
 
-Local modifications, documented in `docs/findings.md`:
+Local modifications:
 
 - elliptic friction cone with `impratio="10"`, so a grasped object does not
   slide out of the fingers;

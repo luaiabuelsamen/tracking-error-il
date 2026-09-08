@@ -21,6 +21,12 @@ jaw pressing on something.
 """
 from __future__ import annotations
 
+import sys
+
+if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
+    print(__doc__)
+    raise SystemExit(0)
+
 import glob
 import json
 import os

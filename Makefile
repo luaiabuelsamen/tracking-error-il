@@ -14,10 +14,10 @@ test-fast:
 	$(PYTEST) tests/ -q -m "not slow"
 
 lint:
-	ruff check src tests scripts
+	$(PYTHON) -m ruff check src tests scripts
 
 fmt:
-	ruff format src tests scripts
+	$(PYTHON) -m ruff format src tests scripts
 
 eval:
 	$(PYTHON) scripts/sim/evaluate.py --episodes 40
