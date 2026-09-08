@@ -26,12 +26,12 @@ eval:
 paper:
 	$(PYTHON) scripts/paper/build_paper_evidence.py
 	$(PYTHON) scripts/paper/supplementary_analysis.py
-	latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
+	SOURCE_DATE_EPOCH=0 FORCE_SOURCE_DATE=1 latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
 	$(PYTHON) scripts/paper/check_paper_numbers.py
 
 # Double-blind submission copy: same source, CoRL submission mode (anonymous
 # author block, line numbers, no PDF author metadata), written to paper/main_anon.pdf.
 paper-anon: paper
-	cd paper && latexmk -pdf -interaction=nonstopmode -halt-on-error -jobname=main_anon \
+	cd paper && SOURCE_DATE_EPOCH=0 FORCE_SOURCE_DATE=1 latexmk -pdf -interaction=nonstopmode -halt-on-error -jobname=main_anon \
 	  -pdflatex='pdflatex %O "\\def\\ANON{1}\\input{%S}"' main.tex
 	@$(PYTHON) scripts/paper/check_anonymized.py paper/main_anon.pdf
