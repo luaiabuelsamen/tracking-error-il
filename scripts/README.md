@@ -68,6 +68,7 @@ position-only checkpoint.
 | `check_paper_numbers.py` | asserts every value and required disclosure in `main.tex` against the generated evidence |
 | `appendix_d_channels.py`, `appendix_d_stats.py` | static-bench relation between tracking error, load and current registers, and applied mass |
 | `check_anonymized.py` | fails if the double-blind PDF still carries identifying strings (run by `make paper-anon`) |
+| `split_submission.py` | cuts `main_anon.pdf` at the appendix into `main_anon_paper.pdf` (main text and references) and `main_anon_supplement.pdf` for separate upload |
 
 ## bench/
 

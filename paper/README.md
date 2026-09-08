@@ -45,7 +45,11 @@ ineligible.
 
 `make paper-anon` produces `main_anon.pdf` in submission mode (anonymous
 author block, line numbers, anonymous PDF metadata) and checks it for
-identifying strings. For an anonymous code artifact, strip the author name and
+identifying strings; its footer names the workshop. The workshop specifies no
+template and says nothing about appendices, so upload the paper and the
+appendices separately: `python scripts/paper/split_submission.py` cuts
+`main_anon.pdf` into `main_anon_paper.pdf` (main text and references) and
+`main_anon_supplement.pdf` (appendices). For an anonymous code artifact, strip the author name and
 handle from `CITATION.cff`, `pyproject.toml`, `NOTICE`, the README citation
 block, and the Hugging Face repo id in `scripts/bench/arms.sh` and
 `scripts/bench/validate_record_args.py` before uploading a copy.

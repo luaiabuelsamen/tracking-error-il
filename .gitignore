@@ -25,3 +25,4 @@ camera_check*.jpg
 *.synctex.gz
 paper/main_anon.*
 *.out
+paper/main_anon_*.pdf
