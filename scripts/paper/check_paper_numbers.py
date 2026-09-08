@@ -147,7 +147,7 @@ def main():
     hw0, hw1 = actual['hardware'][0], actual['hardware'][1]
     quoted = [
         f"{hw0['delta'] + hw1['delta']} of 40", f"{hw0['base'] + hw1['base']} of 40",
-        f"$p={st['exact_p']:.4f}$", "odds ratio \\input{generated/odds_ratio.tex}",
+        f"$p={st['exact_p']:.4f}$", "odds ratio is \\input{generated/odds_ratio.tex}",
         f"$p={hw0['p']:.2f}$", f"$p={hw1['p']:.3f}$", f"{round(100 * hw0['effect'])} percentage points", f"{round(100 * hw1['effect'])} points",
         f"power {power['seed0']:.2f}", f"{power['seed1']:.2f} under seed 1",
         f"{100 * meas['saturated_fraction']:.1f}\\%", f"$r={meas['corr_load_delta_jaw']:.2f}$", f"$R^2={supp['measurement']['static']['r2']:.3f}$",

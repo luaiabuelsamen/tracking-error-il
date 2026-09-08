@@ -181,8 +181,8 @@ comparison. Tracking error improves placement by 20 percentage points for seed
 discordant pairs: seed 0 has six pairs favouring tracking error and two
 favouring the base ($p=0.29$), seed 1 fourteen and one ($p=0.001$). Pooling
 the two seeds gives 23 of 40 placements against 6 of 40, with 20 discordant
-pairs favouring tracking error against 3 (stratified exact test $p=0.0005$;
-conditional odds ratio \input{generated/odds_ratio.tex}). The registered analysis is
+pairs favouring tracking error against 3 (stratified exact test $p=0.0005$);
+the conditional odds ratio is \input{generated/odds_ratio.tex}\unskip. The registered analysis is
 per seed with an equal-weight mean, 42.5 points over the completed seeds; the
 stratified test and odds ratio are post hoc. These tests describe trial-to-trial
 variation for fixed checkpoints, not variation over training seeds; with 20
@@ -383,7 +383,8 @@ threshold used in Table~\ref{tab:traces}.}
 \begin{table}[h]
 \centering
 \caption{Jaw-trace classes for all recorded rollouts. Never closed: jaw never
-below 5 recorded units. Reopened: an excursion above 8 units after closing.
+below 5 recorded units. Reopened: an excursion above 8 units after closing. Units are the gripper's
+0--100 opening scale.
 Closure step is the median first step below the threshold. One seed-1
 tracking-error trajectory is missing.}
 \label{tab:traces}
