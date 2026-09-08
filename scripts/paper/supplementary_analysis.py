@@ -594,7 +594,7 @@ def history_control():
                               "earlier sessions, so its outcomes are retained (Table~\\ref{tab:history}) but the comparison is not complete "
                               "and no confirmatory test is assigned to it.")
             else:
-                status.append(f"Table~\\ref{tab:history} reports the completed seed-{r['seed']} comparison.")
+                status.append(f"Table~\\ref{{tab:history}} reports the completed seed-{r['seed']} comparison.")
         if len(evaluated) < 2:
             status.append("The other registered comparison has not been run.")
     else:
