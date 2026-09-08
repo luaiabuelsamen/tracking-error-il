@@ -1,7 +1,10 @@
-"""Check the publication rewrite against saved results and generated evidence.
+"""Check the manuscript against saved results and generated evidence.
 
-The pre-rewrite checker is preserved as check_legacy_paper_numbers.py.
-Run after build_paper_evidence.py and latexmk from the repository root.
+Recomputes the evidence, checks that the stored supplementary statistics are
+fresh, asserts every quoted statistic both against the data and as a string
+in main.tex, and requires the disclosure sentences. Run after
+build_paper_evidence.py, supplementary_analysis.py and latexmk from the
+repository root (`make paper`).
 """
 import sys
 
@@ -23,17 +26,19 @@ def main():
     assert json.loads((generated / 'evidence.json').read_text()) == actual, 'regenerate paper evidence'
     tex = (ROOT / 'paper/main.tex').read_text()
     flat = re.sub(r'\s+', ' ', tex)
+    status_text = re.sub(r'\s+', ' ', (generated / 'history_control_status.tex').read_text())
     for phrase in ('generated/hardware_table.tex', 'fig_observation_evidence.pdf',
                    'third evaluation was interrupted', 'its outcome was not entered', 'not variation over training seeds',
                    'fig_real_quantitative.pdf', 'not included in any count',
-                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'power 0.17', 'interrupted by a gripper servo fault', 'leaves the grasp to the policy'):
+                   'recorded leader commands', 'a third evaluation was', 'stratified exact test', 'interrupted by a gripper servo fault', 'leaves the grasp to the policy', 'post hoc', 'regulates its jaw from the same tracking error', 'not blinded'):
         # Case-insensitive: prose checks concern disclosures, not typography.
         assert phrase.lower() in flat.lower(), f'missing disclosure/input: {phrase}'
     expected = [(20, 5, 9, 6, 2), (20, 1, 14, 14, 1), (6, 0, 0, 0, 0)]
-    table = (generated / 'hardware_table_all.tex').read_text()
+    table = (generated / 'hardware_table_ci.tex').read_text()
     for r, target in zip(actual['hardware'], expected):
         assert (r['pairs'], r['base'], r['delta'], r['delta_only'], r['base_only']) == target, 'hardware changed; revise prose'
-        assert f"{r['base']}/{r['pairs']} & {r['delta']}/{r['pairs']}" in table
+        assert re.search(rf"{r['base']}/{r['pairs']} \[[^\]]*\] & {r['delta']}/{r['pairs']}", table), 'hardware table row'
+
     completed_table = (generated / 'hardware_table.tex').read_text()
     assert '0/6' not in completed_table and '0/6' in table
     assert 'generated/hardware_table_ci.tex' in tex
@@ -117,6 +122,53 @@ def main():
     pending = {k: v['status'] for k, v in history.items() if v['status'] != 'evaluated'}
     if pending:
         print(f'NOTE: position-history control incomplete: {pending}; the manuscript says so via generated/history_control_status.tex')
+    # --- freshness: the stored supplementary statistics must match a recomputation from results/
+    import supplementary_analysis as sa
+    fresh_hw, _ = sa.hardware()
+    def roundtrip(x):
+        return json.loads(json.dumps(x, default=float))
+    assert roundtrip(fresh_hw) == supp['hardware'], 'supplementary.json is stale; rerun supplementary_analysis.py'
+    assert roundtrip(sa.simulation()) == supp['simulation'], 'supplementary.json simulation block is stale'
+    # --- numbers that were previously only in prose or only in the checker
+    corp_pooled = supp['corpus']['pooled']
+    assert corp_pooled and f"{corp_pooled['d']:.2f}" == '-0.39' and f"{corp_pooled['d_recorded']:.2f}" == '-0.39'
+    assert corp_pooled['episodes'] == 546 and corp_pooled['successes'] == 283 and corp_pooled['scanned'] == 77
+    assert f"{supp['corpus']['median_offset_range']:.2f}" == '0.12'
+    pp = supp['measurement']['static']['per_pose_r2_delta_vs_mass']
+    assert f"{min(pp):.3f}" == '0.085' and f"{max(pp):.3f}" == '0.910'
+    assert f"{sens['reference_step_mean']:.1f}" == '0.5'
+    assert history['seed1']['shutdown_errors'] == 4 and history['seed1']['rollouts'] == 19 and history['seed1']['pairs'] == 9
+    ep = early['paired']
+    assert (ep['pairs'], ep['base_only'], ep['excess_only']) == (10, 7, 0) and f"{ep['mcnemar_p']:.3f}" == '0.016'
+    sl = supp['hardware']['seed_level']['completed']
+    assert f"{100 * sl['mean']:.1f}" == '42.5'
+    assert supp['power']['observed_structure'] == {'seed0': [8, 6], 'seed1': [15, 14]}
+    # --- the JSON-to-text link: each quoted statistic must appear in the manuscript in the form derived here
+    hw0, hw1 = actual['hardware'][0], actual['hardware'][1]
+    quoted = [
+        f"{hw0['delta'] + hw1['delta']} of 40", f"{hw0['base'] + hw1['base']} of 40",
+        f"$p={st['exact_p']:.4f}$", f"odds ratio {orr['estimate']:.1f}, 95\\% CI {orr['ci'][0]:.1f} to {round(orr['ci'][1])}",
+        f"$p={hw0['p']:.2f}$", f"$p={hw1['p']:.3f}$", f"{round(100 * hw0['effect'])} percentage points", f"{round(100 * hw1['effect'])} points",
+        f"power {power['seed0']:.2f}", f"{power['seed1']:.2f} under seed 1",
+        f"{100 * meas['saturated_fraction']:.1f}\\%", f"$r={meas['corr_load_delta_jaw']:.2f}$", f"$R^2={supp['measurement']['static']['r2']:.3f}$",
+        f"frame {round(demo['median_first_close_frame'])}", f"{demo['closes_after_115']} of the", f"{round(100 * demo['median_travel_fraction_after_115'])}\\% of joint travel",
+        f"{round(min(zs), 1)} to {round(max(zs), 1)} units", f"{round(min(zf), 1)} to {round(max(zf), 1)} units",
+        f"{round(min(ps_), 1)} to {round(max(ps_), 1)}", f"{round(min(pf), 1)} to {round(max(pf), 1)} units",
+        f"{round(min(l1d), 1)}--{round(max(l1d), 1)} to {round(min(lz), 1)}--{round(max(lz), 1)}",
+        f"mean recorded command step of {sens['reference_step_mean']:.1f}",
+        f"median step {round(tax['seed0_delta_success']['median_first_close_step'])} and {round(tax['seed1_delta_success']['median_first_close_step'])}",
+        f"{round(lim['seed0_delta']['median_clipped_frame_fraction'], 2):.2f} for tracking error and {round(lim['seed0_base']['median_clipped_frame_fraction'], 2):.2f} for the base",
+        f"{tax['seed0_delta_success']['median_tail_path']:.1f} for successes and {tax['seed0_delta_failure']['median_tail_path']:.1f} for failures",
+        f"{tax['seed0_delta_success']['median_abs_delta_jaw_after_close']:.2f} and {tax['seed1_delta_success']['median_abs_delta_jaw_after_close']:.2f} units",
+        f"{con[('Tracking error', 'Position')]['diff']:.1f} points (Welch 95\\% CI {con[('Tracking error', 'Position')]['ci'][0]:.1f} to {con[('Tracking error', 'Position')]['ci'][1]:.1f})",
+        f"{con[('Position history', 'Position')]['diff']:.1f} points above the base", f"pooled $d={corp_pooled['d']:.2f}$" if False else f"$d={corp_pooled['d']:.2f}$",
+        f"{corp['negative_point_estimates']} of the sixteen".replace('11', 'Eleven'), f"{early['arms']['base'][0]}/10 objects and the residual {early['arms']['excess'][0]}/10",
+        f"$p={ep['mcnemar_p']:.3f}$", f"{100 * sl['mean']:.1f} points", f"range of $d$ across offsets {supp['corpus']['median_offset_range']:.2f}",
+        f"{round(100 * pp and min(pp), 3):.3f} to {max(pp):.3f}",
+        f"{history['seed1']['pairs']} complete pairs ({history['seed1']['rollouts']} rollouts, {history['seed1']['shutdown_errors']} ending",
+    ]
+    for q in quoted:
+        assert q.lower() in flat.lower() or q.lower() in status_text.lower(), f'statistic not found in manuscript text: {q}'
     assert actual['hardware'][1]['shutdown_errors'] == 2
     assert actual['hardware'][1]['missing_trajectories'] == 1
     assert actual['hardware'][2]['shutdown_errors'] == 3

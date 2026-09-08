@@ -1,7 +1,7 @@
 # Publication draft
 
 The current manuscript is `main.tex`, compiled to `main.pdf`: four pages of
-main text, one page of references, and five pages of appendices.
+main text, then references and eight pages of appendices.
 It is a standalone empirical paper, not a report of development sessions.
 An earlier manuscript on the same data is kept outside this repository.
 
@@ -28,7 +28,7 @@ is typed. `generated/evidence.json` and `generated/supplementary.json` record
 the inputs to those displays, and `check_paper_numbers.py` asserts the text
 against them. `make paper` from the repository root runs all four steps.
 
-The five cited works were checked against primary records during the rewrite:
+The cited works were checked against primary records during the rewrite:
 
 - Hwang et al.: https://www.mdpi.com/1424-8220/18/11/3856
 - FACTR 2: https://arxiv.org/abs/2606.12406

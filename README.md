@@ -98,7 +98,7 @@ appears in the paper's appendices.
 |---|---|
 | stratified hardware statistics | pooled discordant pairs 20 vs 3 over the completed seeds (p = 0.0005), odds ratio 6.7, no detectable heterogeneity between seeds |
 | power of the 20-pair protocol | 0.17 under seed 0's observed discordance structure, 0.97 under seed 1's |
-| jaw-trace classification of all 91 rollouts | every tracking-error success closed once and held; seed 2's rollouts mostly never closed, consistent with the servo fault |
+| jaw-trace classification of all 91 recorded trajectories (92 rollouts) | every tracking-error success closed once and held; seed 2's rollouts mostly never closed, consistent with the servo fault |
 | checkpoint sensitivity | zeroing the tracking-error input moves the jaw command by 13 units where the load register is pinned, 3 elsewhere; offline error does not rank the seeds as hardware did |
 | demonstration coverage of the replay | grasp closure at median frame 331 of 400, after the 115-command replay in 48 of 50 demonstrations |
 | simulation contrasts | Welch intervals and Holm adjustment for all 28 design pairs |

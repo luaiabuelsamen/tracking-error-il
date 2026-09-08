@@ -10,5 +10,8 @@
 | `hardware/diagnostics.md` | seed-0 paired result and trajectory audit; trial-level record of the seed-1 and seed-2 interruptions |
 
 The pre-registration documents are kept as written, including their internal
-checkpoint names; the manifests under `results/hardware/` hash them at the
-time each evaluation started.
+checkpoint names. Provenance: the replication plan's hash is recorded in
+`results/hardware/real_delta_replication/manifest.json` before the seed-1 and
+seed-2 sessions; the 2026-09-04 and 2026-09-07 documents were committed before
+their sessions (git history); the 2026-09-05 document has no timestamped
+artifact that precedes its session and rests on the author's statement.

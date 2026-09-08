@@ -233,17 +233,29 @@ def power_table():
         for q in (0.7, 0.8, 0.9, 1.0):
             grid[f"p_disc={p_disc},q={q}"] = mcnemar_power(PLAN_PAIRS, p_disc, q)
     # observed structures: seed 0 had 8 discordant of 20 with 6 favouring; seed 1 had 15 with 14
-    observed = {f"seed{seed}": mcnemar_power(PLAN_PAIRS, m / PLAN_PAIRS, d / m)
-                for seed, m, d in ((0, 8, 6), (1, 15, 14))}
-    return dict(pairs=PLAN_PAIRS, alpha=0.05, grid=grid, at_observed_structure=observed)
+    observed = {f"seed{s['seed']}": mcnemar_power(PLAN_PAIRS, s["discordant"] / PLAN_PAIRS, s["delta_only"] / s["discordant"])
+                for s in hardware_cache["per_seed"] if s["complete"] and s["discordant"]}
+    return dict(pairs=PLAN_PAIRS, alpha=0.05, grid=grid, at_observed_structure=observed,
+                observed_structure={f"seed{s['seed']}": [s["discordant"], s["delta_only"]] for s in hardware_cache["per_seed"] if s["complete"]})
 
 
 # ----------------------------------------------------------------------------- corpus
 def corpus():
-    rows = [r for r in json.loads((ROOT / "results/corpus/corpus_delta_outcome.json").read_text()) if r.get("cohen_d") is not None]
+    allrows = json.loads((ROOT / "results/corpus/corpus_delta_outcome.json").read_text())
+    rows = [r for r in allrows if r.get("cohen_d") is not None]
+    pooled_row = next((r for r in allrows if r.get("name") == "_pooled"), None)
     sweep = {r["name"]: r for r in json.loads((ROOT / "results/corpus/offset_sweep.json").read_text())}
     rows.sort(key=lambda r: r["cohen_d"])
     shifts = [abs(sweep[r["name"]]["cohen_d_by_k"][-1] - sweep[r["name"]]["cohen_d_by_k"][0]) for r in rows if r["name"] in sweep]
+    ranges = [max(sweep[r["name"]]["cohen_d_by_k"]) - min(sweep[r["name"]]["cohen_d_by_k"]) for r in rows if r["name"] in sweep]
+    pooled = None
+    if pooled_row is not None:
+        z = np.array(pooled_row["pooled_delta_z"])
+        y = np.array(pooled_row["pooled_success"], bool)
+        a, b = z[y], z[~y]
+        sp = math.sqrt(((len(a) - 1) * a.var(ddof=1) + (len(b) - 1) * b.var(ddof=1)) / (len(a) + len(b) - 2))
+        pooled = dict(d=float((a.mean() - b.mean()) / sp), d_recorded=pooled_row["pooled_d"], episodes=int(len(z)),
+                      successes=int(y.sum()), scanned=len(allrows) - 1)
     weighted = float(np.average([r["cohen_d"] for r in rows], weights=[r["episodes"] for r in rows]))
     p = _plt()
     fig, (ax, ax2) = p.subplots(1, 2, figsize=(8.1, 3.6), gridspec_kw={"width_ratios": [1.5, 1]})
@@ -276,7 +288,8 @@ def corpus():
                 negative_point_estimates=sum(r["cohen_d"] < 0 for r in rows),
                 ci_excludes_zero_negative=sum(r["d_ci"][1] < 0 for r in rows),
                 ci_excludes_zero_positive=sum(r["d_ci"][0] > 0 for r in rows),
-                episode_weighted_mean_d=weighted, median_offset_shift=float(np.median(shifts)))
+                episode_weighted_mean_d=weighted, median_offset_shift=float(np.median(shifts)),
+                median_offset_range=float(np.median(ranges)), pooled=pooled)
 
 
 # ----------------------------------------------------------------------------- measurement context
@@ -285,7 +298,10 @@ def measurement():
     delta = (st["goal"] - st["position"]).ravel()
     load = st["load"].ravel()
     slope, icpt, r, *_ = stats.linregress(delta, load)
-    out = dict(static=dict(measurements=int(delta.size), slope=float(slope), intercept=float(icpt), r2=float(r * r)))
+    d2 = st["goal"] - st["position"]
+    per_pose = [float(stats.linregress(d2[:, c], st["mass"])[2] ** 2) for c in range(d2.shape[1])]
+    out = dict(static=dict(measurements=int(delta.size), slope=float(slope), intercept=float(icpt), r2=float(r * r),
+                           per_pose_r2_delta_vs_mass=per_pose))
     # Demonstration-frame relation between the jaw load register and jaw tracking error.
     # Computed from the raw dataset when it is present and cached under results/ so the
     # figure and numbers rebuild from the repository alone.
@@ -516,6 +532,12 @@ def earlier_comparison():
             b, e = counts["base"], counts["excess"]
             rec["fisher_p"] = float(stats.fisher_exact([[b[0], b[1] - b[0]], [e[0], e[1] - e[0]]])[1])
             rec["wilson"] = {a: wilson(*counts[a]) for a in arms}
+            # registered analysis: consecutive trials form a pair from the same reset
+            sub = sorted(sub, key=lambda r: r["trial"])
+            pairs = [(sub[i], sub[i + 1]) for i in range(0, len(sub) - 1, 2) if {sub[i]["arm"], sub[i + 1]["arm"]} == {"base", "excess"}]
+            bo = sum(1 for x, y in pairs if (x["arm"] == "base" and x["success"] and not y["success"]) or (y["arm"] == "base" and y["success"] and not x["success"]))
+            eo = sum(1 for x, y in pairs if (x["arm"] == "excess" and x["success"] and not y["success"]) or (y["arm"] == "excess" and y["success"] and not x["success"]))
+            rec["paired"] = dict(pairs=len(pairs), base_only=bo, excess_only=eo, mcnemar_p=exact_mcnemar(bo, eo))
         out[session] = rec
     return out
 
@@ -566,6 +588,7 @@ def sensitivity():
     rates = [d[k]["hardware"]["placed"] / d[k]["hardware"]["pairs"] for k in order if d[k]["hardware"]["pairs"] == 20]
     errs = [d[k]["teacher_forcing_l1"]["overall"]["all"] for k in order if d[k]["hardware"]["pairs"] == 20]
     summary["spearman_error_vs_hardware_completed"] = float(stats.spearmanr(errs, rates)[0])
+    summary["reference_step_mean"] = d[deltas[0]]["reference_step_l1"]["all"]
     return summary
 
 
@@ -585,7 +608,9 @@ def history_control():
             paired = [v for v in pairs.values() if set(v) == set(arms)]
             c = Counter((v[arms[0]], v[arms[1]]) for v in paired)
             b, d = c[1, 0], c[0, 1]
-            faults = sum(bool(r.get("shutdown_error")) for r in rows)
+            incidents = list((ROOT / "results/hardware").glob(f"real_history_control_s{seed}_trials_*_incident.json")) + \
+                list((ROOT / "results/hardware").glob(f"real_history_control_s{seed}_trials_pending.json"))
+            faults = sum(json.loads(f.read_text()).get("returncode") == -6 for f in incidents)
             complete = len(paired) >= PLAN_PAIRS
             rec = dict(seed=seed, arms=arms, pairs=len(paired), rollouts=len(rows), first=sum(v[arms[0]] for v in paired),
                        history=sum(v[arms[1]] for v in paired), first_only=b, history_only=d,
@@ -601,7 +626,7 @@ def history_control():
     evaluated = [r for r in out.values() if r["status"] in ("evaluated", "interrupted")]
     if evaluated:
         (GEN / "history_control.tex").write_text(
-            "\\begin{tabular}{lllrrrrr}\n\\toprule\nSeed & Comparison & Session & First & Position history & history-only / first-only & $p$ & faults \\\\\n\\midrule\n"
+            "\\begin{tabular}{lllrrrrr}\n\\toprule\nSeed & Comparison (A vs.\\ B) & Session & A & B & B-only / A-only & $p$ & overloads \\\\\n\\midrule\n"
             + "\n".join(rows_tex) + "\n\\bottomrule\n\\end{tabular}\n")
         for r in evaluated:
             if r["status"] == "interrupted":
@@ -650,7 +675,8 @@ def trace_figure(trials):
         axes[seed, 0].set_ylabel("Jaw position (recorded units)")
     for ax in axes[-1]:
         ax.set_xlabel("Policy step after handoff")
-    axes[0, 0].axhline(CLOSED, color="#222222", lw=.5, ls=":")
+    for ax in axes.ravel():
+        ax.axhline(CLOSED, color="#222222", lw=.5, ls=":")
     fig.tight_layout(pad=.5)
     fig.savefig(FIG / "fig_hardware_traces.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(FIG / "fig_hardware_traces.png", dpi=200, bbox_inches="tight")
@@ -676,7 +702,7 @@ def tables(hw, power, sim):
     rows.append(f"0+1 & Stratified & & & {st['delta_only']} / {st['base_only']} & & {st['exact_p']:.4f} \\\\")
     (GEN / "hardware_table_ci.tex").write_text(
         "\\begin{tabular}{llllrrr}\n\\toprule\n"
-        "Seed & Evaluation & Base [95\\% CI] & Tracking error [95\\% CI] & TE / base only & both / neither & $p$ \\\\\n\\midrule\n"
+        "Seed & Evaluation & Base [95\\% CI] & Tracking error [95\\% CI] & tracking-error only / base only & both / neither & $p$ \\\\\n\\midrule\n"
         + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
     (GEN / "odds_ratio.tex").write_text(f"{o['estimate']:.1f} (95\\% CI {o['ci'][0]:.1f} to {hi})")
 

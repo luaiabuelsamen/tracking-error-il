@@ -335,6 +335,12 @@ def main():
         print(f"\n{len(scored)} scored datasets; pre-registered d>0.5 in "
               f"{hits}/{len(scored)}; pooled z-scored d = {pooled_d:.2f} "
               f"({len(z)} episodes, {int(yy.sum())} successes)")
+        # Persist the pooled statistic and its inputs so the paper's number is
+        # reproducible from this file alone (per-episode z-scored delta at seat
+        # and the success proxy, in dataset order).
+        out.append(dict(name="_pooled", scored_datasets=len(scored), hits_above_0_5=int(hits),
+                        episodes=int(len(z)), successes=int(yy.sum()), pooled_d=float(pooled_d),
+                        pooled_delta_z=[float(v) for v in z], pooled_success=[bool(v) for v in yy]))
     Path(args.json).parent.mkdir(exist_ok=True)
     with open(args.json, "w") as fh:
         json.dump(out, fh, indent=2)

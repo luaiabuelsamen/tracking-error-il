@@ -63,13 +63,11 @@ def main():
         p = f"{r['p']:.4f}" if r["seed"] != 2 else "---"
         rows.append(f"{r['seed']} & {status} & {r['base']}/{r['pairs']} & {r['delta']}/{r['pairs']} & "
                     f"{r['delta_only']} / {r['base_only']} & {p} " + r"\\")
-    (out / "hardware_rows.tex").write_text("\n".join(rows) + "\n")
     (out / "hardware_table.tex").write_text(
         "\\begin{tabular}{llrrrr}\n\\toprule\n"
         + "Seed & Evaluation & Base & Tracking error & Discordances & $p$ \\\\\n\\midrule\n"
         + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
     all_table = (out / "hardware_table.tex").read_text()
-    (out / "hardware_table_all.tex").write_text(all_table)
     completed_rows = [row for row, r in zip(rows, data["hardware"]) if r["pairs"] == 20]
     (out / "hardware_table.tex").write_text(
         all_table.replace("\n".join(rows), "\n".join(completed_rows)))
@@ -106,26 +104,10 @@ def main():
     # Qualitative real rollout plus the completed quantitative hardware comparisons.
     from PIL import Image
     teaser = Image.open(ROOT / "figures/paper/fig_real_teaser.png").convert("RGB")
-    fig2 = plt.figure(figsize=(8.1, 4.8))
-    ax_top = fig2.add_axes([0.04, 0.47, 0.92, 0.48])
+    fig2 = plt.figure(figsize=(8.1, 2.1))
+    ax_top = fig2.add_axes([0.005, 0.005, 0.99, 0.99])
     ax_top.imshow(teaser)
     ax_top.axis("off")
-    ax_top.set_title("Physical rollout: frames after policy handoff", loc="left", fontsize=10, pad=4)
-    ax_bot = fig2.add_axes([0.12, 0.12, 0.78, 0.25])
-    completed = [r for r in data["hardware"] if r["pairs"] == 20]
-    xs = np.arange(len(completed))
-    base_rates = [100*r["base"]/r["pairs"] for r in completed]
-    delta_rates = [100*r["delta"]/r["pairs"] for r in completed]
-    ax_bot.bar(xs-.18, base_rates, .36, color="#777777", label="Position only")
-    ax_bot.bar(xs+.18, delta_rates, .36, color="#167e83", label="Tracking error")
-    for x, r in zip(xs, completed):
-        ax_bot.text(x-.18, 100*r["base"]/r["pairs"]+3, f"{r['base']}/{r['pairs']}", ha="center", fontsize=8)
-        ax_bot.text(x+.18, 100*r["delta"]/r["pairs"]+3, f"{r['delta']}/{r['pairs']}", ha="center", fontsize=8)
-    ax_bot.set_xticks(xs, ["Seed 0", "Seed 1"])
-    ax_bot.set_ylim(0, 85)
-    ax_bot.set_ylabel("Placement success (%)")
-    ax_bot.legend(frameon=False, ncol=2, loc="upper left")
-    ax_bot.set_title("Completed paired hardware evaluations", loc="left", fontsize=10)
     fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig2.savefig(ROOT / "figures/paper/fig_real_quantitative.png", dpi=200, bbox_inches="tight")
     plt.close(fig2)

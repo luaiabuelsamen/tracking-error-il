@@ -76,8 +76,9 @@ missingness has been established.
 ## Position-history control, seed 1 — 2026-09-07 (interrupted)
 
 Two sessions (13:18 and 14:10 local) against the pre-registration of the same
-day, 18 rollouts in total, before the operator stopped. Trials 7 and 8 of the
-first session ended with a gripper overload error at torque disable; in
+day, 19 rollouts in total, before the operator stopped. Four rollouts ended
+with a gripper overload error at torque disable (trials 7, 8 and 11 of the
+first session and trial 3 of the second); in
 trials 4, 8 and 13 the applied jaw command reached about 6 units while the
 measured jaw stayed at the 12.4-unit handoff value for 40 steps, so the servo
 was not following its command. Trial 9's rollout completed normally but its
