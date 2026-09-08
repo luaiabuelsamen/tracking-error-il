@@ -29,8 +29,8 @@ def main(pdf: str) -> int:
     supp = src.with_name(src.stem + "_supplement.pdf")
     with tempfile.TemporaryDirectory() as tmp:
         subprocess.run(["pdfseparate", str(src), f"{tmp}/p-%d.pdf"], check=True, stderr=subprocess.DEVNULL)
-        subprocess.run(["pdfunite", *[f"{tmp}/p-{i}.pdf" for i in range(1, cut)], str(paper)], check=True)
-        subprocess.run(["pdfunite", *[f"{tmp}/p-{i}.pdf" for i in range(cut, len(pages) + 1)], str(supp)], check=True)
+        subprocess.run(["pdfunite", *[f"{tmp}/p-{i}.pdf" for i in range(1, cut)], str(paper)], check=True, stderr=subprocess.DEVNULL)
+        subprocess.run(["pdfunite", *[f"{tmp}/p-{i}.pdf" for i in range(cut, len(pages) + 1)], str(supp)], check=True, stderr=subprocess.DEVNULL)
     print(f"{paper}: pages 1-{cut - 1} (main text ends on page {[i for i, t in enumerate(pages, 1) if 'References' in t][0] - 1})")
     print(f"{supp}: pages {cut}-{len(pages)}")
     return 0
