@@ -5,7 +5,7 @@
 PYTHON ?= python
 PYTEST := PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 $(PYTHON) -m pytest
 
-.PHONY: test test-fast lint fmt eval paper paper-anon
+.PHONY: test test-fast lint fmt eval paper paper-anon submission submission-assets
 
 test:
 	$(PYTEST) tests/ -q
@@ -35,3 +35,10 @@ paper-anon: paper
 	cd paper && SOURCE_DATE_EPOCH=0 FORCE_SOURCE_DATE=1 latexmk -pdf -interaction=nonstopmode -halt-on-error -jobname=main_anon \
 	  -pdflatex='pdflatex %O "\\def\\ANON{1}\\input{%S}"' main.tex
 	@$(PYTHON) scripts/paper/check_anonymized.py paper/main_anon.pdf
+
+# Local review packages only; these targets do not upload or submit anything.
+submission:
+	$(PYTHON) scripts/paper/build_submission.py
+
+submission-assets:
+	$(PYTHON) scripts/paper/build_submission.py --research-assets

@@ -3,8 +3,8 @@
 Code, evaluation records, and manuscript for a study of one cheap observation:
 the difference between the position a servo was told to reach and the
 position it actually reached. On a position-controlled hobby servo that
-difference is present in every recorded dataset, costs nothing at inference
-time, and carries information about load and contact. This repository asks
+difference can be reconstructed from aligned command/position logs without
+an additional sensor, and carries information about resistance and actuator dynamics. This repository asks
 whether giving it to a behavior-cloning policy helps.
 
 Platform: the SO-101 arm (STS3215 servos), one overhead camera, ACT policies
@@ -39,12 +39,12 @@ On the arm, tracking error places 23 of 40 paired trials against 6 of 40 for
 position-only policies (stratified exact test p = 0.0005), replicated across
 two training seeds, though the size of the effect differs between seeds. In
 simulation a position-history input recovers most of the gain, so the finding
-is that the single-timestep proprioceptive default omits temporal information
-a policy needs, and tracking error is the channel every existing log already
-contains. It also keeps varying where the gripper's load register saturates at
+is consistent with a benefit from temporal information; it does not establish
+which representation is preferable. Tracking error can be reconstructed when
+logs preserve aligned commands and positions. It also keeps varying where the gripper's load register saturates at
 a vendor torque limit in 16.5% of demonstration frames. A study of 16 public
-teleoperation datasets (546 episodes) shows that large tracking error at grasp
-time marks resistance, not a successful grasp. Full protocol,
+teleoperation datasets (546 episodes) rejects a predicted positive association
+between tracking-error magnitude and a gripper-retention proxy. Full protocol,
 statistics, and limitations are in [`paper/main.tex`](paper/main.tex)
 ([PDF](paper/main.pdf)).
 
@@ -63,9 +63,10 @@ with shared scene seeds. Means over seeds (5 seeds, 3 for the history designs):
 | tracking error | `delta` | 21.8% |
 | compensated residual | `excess` | 26.6% |
 
-Only the tracking-error and compensated-residual gains over the base clear the
-preregistered resolution rule, and no pairwise contrast survives a Holm
-adjustment across all 28 pairs.
+No pairwise contrast survives a Holm adjustment across all 28 pairs. The
+original design note used a 15-point practical threshold at three seeds;
+the seed-count extrapolation shown in the appendix is retrospective.
+The [archived plans](docs/analysis_plans/README.md) distinguish these decisions.
 
 Before any policy was trained, the simulated plant was characterised with
 scripted experts that differ only in the signal that sets the grip: a fixed
@@ -96,7 +97,7 @@ appears in the paper's appendices.
 
 | analysis | what it shows |
 |---|---|
-| stratified hardware statistics | pooled discordant pairs 20 vs 3 over the completed seeds (p = 0.0005), odds ratio 6.7, no detectable heterogeneity between seeds |
+| stratified hardware statistics | post-hoc pooled discordant pairs 20 vs 3 over the completed seeds (p = 0.0005), odds ratio 6.7; trial-level uncertainty is conditional on checkpoints |
 | power of the 20-pair protocol | 0.17 under seed 0's observed discordance structure, 0.97 under seed 1's |
 | jaw-trace classification of all 91 recorded trajectories (92 rollouts) | every tracking-error success closed once and held; seed 2's rollouts mostly never closed, consistent with the servo fault |
 | checkpoint sensitivity | zeroing the tracking-error input moves the jaw command by 13 units where the load register is pinned, 3 elsewhere; offline error does not rank the seeds as hardware did |
@@ -104,12 +105,14 @@ appears in the paper's appendices.
 | simulation contrasts | Welch intervals and Holm adjustment for all 28 design pairs |
 | corpus forest plot | per-dataset effect sizes with intervals, and their stability under command offsets |
 | load-register figure | static bench fit and the demonstration-frame saturation at the ±500 limit |
+| actual command timing | all 91 saved labeled-trial traces: median rollout rates near 29.5 Hz, with longer host timestamp intervals at 30-command chunk boundaries |
+| registered corpus AUC | 0.39 in the predicted direction, below the 0.5 threshold, using the archived retention proxy |
 
 ## What is not finished
 
-A matched position-history control on hardware. The simulation grid says
-position history performs like tracking error, so the hardware gain may come
-from any temporal input. The comparison is pre-registered in
+A matched position-history control on hardware. The simulation grid leaves
+position history and tracking error statistically unresolved, so a hardware
+history comparison is needed to assess feature specificity. It is pre-registered in
 [`docs/hardware/preregistration_2026-09-07_history_control.md`](docs/hardware/preregistration_2026-09-07_history_control.md);
 the matched checkpoints were trained with `scripts/real/run_history_control_training.sh`
 (logs under `results/hardware/real_delta_replication/`). The first seed-1
@@ -125,8 +128,9 @@ bash scripts/bench/run_hw_history_control.sh 0
 make paper
 ```
 
-The appendix status sentence and table regenerate from whatever trial records
-exist.
+The appendix discovers the original trial file and versioned `_v2`, `_v3`,
+etc. records. It keeps reruns separate, retains incomplete pairs in the
+rollout accounting, and assigns no test to an incomplete comparison.
 
 ## Media
 
@@ -210,6 +214,13 @@ supplementary statistic, or a required disclosure sentence in the manuscript
 drifts from the data. `make paper-anon` builds the same source in CoRL
 submission mode (anonymous author block, line numbers) to `paper/main_anon.pdf`
 and fails if the PDF text or metadata still carries an identifying string.
+
+`make submission` also enforces the four-page main-text limit, splits the
+supplement, and prepares an anonymous source/evidence ZIP under
+`dist/workshop/`. `make submission-assets` stages the local demonstrations
+and checkpoints in separate archives. These commands prepare local files;
+they do not publish or submit them. See [submission details](paper/README.md)
+and the [readiness record](docs/workshop_readiness.md).
 
 ## Data and checkpoints
 

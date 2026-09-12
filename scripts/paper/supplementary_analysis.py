@@ -30,6 +30,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 import numpy as np
+from history_records import collect_history
 from scipy import stats
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -227,6 +228,55 @@ def hardware():
                 order=order, limiter=limiter, taxonomy=taxonomy), trials
 
 
+def timestamp_summary(elapsed_s, chunk=30):
+    """Summarize post-command host timestamps; these do not measure bus latency."""
+    times = np.asarray(elapsed_s, dtype=float)
+    if times.ndim != 1 or len(times) < 2 or not np.isfinite(times).all():
+        raise ValueError("a trajectory needs at least two finite scalar timestamps")
+    gaps = np.diff(times)
+    if np.any(gaps <= 0):
+        raise ValueError("trajectory timestamps must be strictly increasing")
+    boundary = np.arange(1, len(times)) % chunk == 0
+    return dict(rate_hz=float((len(times) - 1) / (times[-1] - times[0])),
+                boundary_ms=(1000 * gaps[boundary]).tolist(),
+                within_ms=(1000 * gaps[~boundary]).tolist())
+
+
+def runtime_summary():
+    """Read all available labeled-trial timestamps without modifying trial records."""
+    groups = []
+    for seed, filename, arms in SEEDS:
+        rows = json.loads((ROOT / "results/hardware" / filename).read_text())
+        for arm, label in zip(arms, ("Position", "Tracking error")):
+            rates, boundary, within = [], [], []
+            for row in rows:
+                path = ROOT / "results/hardware" / row["traj"]
+                if row["arm"] != arm or not path.exists():
+                    continue
+                with np.load(path) as trajectory:
+                    timing = timestamp_summary(trajectory["elapsed_s"])
+                rates.append(timing["rate_hz"])
+                boundary.extend(timing["boundary_ms"])
+                within.extend(timing["within_ms"])
+            groups.append(dict(seed=seed, arm=arm, label=label, n=len(rates),
+                               missing=sum(row["arm"] == arm for row in rows) - len(rates),
+                               rate_median_hz=float(np.median(rates)),
+                               rate_range_hz=[float(min(rates)), float(max(rates))],
+                               boundary_median_ms=float(np.median(boundary)),
+                               within_median_ms=float(np.median(within))))
+    return dict(chunk=30, nominal_command_hz=30, recorded=sum(g["n"] for g in groups), groups=groups)
+
+
+def runtime_table(summary):
+    rows = [f"{g['seed']} & {g['label']} & {g['n']} & {g['rate_median_hz']:.2f} & "
+            f"{g['within_median_ms']:.1f} & {g['boundary_median_ms']:.1f} " + r"\\"
+            for g in summary["groups"]]
+    (GEN / "runtime_table.tex").write_text(
+        "\\begin{tabular}{llrrrr}\n\\toprule\n"
+        + r"Seed & Input & Traces & Rate (Hz) & Within chunk (ms) & At boundary (ms) \\"
+        + "\n\\midrule\n" + "\n".join(rows) + "\n\\bottomrule\n\\end{tabular}\n")
+
+
 def power_table():
     grid = {}
     for p_disc in (0.2, 0.4, 0.6, 0.8):
@@ -254,8 +304,13 @@ def corpus():
         y = np.array(pooled_row["pooled_success"], bool)
         a, b = z[y], z[~y]
         sp = math.sqrt(((len(a) - 1) * a.var(ddof=1) + (len(b) - 1) * b.var(ddof=1)) / (len(a) + len(b) - 2))
+        n_positive, n_negative = int(y.sum()), int((~y).sum())
+        # Registered direction: larger discrepancy predicts proxy success.
+        # Average ranks handle ties without changing that direction after seeing outcomes.
+        auc = (stats.rankdata(z)[y].sum() - n_positive * (n_positive + 1) / 2) / (n_positive * n_negative)
         pooled = dict(d=float((a.mean() - b.mean()) / sp), d_recorded=pooled_row["pooled_d"], episodes=int(len(z)),
-                      successes=int(y.sum()), scanned=len(allrows) - 1)
+                      successes=n_positive, scanned=len(allrows) - 1, directional_auc=float(auc))
+        (GEN / "corpus_auc.tex").write_text(f"{auc:.2f}")
     weighted = float(np.average([r["cohen_d"] for r in rows], weights=[r["episodes"] for r in rows]))
     p = _plt()
     fig, (ax, ax2) = p.subplots(1, 2, figsize=(8.1, 3.6), gridspec_kw={"width_ratios": [1.5, 1]})
@@ -594,60 +649,45 @@ def sensitivity():
 
 # ----------------------------------------------------------------------------- history control (pending or done)
 def history_control():
-    """Paired position-history evaluations, if they have been run; otherwise the current status."""
-    status, rows_tex, out = [], [], {}
-    for seed, arms in ((1, ("delta_s1", "ghist_s1")), (0, ("base_v2", "ghist_s0"))):
-        log = ROOT / f"results/hardware/real_delta_replication/ghist_s{seed}.log"
-        trained = log.exists() and "saved checkpoints/" in log.read_text()
-        trials = ROOT / f"results/hardware/real_history_control_s{seed}_trials.json"
-        if trials.exists():
-            rows = json.loads(trials.read_text())
-            pairs = defaultdict(dict)
-            for r in rows:
-                pairs[(r["session"], r["pair"])][r["arm"]] = int(r["success"])
-            paired = [v for v in pairs.values() if set(v) == set(arms)]
-            c = Counter((v[arms[0]], v[arms[1]]) for v in paired)
-            b, d = c[1, 0], c[0, 1]
-            incidents = list((ROOT / "results/hardware").glob(f"real_history_control_s{seed}_trials_*_incident.json")) + \
-                list((ROOT / "results/hardware").glob(f"real_history_control_s{seed}_trials_pending.json"))
-            faults = sum(json.loads(f.read_text()).get("returncode") == -6 for f in incidents)
-            complete = len(paired) >= PLAN_PAIRS
-            rec = dict(seed=seed, arms=arms, pairs=len(paired), rollouts=len(rows), first=sum(v[arms[0]] for v in paired),
-                       history=sum(v[arms[1]] for v in paired), first_only=b, history_only=d,
-                       mcnemar_p=exact_mcnemar(b, d), shutdown_errors=faults,
-                       status="evaluated" if complete else "interrupted")
-            label = "Tracking error" if arms[0].startswith("delta") else "Position only"
-            rows_tex.append(f"{seed} & {label} vs.\\ position history & {'Complete' if complete else 'Interrupted'} & "
-                            f"{rec['first']}/{rec['pairs']} & {rec['history']}/{rec['pairs']} & {d} / {b} & "
-                            f"{rec['mcnemar_p']:.4f} & {faults} \\\\")
-        else:
-            rec = dict(seed=seed, arms=arms, status="trained, not evaluated" if trained else "checkpoint not trained")
-        out[f"seed{seed}"] = rec
-    evaluated = [r for r in out.values() if r["status"] in ("evaluated", "interrupted")]
-    if evaluated:
-        (GEN / "history_control.tex").write_text(
-            "\\begin{tabular}{lllrrrrr}\n\\toprule\nSeed & Comparison (A vs.\\ B) & Session & A & B & B-only / A-only & $p$ & overloads \\\\\n\\midrule\n"
-            + "\n".join(rows_tex) + "\n\\bottomrule\n\\end{tabular}\n")
-        for r in evaluated:
-            if r["status"] == "interrupted":
-                status.append(f"The seed-{r['seed']} comparison was run once and interrupted after {r['pairs']} complete pairs "
-                              f"({r['rollouts']} rollouts, {r['shutdown_errors']} ending with a gripper overload error): the gripper servo stopped "
-                              "following jaw commands in several rollouts and the overhead camera was found displaced relative to the "
-                              "earlier sessions, so its outcomes are retained (Table~\\ref{tab:history}) but the comparison is not complete "
-                              "and no confirmatory test is assigned to it.")
+    """Retain every record, including interrupted sessions and clean versioned reruns."""
+    out = collect_history(ROOT / "results/hardware", PLAN_PAIRS)
+    status, rows_tex = [], []
+    for seed in out.values():
+        for rec in seed["comparisons"]:
+            complete = rec["status"] == "evaluated"
+            label = "Tracking error" if rec["arms"][0].startswith("delta") else "Position only"
+            p_text = f"{rec['mcnemar_p']:.4f}" if complete else "---"
+            rows_tex.append(
+                f"{rec['seed']} (v{rec['version']}) & {label} vs.\\ position history & "
+                f"{'Complete' if complete else 'Interrupted'} & {rec['first']}/{rec['pairs']} & "
+                f"{rec['history']}/{rec['pairs']} & {rec['history_only']} / {rec['first_only']} & "
+                f"{p_text} & {rec['shutdown_errors']} \\\\")
+            if rec["seed"] == 1 and rec["version"] == 1:
+                status.append(
+                    f"The initial seed-1 evaluation was interrupted after {rec['pairs']} complete pairs "
+                    f"({rec['rollouts']} rollouts, {rec['abort_incidents']} ending with a gripper overload error): "
+                    "the gripper servo stopped following jaw commands in several rollouts and the "
+                    "overhead camera was found displaced relative to the earlier sessions. Its outcomes "
+                    "are retained (Table~\\ref{tab:history}), and no confirmatory test is assigned to it. "
+                    "A separate logging failure after normal torque release accounts for the fifth failed exit; "
+                    "its operator-labeled outcome is retained despite the missing trajectory.")
+            elif complete:
+                status.append(f"Table~\\ref{{tab:history}} reports the completed seed-{rec['seed']} "
+                              f"comparison v{rec['version']} separately from any earlier interrupted record.")
             else:
-                status.append(f"Table~\\ref{{tab:history}} reports the completed seed-{r['seed']} comparison.")
-        if len(evaluated) < 2:
-            status.append("The other registered comparison has not been run.")
+                status.append(f"The seed-{rec['seed']} comparison v{rec['version']} contains "
+                              f"{rec['pairs']} complete pairs and is incomplete; no confirmatory test is assigned.")
+    if rows_tex:
+        (GEN / "history_control.tex").write_text(
+            "\\begin{tabular}{lllrrrrr}\n\\toprule\nSeed (record) & Comparison (A vs.\\ B) & Status & A & B & B-only / A-only & $p$ & errors \\\\\n\\midrule\n"
+            + "\n".join(rows_tex) + "\n\\bottomrule\n\\end{tabular}\n")
     else:
         (GEN / "history_control.tex").write_text("\\emph{No position-history trials had been run when this version was built.}\n")
-        trained = [r["seed"] for r in out.values() if r["status"] == "trained, not evaluated"]
-        status.append("At the time this version was built, " + (
-            f"the matched position-history checkpoint{'s' if len(trained) > 1 else ''} for seed{'s' if len(trained) > 1 else ''} "
-            + " and ".join(str(t) for t in trained) + " had been trained but not evaluated on the arm."
-            if trained else "the matched position-history checkpoints had not finished training."))
-        status.append("The comparison is registered in the repository and its results table is generated from the trial "
-                      "records when they exist; nothing here is hand-typed.")
+    for rec in out.values():
+        if not rec["comparisons"]:
+            status.append(f"The seed-{rec['seed']} history checkpoint is {rec['status']}.")
+    if any(rec["status"] != "evaluated" for rec in out.values()):
+        status.append("The registered hardware history control remains incomplete.")
     (GEN / "history_control_status.tex").write_text(" ".join(status) + "\n")
     return out
 
@@ -763,12 +803,14 @@ def main():
     meas = measurement()
     sim = simulation()
     tables(hw, power, sim)
+    runtime = runtime_summary()
+    runtime_table(runtime)
     demo = demonstrations()
     timing_figure(trials, demo)
     out = dict(hardware=hw, power=power, corpus=corp, measurement=meas, simulation=sim,
                plant=plant(), demonstrations=demo, training=learning_curves(),
                earlier_comparison=earlier_comparison(), sensitivity=sensitivity(),
-               history_control=history_control(),
+               history_control=history_control(), runtime=runtime,
                thresholds=dict(closed_below=CLOSED, reopened_above=REOPENED))
     (GEN / "supplementary.json").write_text(json.dumps(out, indent=2, default=float) + "\n")
     print(json.dumps(dict(stratified=hw["stratified"], seed_level=hw["seed_level"],

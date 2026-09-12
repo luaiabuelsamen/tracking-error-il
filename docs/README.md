@@ -8,6 +8,8 @@
 | `hardware/replication_plan_2026-09-05.md` | plan for seeds 1 and 2, written after seed 0 and before those seeds were trained |
 | `hardware/preregistration_2026-09-07_history_control.md` | frozen plan for the matched position-history control: checkpoints, comparisons, decision rule; written before training |
 | `hardware/diagnostics.md` | seed-0 paired result and trajectory audit; trial-level record of the seed-1 and seed-2 interruptions |
+| `analysis_plans/2026-08-16_corpus.md` | original corpus protocol recovered unchanged from repository history, including its secondary AUC prediction |
+| `analysis_plans/2026-08-17_simulation.md` | original simulation design note; three tracking-error results were already known when it was written |
 
 The pre-registration documents are kept as written, including their internal
 checkpoint names. Provenance: the replication plan's hash is recorded in

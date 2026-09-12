@@ -114,7 +114,8 @@ def main():
     assert [plant[k]['oracle']['placed'] for k in ('100', '120', '160')] == [12, 14, 17]
     assert (plant['none']['q1']['placed'], plant['none']['clamp']['placed'], plant['none']['oracle']['placed']) == (22, 29, 20)
     assert round(plant['none']['clamp']['peak_n']) == 355
-    for name in ('plant_table.tex', 'history_control.tex', 'history_control_status.tex'):
+    for name in ('plant_table.tex', 'history_control.tex', 'history_control_status.tex',
+                 'runtime_table.tex', 'corpus_auc.tex'):
         assert f'generated/{name}' in tex and (generated / name).exists(), name
     for fig in ('fig_sensitivity.pdf', 'fig_timing.pdf', 'fig_training.pdf'):
         assert fig in tex and (ROOT / 'figures/paper' / fig).exists(), fig
@@ -129,6 +130,18 @@ def main():
         return json.loads(json.dumps(x, default=float))
     assert roundtrip(fresh_hw) == supp['hardware'], 'supplementary.json is stale; rerun supplementary_analysis.py'
     assert roundtrip(sa.simulation()) == supp['simulation'], 'supplementary.json simulation block is stale'
+    assert roundtrip(sa.collect_history(ROOT / 'results/hardware')) == history, 'history records are stale'
+    assert roundtrip(sa.runtime_summary()) == supp['runtime'], 'runtime summary is stale'
+    runtime = supp['runtime']
+    assert runtime['recorded'] == 91 and [g['n'] for g in runtime['groups']] == [20, 20, 20, 19, 6, 6]
+    runtime_tex = (generated / 'runtime_table.tex').read_text()
+    for group in runtime['groups']:
+        for key, digits in (('rate_median_hz', 2), ('within_median_ms', 1), ('boundary_median_ms', 1)):
+            assert f"{group[key]:.{digits}f}" in runtime_tex, key
+    for seed in history.values():
+        for record in seed['comparisons']:
+            if record['status'] != 'evaluated':
+                assert record['mcnemar_p'] is None, 'incomplete comparison must not receive a test'
     # --- numbers that were previously only in prose or only in the checker
     corp_pooled = supp['corpus']['pooled']
     assert corp_pooled and f"{corp_pooled['d']:.2f}" == '-0.39' and f"{corp_pooled['d_recorded']:.2f}" == '-0.39'
@@ -137,11 +150,27 @@ def main():
     pp = supp['measurement']['static']['per_pose_r2_delta_vs_mass']
     assert f"{min(pp):.3f}" == '0.085' and f"{max(pp):.3f}" == '0.910'
     assert f"{sens['reference_step_mean']:.1f}" == '0.5'
-    assert history['seed1']['shutdown_errors'] == 4 and history['seed1']['rollouts'] == 19 and history['seed1']['pairs'] == 9
+    original_history = next(r for r in history['seed1']['comparisons'] if r['version'] == 1)
+    assert original_history['shutdown_errors'] == 5 and original_history['rollouts'] == 19 and original_history['pairs'] == 9
+    assert original_history['abort_incidents'] == 4 and original_history['other_incidents'] == 1
+    assert original_history['mcnemar_p'] is None
+    assert '--- & 5' in (generated / 'history_control.tex').read_text()
+    assert f"{corp_pooled['directional_auc']:.2f}" == '0.39'
+    assert (generated / 'corpus_auc.tex').read_text().strip() == f"{corp_pooled['directional_auc']:.2f}"
+    pooled_rows = next(r for r in json.loads((ROOT / 'results/corpus/corpus_delta_outcome.json').read_text()) if r['name'] == '_pooled')
+    positive = [z for z, y in zip(pooled_rows['pooled_delta_z'], pooled_rows['pooled_success']) if y]
+    negative = [z for z, y in zip(pooled_rows['pooled_delta_z'], pooled_rows['pooled_success']) if not y]
+    auc = sa.stats.mannwhitneyu(positive, negative).statistic / (len(positive) * len(negative))
+    assert abs(auc - corp_pooled['directional_auc']) < 1e-12
     ep = early['paired']
     assert (ep['pairs'], ep['base_only'], ep['excess_only']) == (10, 7, 0) and f"{ep['mcnemar_p']:.3f}" == '0.016'
     sl = supp['hardware']['seed_level']['completed']
     assert f"{100 * sl['mean']:.1f}" == '42.5'
+    all_seeds = supp['hardware']['seed_level']['all_three']
+    assert f"{100 * all_seeds['mean']:.1f}" == '28.3'
+    assert 'all-pairs statistical analysis are retrospective' in flat
+    assert 'preregistered resolution rule' not in flat
+    assert 'contain identical information' in flat
     assert supp['power']['observed_structure'] == {'seed0': [8, 6], 'seed1': [15, 14]}
     # --- the JSON-to-text link: each quoted statistic must appear in the manuscript in the form derived here
     hw0, hw1 = actual['hardware'][0], actual['hardware'][1]
@@ -165,7 +194,8 @@ def main():
         f"{corp['negative_point_estimates']} of the sixteen".replace('11', 'Eleven'), f"{early['arms']['base'][0]}/10 objects and the residual {early['arms']['excess'][0]}/10",
         f"$p={ep['mcnemar_p']:.3f}$", f"{100 * sl['mean']:.1f} points", f"range of $d$ across offsets {supp['corpus']['median_offset_range']:.2f}",
         f"{round(100 * pp and min(pp), 3):.3f} to {max(pp):.3f}",
-        f"{history['seed1']['pairs']} complete pairs ({history['seed1']['rollouts']} rollouts, {history['seed1']['shutdown_errors']} ending",
+        f"{original_history['pairs']} complete pairs ({original_history['rollouts']} rollouts, {original_history['abort_incidents']} ending",
+        f"{100 * all_seeds['mean']:.1f} points",
     ]
     for q in quoted:
         assert q.lower() in flat.lower() or q.lower() in status_text.lower(), f'statistic not found in manuscript text: {q}'

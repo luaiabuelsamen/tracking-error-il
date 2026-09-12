@@ -357,7 +357,8 @@
       "d_recorded": -0.3932248282714389,
       "episodes": 546,
       "successes": 283,
-      "scanned": 77
+      "scanned": 77,
+      "directional_auc": 0.3922194305982883
     }
   },
   "measurement": {
@@ -1382,15 +1383,34 @@
         "delta_s1",
         "ghist_s1"
       ],
-      "pairs": 9,
-      "rollouts": 19,
-      "first": 1,
-      "history": 0,
-      "first_only": 1,
-      "history_only": 0,
-      "mcnemar_p": 1.0,
-      "shutdown_errors": 4,
-      "status": "interrupted"
+      "status": "interrupted",
+      "comparisons": [
+        {
+          "seed": 1,
+          "arms": [
+            "delta_s1",
+            "ghist_s1"
+          ],
+          "version": 1,
+          "source": "real_history_control_s1_trials.json",
+          "sessions": [
+            "2026-09-07T13:18:02",
+            "2026-09-07T14:10:08"
+          ],
+          "pairs": 9,
+          "rollouts": 19,
+          "unpaired_rollouts": 1,
+          "first": 1,
+          "history": 0,
+          "first_only": 1,
+          "history_only": 0,
+          "mcnemar_p": null,
+          "shutdown_errors": 5,
+          "abort_incidents": 4,
+          "other_incidents": 1,
+          "status": "interrupted"
+        }
+      ]
     },
     "seed0": {
       "seed": 0,
@@ -1398,8 +1418,100 @@
         "base_v2",
         "ghist_s0"
       ],
-      "status": "trained, not evaluated"
+      "status": "trained, not evaluated",
+      "comparisons": []
     }
+  },
+  "runtime": {
+    "chunk": 30,
+    "nominal_command_hz": 30,
+    "recorded": 91,
+    "groups": [
+      {
+        "seed": 0,
+        "arm": "base_v2",
+        "label": "Position",
+        "n": 20,
+        "missing": 0,
+        "rate_median_hz": 29.47180085052355,
+        "rate_range_hz": [
+          29.308991454513126,
+          29.63351809276643
+        ],
+        "boundary_median_ms": 73.17513145972043,
+        "within_median_ms": 33.33483508322388
+      },
+      {
+        "seed": 0,
+        "arm": "delta_v3",
+        "label": "Tracking error",
+        "n": 20,
+        "missing": 0,
+        "rate_median_hz": 29.487910722476236,
+        "rate_range_hz": [
+          29.356507436508423,
+          29.659885766090365
+        ],
+        "boundary_median_ms": 72.63264444191009,
+        "within_median_ms": 33.35032658651471
+      },
+      {
+        "seed": 1,
+        "arm": "base_s1",
+        "label": "Position",
+        "n": 20,
+        "missing": 0,
+        "rate_median_hz": 29.48848225597961,
+        "rate_range_hz": [
+          29.394426167629852,
+          29.56781097962541
+        ],
+        "boundary_median_ms": 72.95207888819277,
+        "within_median_ms": 33.281636075116694
+      },
+      {
+        "seed": 1,
+        "arm": "delta_s1",
+        "label": "Tracking error",
+        "n": 19,
+        "missing": 1,
+        "rate_median_hz": 29.484847348915764,
+        "rate_range_hz": [
+          29.3390500479313,
+          29.590053485371225
+        ],
+        "boundary_median_ms": 73.2444308232516,
+        "within_median_ms": 33.33093004766852
+      },
+      {
+        "seed": 2,
+        "arm": "base_s2",
+        "label": "Position",
+        "n": 6,
+        "missing": 0,
+        "rate_median_hz": 29.479304622640512,
+        "rate_range_hz": [
+          29.394652454930135,
+          29.510818874788
+        ],
+        "boundary_median_ms": 73.78189754672348,
+        "within_median_ms": 33.31853332929313
+      },
+      {
+        "seed": 2,
+        "arm": "delta_s2",
+        "label": "Tracking error",
+        "n": 6,
+        "missing": 0,
+        "rate_median_hz": 29.56563471203279,
+        "rate_range_hz": [
+          29.413038802464133,
+          29.676394827737827
+        ],
+        "boundary_median_ms": 69.19572304468602,
+        "within_median_ms": 33.39108207728714
+      }
+    ]
   },
   "thresholds": {
     "closed_below": 5.0,

@@ -1,7 +1,7 @@
 # Publication draft
 
 The current manuscript is `main.tex`, compiled to `main.pdf`: four pages of
-main text, then references and eight pages of appendices.
+main text, then references and supplementary appendices.
 It is a standalone empirical paper, not a report of development sessions.
 An earlier manuscript on the same data is kept outside this repository.
 
@@ -23,8 +23,9 @@ latexmk -pdf -interaction=nonstopmode -halt-on-error -cd paper/main.tex
 python scripts/paper/check_paper_numbers.py
 ```
 
-Every table and figure is generated from the records under `results/`; nothing
-is typed. `generated/evidence.json` and `generated/supplementary.json` record
+Quantitative tables and figures are generated from the records under `results/`.
+The design-choice reporting table transcribes the configured protocol and its
+limitations. `generated/evidence.json` and `generated/supplementary.json` record
 the inputs to those displays, and `check_paper_numbers.py` asserts the text
 against them. `make paper` from the repository root runs all four steps.
 
@@ -46,10 +47,25 @@ ineligible.
 `make paper-anon` produces `main_anon.pdf` in submission mode (anonymous
 author block, line numbers, anonymous PDF metadata) and checks it for
 identifying strings; its footer names the workshop. The workshop specifies no
-template and says nothing about appendices, so upload the paper and the
-appendices separately: `python scripts/paper/split_submission.py` cuts
+template and says nothing about appendices. Prepare the paper and the
+appendices separately, then check the submission form's permitted fields:
+`python scripts/paper/split_submission.py` enforces the four-page main-text
+limit and cuts
 `main_anon.pdf` into `main_anon_paper.pdf` (main text and references) and
-`main_anon_supplement.pdf` (appendices). For an anonymous code artifact, strip the author name and
-handle from `CITATION.cff`, `pyproject.toml`, `NOTICE`, the README citation
-block, and the Hugging Face repo id in `scripts/bench/arms.sh` and
-`scripts/bench/validate_record_args.py` before uploading a copy.
+`main_anon_supplement.pdf` (appendices).
+
+`make submission` builds and checks these PDFs and creates
+`dist/workshop/review-artifact.zip`, a separate anonymous copy of source and
+frozen evidence. It preserves upstream attribution, checks nested helper
+archives and trajectory metadata, and records file hashes. It does not modify
+author attribution in the working repository or upload anything.
+`make submission-assets` additionally stages the local demonstrations and
+eight checkpoints as separate archives. Their size and visual media must be
+reviewed against the submission form before any upload. The pinned offline
+analysis environment is in `requirements-paper.txt`; training used the
+platform-specific versions recorded in the replication manifest.
+
+The [readiness record](../docs/workshop_readiness.md) describes the remaining
+hardware control and submission-form checks. Historical analysis plans are
+under `docs/analysis_plans/`; the manuscript distinguishes original decisions
+from retrospective analyses.
