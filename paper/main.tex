@@ -163,6 +163,7 @@ the operator, who is not blinded, records whether the adapter rests inside the
 roll (Appendix~\ref{app:protocol}).
 
 \section{Results}
+\label{sec:results}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{fig_observation_evidence.pdf}
@@ -223,11 +224,59 @@ Appendix~\ref{app:protocol} for the interrupted evaluation.}
 \input{generated/hardware_table.tex}
 \end{table}
 
+\textbf{Position-history control on hardware: registered, interrupted.}
+The simulation grid leaves open whether the hardware gain from tracking error
+is specific to the command or would follow from any temporal input. A matched
+position-history control, $[q_t, q_{t-8}]$ with the training recipe of
+Appendix~\ref{app:protocol}, is pre-registered in the supplementary material
+together with the two paired comparisons that would test it: tracking error
+against position history for seed 1, and position only against position
+history for seed 0, each with 20 pairs under the protocol of
+Appendix~\ref{app:protocol}.
+\input{generated/history_control_status.tex}
+In the nine pairs that exist, tracking error placed once and position history
+never (Table~\ref{tab:history}); nine pairs with one discordance say nothing
+about the registered question, and the hardware claim of this paper is
+therefore the value of the channel over the position-only base, not its
+superiority over history.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Pre-registered position-history comparisons on hardware; A is the
+first-named policy. Each evaluation record is shown separately. Errors count
+failed process exits, including a logging failure; incomplete comparisons have no test.}
+\label{tab:history}
+\resizebox{\linewidth}{!}{\input{generated/history_control.tex}}
+\end{table}
+
+\textbf{A compensated residual failed on hardware.} An earlier hardware
+comparison, run before the tracking-error study, evaluated the compensated
+residual $e_t=\delta_t-\widehat K(g_{t-1}-g_{t-2})$, tracking error minus a
+fitted free-motion term, against the position-only base: the base placed 7/10
+objects and the residual 0/10 (registered exact test on consecutive trials
+from the same reset: 7 discordant pairs, all favouring the base, $p=0.016$;
+Fisher exact $p=0.003$; Wilson intervals 40 to 89\% and 0 to 28\%; same
+115-command replay). The residual is the best design in simulation
+(26.6\%, below), so this is the one hardware comparison in the study that went
+against the richer observation, and it is retained for that reason. The
+coefficients fitted from the real demonstrations differ markedly from the
+simulation fits, and the free-motion labeling heuristic includes contact
+frames; both are plausible sources of mismatch, not a diagnosis. That runner
+also fed back requested rather than post-limit commands, so preprocessing and
+execution both differ from the tracking-error study
+(Appendix~\ref{app:sim}).
+
 \textbf{Simulation: temporal controls limit feature specificity.} Mean
 placement success is 6.2\% for the position-only base, 13.8\% with the
 previous action appended, 21.8\% with explicit tracking error, and 26.6\% with
 a compensated residual (Fig.~\ref{fig:evidence}). Tracking error exceeds the
-base by 15.6 points (Welch 95\% CI 3.5 to 27.7). A position-history control
+base by 15.6 points (Welch 95\% CI 3.5 to 27.7). A latched seat token, a
+single bit set once a frozen stall detector on the jaw's command and position
+fires and held for the rest of the episode, reaches 21.8\%, the same mean as
+tracking error, so in simulation a one-bit grasp-phase signal matches the
+continuous channel; whether that holds on hardware is untested
+(Appendix~\ref{app:sim}). A position-history control
 that observes $[q_t, q_{t-8}]$ and no
 commands at all reaches 20.3\% over three seeds, 14.1 points above the base
 (CI 4.5 to 23.8) and 1.5 points below tracking error (CI $-11.1$ to 14.0).
@@ -270,11 +319,13 @@ provides a filled reporting table and the study's analysis-plan provenance.
 Three limits bound the claim. Three hardware seeds were trained; the two
 completed evaluations gave a 20-point and a 65-point improvement, the third
 was interrupted, and two completed seeds cannot bound that spread. The matched position-history control is registered, and its first hardware
-session was interrupted by a gripper servo fault (Appendix~\ref{app:history}), so the hardware result establishes the
+session was interrupted by a gripper servo fault (Table~\ref{tab:history}), so the hardware result establishes the
 value of the channel, not its superiority over history.
 The hardware task never requires staying under a force threshold, so nothing
-here shows learned force regulation. More seeds, the hardware history control, and a force-limited task are the
-next experiments.
+here shows learned force regulation. More seeds, the hardware history
+control, a binary grasp-state input on hardware to test whether the seat
+token's simulation result transfers, and a force-limited task are the next
+experiments.
 
 \clearpage
 \bibliography{refs}
@@ -607,17 +658,13 @@ and whether the difference clears it.}
 \resizebox{\linewidth}{!}{\input{generated/sim_contrasts.tex}}
 \end{table}
 
-An earlier hardware comparison, run before the tracking-error study, evaluated the
-compensated residual: the base placed 7/10 objects and the residual 0/10
-(registered exact test on consecutive trials from the same reset: 7 discordant
-pairs, all favouring the base, $p=0.016$; Fisher exact $p=0.003$; Wilson
-intervals 40 to 89\% and 0 to 28\%; same 115-command replay). The
-coefficients fitted from these real demonstrations differ markedly from the
-simulation fits, and a free-motion labeling heuristic includes contact frames.
-Both are plausible sources of mismatch, not a diagnosis. Coefficients above
-one do not by themselves invalidate the regression, and that runner also fed
-back requested rather than post-limit commands, so preprocessing and execution
-both differ from the tracking-error study.
+The compensated residual's hardware comparison (7/10 for the base against
+0/10, Section~\ref{sec:results}) used the residual's per-joint coefficients fitted from the
+real demonstrations with a load-register free-motion mask. Coefficients above
+one do not by themselves invalidate the regression, and that runner fed back
+requested rather than post-limit commands, so preprocessing and execution both
+differ from the tracking-error study; the comparison is reported for the
+record and supports no claim about compensation itself.
 
 The simulation task admits a crush threshold, but the learning grid does not
 activate it. A post-hoc screen of existing checkpoints at 120 and 60\,N
@@ -678,28 +725,6 @@ not isolate their causal contributions. Recorded leader commands may differ
 from applied follower goals and the timing is only approximately aligned, but
 an offset sweep from zero to five recorded frames leaves the qualitative
 conclusion unchanged, with median per-dataset range of $d$ across offsets 0.12.
-
-\section{Position-history control on hardware}
-\label{app:history}
-The simulation grid leaves open whether the hardware gain from tracking error
-is specific to the command or would follow from any temporal input. A matched
-position-history control, $[q_t, q_{t-8}]$ with the training recipe of
-Appendix~\ref{app:protocol}, is pre-registered in the supplementary material
-together with the two paired
-comparisons that would test it: tracking error against position history for
-seed 1, and position only against position history for seed 0, each with 20
-pairs under the protocol of Appendix~\ref{app:protocol}.
-\input{generated/history_control_status.tex}
-
-\begin{table}[h]
-\centering
-\small
-\caption{Pre-registered position-history comparisons on hardware; A is the
-first-named policy. Each evaluation record is shown separately. Errors count
-failed process exits, including a logging failure; incomplete comparisons have no test.}
-\label{tab:history}
-\resizebox{\linewidth}{!}{\input{generated/history_control.tex}}
-\end{table}
 
 \section{Design-choice reporting and analysis-plan provenance}
 \label{app:reporting}
