@@ -31,6 +31,7 @@ if os.path.realpath(sys.executable) != os.path.realpath(_VENV) and os.path.exist
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -52,11 +53,32 @@ CKPT = {"base": "checkpoints/real50_base_s0",
         "ghist": "checkpoints/real50_ghist_s0",
         "ghist_s0": "checkpoints/real50_ghist_v3_s0",
         "ghist_s1": "checkpoints/real50_ghist_v3_s1",
+        # November 2026 revision (docs/hardware/preregistration_2026-11_*.md)
+        "base_s3": "checkpoints/real50_base_v3_s3",
+        "delta_s3": "checkpoints/real50_delta_v3_s3",
+        "gbit_s1": "checkpoints/real50_gbit_v3_s1",
+        "delta_gbit_s1": "checkpoints/real50_delta_gbit_v3_s1",
         "base_trim": "checkpoints/real50_base_trim",
         # v2 pair: both trimmed of the dead prefix, excess with the load-based
         # k_hat. Matched treatment, so they differ only in the observation.
         "base_v2": "checkpoints/real50_base_v2",
         "excess_v2": "checkpoints/real50_excess_v2"}
+
+
+def observation_arm(alias):
+    """The observation design behind a checkpoint alias: strip version and seed suffixes."""
+    return re.sub(r"(_v\d+|_s\d+|_trim)+$", "", alias)
+
+
+def rollout_command(arm, tag, args, traj_dir, video_dir=None):
+    cmd = [PY, str(REPO / "scripts" / "real" / "run_policy_real.py"),
+           "--checkpoint", CKPT[arm], "--arm", observation_arm(arm),
+           "--home", args.root, "--jumpstart", str(args.jumpstart),
+           "--max-steps", str(args.max_steps),
+           "--out-traj", str(traj_dir / f"{tag}.npz")]
+    if video_dir is not None:
+        cmd += ["--out-video", str(video_dir / f"{tag}.mp4")]
+    return cmd
 
 
 def wilson(k, n, z=1.96):
@@ -80,6 +102,9 @@ def main():
     ap.add_argument("--paired", action="store_true",
                     help="two arms, alternating AB/BA pair order; --trials is total rollouts")
     ap.add_argument("--resume", action="store_true", help="resume the most recent recorded session")
+    ap.add_argument("--video", action="store_true",
+                    help="record each rollout's overhead camera to results/hardware/real_trial_video/ "
+                         "so outcomes can be labeled from video by trial code (scripts/real/label_trials.py)")
     args = ap.parse_args()
 
     arms = [a.strip() for a in args.arms.split(",")]
@@ -103,8 +128,8 @@ def main():
         session = records[-1]["session"]
         old_manifest = out.with_name(out.stem + "_" + session.replace(":", "") + "_manifest.json")
         old = json.loads(old_manifest.read_text())
-        for key in ("arms", "trials", "paired", "jumpstart", "max_steps", "root"):
-            if old["args"][key] != getattr(args, key):
+        for key in ("arms", "trials", "paired", "jumpstart", "max_steps", "root", "video"):
+            if old["args"].get(key, False) != getattr(args, key):
                 ap.error(f"resume protocol mismatch: {key}")
         for name, digest in old["sha256"].items():
             if name.startswith("checkpoints/") and hashlib.sha256((REPO / name).read_bytes()).hexdigest() != digest:
@@ -128,6 +153,10 @@ def main():
         json.dumps(provenance, indent=2))
     traj_dir = REPO / "results" / "hardware" / "real_trial_traj"
     traj_dir.mkdir(parents=True, exist_ok=True)
+    video_dir = None
+    if args.video:
+        video_dir = REPO / "results" / "hardware" / "real_trial_video"
+        video_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"{args.trials} trials, arms {arms}, paired={args.paired}, jumpstart {args.jumpstart} frames.")
     print("Between trials: put the adapter back at its start position and clear the tape roll.\n")
@@ -142,11 +171,7 @@ def main():
         if recovering and (pending["arm"] != arm or not pending.get("rollout_complete")):
             ap.error("pending trial requires manual incident review")
         tag = f"{session.replace(':','')}_{t:02d}_{arm}"
-        cmd = [PY, str(REPO / "scripts" / "real" / "run_policy_real.py"),
-               "--checkpoint", CKPT[arm], "--arm", arm.split("_")[0],
-               "--home", args.root, "--jumpstart", str(args.jumpstart),
-               "--max-steps", str(args.max_steps),
-               "--out-traj", str(traj_dir / f"{tag}.npz")]
+        cmd = rollout_command(arm, tag, args, traj_dir, video_dir)
         if recovering:
             print(f"Recovering outcome of trial {t+1}, {arm}; the robot will NOT rerun it.")
             completed = subprocess.CompletedProcess(cmd, pending.get("returncode", -6))
@@ -197,7 +222,8 @@ def main():
                             shutdown_error=fault,
                             recovered_outcome=recovering,
                             trajectory_missing=not (traj_dir / f"{tag}.npz").exists(),
-                            traj=f"real_trial_traj/{tag}.npz"))
+                            traj=f"real_trial_traj/{tag}.npz",
+                            video=f"real_trial_video/{tag}.mp4" if args.video else None))
         out.write_text(json.dumps(records, indent=2))
         if pending_path.exists() and (fault or recovering):
             pending_path.rename(pending_path.with_name(out.stem + f"_{session.replace(':', '')}_{t:02d}_incident.json"))

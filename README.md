@@ -126,10 +126,21 @@ Appendix H reports the session as interrupted with no test assigned. A clean
 20-pair session is still needed for each seed:
 
 ```bash
-bash scripts/bench/run_hw_history_control.sh 1 --out results/hardware/real_history_control_s1_trials_v2.json
-bash scripts/bench/run_hw_history_control.sh 0
+bash scripts/bench/run_hw_history_control.sh 1 --video --out results/hardware/real_history_control_s1_trials_v2.json
+bash scripts/bench/run_hw_history_control.sh 0 --video
 make paper
 ```
+
+Two further hardware items from the CoRL 2026 workshop reviews
+([`docs/reviews/corl2026_webp.md`](docs/reviews/corl2026_webp.md)) are pre-registered and their
+checkpoints are trained offline by `scripts/real/run_revision_training.sh`: a third completed
+training seed ([`docs/hardware/preregistration_2026-11_seed_replication.md`](docs/hardware/preregistration_2026-11_seed_replication.md),
+`bash scripts/bench/run_hw_replication.sh 3 --video`) and a binary grasp-state input
+([`docs/hardware/preregistration_2026-11_grasp_bit.md`](docs/hardware/preregistration_2026-11_grasp_bit.md),
+`bash scripts/bench/run_hw_grasp_bit.sh 1` and `2`). With `--video`, outcomes are labeled from the
+per-trial recording by trial code (`scripts/real/label_trials.py`) rather than by the operator alone.
+Before any of these sessions, the recurring gripper overload is diagnosed with
+`scripts/real/gripper_diagnostic.py` ([`docs/hardware/overload_diagnosis_2026-11.md`](docs/hardware/overload_diagnosis_2026-11.md)).
 
 The appendix discovers the original trial file and versioned `_v2`, `_v3`,
 etc. records. It keeps reruns separate, retains incomplete pairs in the

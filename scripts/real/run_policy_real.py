@@ -87,10 +87,21 @@ def send_target(robot, motor_names, target):
 
 
 def build_observation(arm, pos, a_prev, a_prev2, stats, k_hat, hist):
-    """Mirror scripts/real/train_act_real.py's observation exactly."""
+    """Mirror scripts/real/train_act_real.py's observation exactly.
+
+    ``hist`` holds every measured position of this rollout so far, the scripted replay included,
+    with ``pos`` as its last entry; the grasp bit is latched over that history."""
     s_n = (pos - stats["s_mean"]) / stats["s_std"]
     if arm == "base":
         return s_n
+    if arm in ("gbit", "delta_gbit"):
+        from grasp_bit import grasp_bit_from_history
+        jaw = [h[GRIPPER] for h in hist] if len(hist) else [pos[GRIPPER]]
+        bit = np.full(6, grasp_bit_from_history(jaw), np.float32)
+        if arm == "gbit":
+            return np.concatenate([s_n, bit])
+        delta = np.zeros(6, np.float32) if a_prev is None else a_prev - pos
+        return np.concatenate([s_n, delta / 8.0, bit])
     if arm == "hist":
         ap = pos if a_prev is None else a_prev
         return np.concatenate([s_n, (ap - stats["a_mean"]) / stats["a_std"]])
@@ -109,7 +120,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--arm", required=True,
-                    choices=("base", "hist", "delta", "excess", "ghist"))
+                    choices=("base", "hist", "delta", "excess", "ghist", "gbit", "delta_gbit"))
     # NB --arm names the OBSERVATION, --checkpoint names the weights; the v2
     # checkpoints use the same observation builders as their v1 counterparts.
     ap.add_argument("--port", default="/dev/ttyACM0")

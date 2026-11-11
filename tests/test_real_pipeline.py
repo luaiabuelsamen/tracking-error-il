@@ -14,7 +14,8 @@ pytest.importorskip("torch", reason="the real-pipeline scripts import torch; ins
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts" / "real"
 sys.path.insert(0, str(SCRIPTS))
 import trial_runner
-from run_policy_real import send_target
+from grasp_bit import grasp_bit_from_history, grasp_bits
+from run_policy_real import build_observation, send_target
 
 
 class RealPipelineTests(TestCase):
@@ -91,6 +92,50 @@ class RealPipelineTests(TestCase):
             self.assertTrue(recovered[2]["shutdown_error"])
             self.assertEqual(run.call_count, 1)
             self.assertFalse(pending.exists())
+
+    def test_observation_arm_strips_version_and_seed_suffixes(self):
+        for alias, arm in (("base_v2", "base"), ("delta_v3", "delta"), ("delta_s1", "delta"), ("ghist_s0", "ghist"),
+                           ("excess_v2", "excess"), ("base_trim", "base"), ("gbit_s1", "gbit"),
+                           ("delta_gbit_s1", "delta_gbit"), ("base", "base")):
+            self.assertEqual(trial_runner.observation_arm(alias), arm)
+        for alias in trial_runner.CKPT:
+            self.assertIn(trial_runner.observation_arm(alias), ("base", "delta", "excess", "ghist", "gbit", "delta_gbit"))
+
+    def test_video_flag_adds_recording_to_the_rollout_command(self):
+        from types import SimpleNamespace
+        args = SimpleNamespace(root="data", jumpstart=115, max_steps=400)
+        with patch.object(trial_runner, "CKPT", {"delta_gbit_s1": "ckpt"}):
+            plain = trial_runner.rollout_command("delta_gbit_s1", "tag", args, Path("traj"))
+            video = trial_runner.rollout_command("delta_gbit_s1", "tag", args, Path("traj"), Path("vid"))
+        self.assertNotIn("--out-video", plain)
+        self.assertEqual(video[video.index("--out-video") + 1], str(Path("vid") / "tag.mp4"))
+        self.assertEqual(video[video.index("--arm") + 1], "delta_gbit")
+
+    def test_grasp_bit_latches_after_open_then_close(self):
+        np.testing.assert_array_equal(grasp_bits([12, 12, 12, 4, 3, 9, 9]), [0, 0, 0, 1, 1, 1, 1])
+        # demonstrations start closed on nothing: that closure is not a grasp
+        np.testing.assert_array_equal(grasp_bits([2, 2, 12, 6, 3]), [0, 0, 0, 0, 1])
+        np.testing.assert_array_equal(grasp_bits([2, 2, 2]), [0, 0, 0])
+        np.testing.assert_array_equal(grasp_bits([12, 7, 6]), [0, 0, 0])
+        for trace in ([12, 12, 4], [2, 12, 3, 9], [12, 6], []):
+            bits = grasp_bits(trace)
+            for k in range(1, len(trace) + 1):
+                self.assertEqual(grasp_bit_from_history(trace[:k]), bits[k - 1])
+
+    def test_grasp_bit_observations_have_registered_widths_and_use_the_history(self):
+        stats = dict(s_mean=np.zeros(6), s_std=np.ones(6), a_mean=np.zeros(6), a_std=np.ones(6))
+        pos = np.array([0, 0, 0, 0, 0, 3.0], np.float32)
+        hist = [np.array([0, 0, 0, 0, 0, 12.4], np.float32)] * 115 + [pos]
+        a_prev = np.array([0, 0, 0, 0, 0, 1.0], np.float32)
+        gbit = build_observation("gbit", pos, a_prev, None, stats, np.zeros(6), hist)
+        both = build_observation("delta_gbit", pos, a_prev, None, stats, np.zeros(6), hist)
+        self.assertEqual((gbit.shape, both.shape), ((12,), (18,)))
+        np.testing.assert_array_equal(gbit[6:], np.ones(6))
+        np.testing.assert_allclose(both[6:12], (a_prev - pos) / 8.0)
+        np.testing.assert_array_equal(both[12:], np.ones(6))
+        # same jaw position, but the jaw never opened first: no grasp yet
+        early = build_observation("gbit", pos, a_prev, None, stats, np.zeros(6), [pos])
+        np.testing.assert_array_equal(early[6:], np.zeros(6))
 
 
 if __name__ == "__main__":

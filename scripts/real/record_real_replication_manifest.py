@@ -4,6 +4,7 @@ import sys
 if "-h" in sys.argv[1:] or "--help" in sys.argv[1:]:
     print(__doc__)
     raise SystemExit(0)
+import argparse
 import hashlib
 import importlib.metadata
 import json
@@ -15,8 +16,14 @@ import torch
 if not torch.cuda.is_available():
     raise SystemExit("CUDA unavailable; refusing an accidental CPU training queue")
 
-paths = [Path("scripts/real/train_act_real.py"), Path("scripts/real/run_real_delta_replication.sh"),
-         Path("docs/hardware/replication_plan_2026-09-05.md")]
+ap = argparse.ArgumentParser()
+ap.add_argument("--out", default="results/hardware/real_delta_replication/manifest.json")
+ap.add_argument("--queue", default="scripts/real/run_real_delta_replication.sh")
+ap.add_argument("--plan", nargs="+", default=["docs/hardware/replication_plan_2026-09-05.md"])
+cli = ap.parse_args()
+
+paths = [Path("scripts/real/train_act_real.py"), Path("scripts/real/grasp_bit.py"), Path(cli.queue)]
+paths += [Path(p) for p in cli.plan]
 root = Path("data/real/pickplace_real_v0")
 paths += sorted((root / "data").rglob("*.parquet"))
 paths += [root / "frames_96.npy", root / "meta/info.json"]
@@ -30,7 +37,8 @@ for path in paths:
 packages = {}
 for package in ("torch", "torchvision", "lerobot", "numpy", "pyarrow"):
     packages[package] = importlib.metadata.version(package)
-out = Path("results/hardware/real_delta_replication/manifest.json")
+out = Path(cli.out)
+out.parent.mkdir(parents=True, exist_ok=True)
 with out.open("x") as f:
     json.dump(dict(created_utc=datetime.now(timezone.utc).isoformat(),
                    sha256=hashes, packages=packages, gpu=torch.cuda.get_device_name(0)), f, indent=2)

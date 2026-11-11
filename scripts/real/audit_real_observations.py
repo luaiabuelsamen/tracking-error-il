@@ -17,7 +17,7 @@ def main():
     train.decode_video_cache = lambda root, size, n: np.broadcast_to(
         np.zeros((1, 1, 1, 3), np.uint8), (n, 1, 1, 3))
     results = {}
-    for arm in ("base", "delta", "excess", "ghist", "hist"):
+    for arm in ("base", "delta", "excess", "ghist", "hist", "gbit", "delta_gbit"):
         ds = train.RealChunkDataset(Path("data/real/pickplace_real_v0"), arm,
                                     trim_static=False)
         stats = {k: getattr(ds, k) for k in ("s_mean", "s_std", "a_mean", "a_std")}

@@ -28,6 +28,9 @@ Arms:
     ghist    [s[t][:6], s[t-k][:6]]           12-dim, ARM G: position context
                                               only, no a[t-1]. The control that
                                               separates "context" from "force".
+    gbit     [s[t][:6], b[t]*1_6]              12-dim, latched grasp bit (review
+                                              item 1): task phase, no contact.
+    delta_gbit [s[t][:6], delta, b[t]*1_6]     18-dim, the raw channel plus the bit.
 
     python scripts/real/train_act_real.py --arm base --root data/real/pickplace_real_v0 \
         --steps 3000 --out checkpoints/real_base
@@ -41,10 +44,12 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from grasp_bit import grasp_bits
 
 CHUNK = 30
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-ARMS = ("base", "hist", "delta", "excess", "ghist")
+ARMS = ("base", "hist", "delta", "excess", "ghist", "gbit", "delta_gbit")
+STATE_DIM = {"base": 6, "hist": 12, "delta": 12, "excess": 12, "ghist": 12, "gbit": 12, "delta_gbit": 18}
 
 
 # --------------------------------------------------------------------------- data
@@ -130,6 +135,15 @@ class RealChunkDataset(torch.utils.data.Dataset):
                 s0 = i
         self.back_k = np.maximum(np.arange(len(ep)) - ghist_k, starts)
 
+        if arm in ("gbit", "delta_gbit"):
+            # Latched grasp bit from the recorded jaw position alone, per episode, with the
+            # thresholds that locate the grasp-closure frame in demonstration_summary.json.
+            self.bit = np.zeros(len(self.S), np.float32)
+            for e in np.unique(ep):
+                idx = np.flatnonzero(ep == e)
+                self.bit[idx] = grasp_bits(self.S[idx, 5])
+            print(f"  grasp bit set on {100 * self.bit.mean():.1f}% of frames")
+
         if arm == "excess":
             # k_hat per joint from free-motion frames, fit before training and
             # frozen. Jaw-open frames stand in for free motion: the only contact
@@ -207,6 +221,11 @@ class RealChunkDataset(torch.utils.data.Dataset):
         elif self.arm == "ghist":
             past = (self.S[self.back_k[i]] - self.s_mean) / self.s_std
             state = np.concatenate([s_n, past])
+        elif self.arm == "gbit":
+            state = np.concatenate([s_n, np.full(6, self.bit[i], np.float32)])
+        elif self.arm == "delta_gbit":
+            state = np.concatenate([s_n, (delta - self.d_mean) / self.d_std,
+                                    np.full(6, self.bit[i], np.float32)])
         else:  # delta
             state = np.concatenate([s_n, (delta - self.d_mean) / self.d_std])
 
@@ -277,7 +296,7 @@ def main():
     ds = RealChunkDataset(Path(args.root).resolve(), args.arm, args.image_size,
                           args.ghist_k, trim_static=not args.keep_static,
                           load_mask=not args.jaw_mask)
-    state_dim = 6 if args.arm == "base" else 12
+    state_dim = STATE_DIM[args.arm]
     print(f"  {len(ds)} frames, state_dim={state_dim}")
 
     policy = build_policy(state_dim, args.image_size).to(DEVICE)
