@@ -18,5 +18,13 @@
   "hist": {
     "frames": 21476,
     "max_abs_error": 0.0
+  },
+  "gbit": {
+    "frames": 21476,
+    "max_abs_error": 0.0
+  },
+  "delta_gbit": {
+    "frames": 21476,
+    "max_abs_error": 0.0
   }
 }
