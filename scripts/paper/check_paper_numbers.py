@@ -132,6 +132,34 @@ def main():
     assert roundtrip(sa.simulation()) == supp['simulation'], 'supplementary.json simulation block is stale'
     assert roundtrip(sa.collect_history(ROOT / 'results/hardware')) == history, 'history records are stale'
     assert roundtrip(sa.runtime_summary()) == supp['runtime'], 'runtime summary is stale'
+    # --- gripper overloads per policy (review item 6): regenerated from the incident records
+    from overload_records import collect_overloads
+    overloads = supp['overloads']
+    assert roundtrip(collect_overloads(ROOT / 'results/hardware')) == overloads, 'overload records are stale'
+    by_arm = {(r['key'], a['arm']): a for r in overloads['records'] for a in r['arms']}
+    for key, rollouts, n_over, other, missing in (
+            (('seed0', 'base_v2'), 20, 0, 0, 0), (('seed0', 'delta_v3'), 20, 0, 0, 0),
+            (('seed1', 'base_s1'), 20, 1, 0, 0), (('seed1', 'delta_s1'), 20, 1, 0, 0),
+            (('seed2', 'base_s2'), 7, 3, 0, 1), (('seed2', 'delta_s2'), 6, 1, 0, 0),
+            (('history_s1', 'delta_s1'), 9, 4, 0, 0), (('history_s1', 'ghist_s1'), 10, 0, 1, 0)):
+        a = by_arm[key]
+        assert (a['rollouts'], a['overloads'], a['other_exits'], a['missing_outcomes']) == (rollouts, n_over, other, missing), key
+    design = overloads['by_design']
+    assert (design['Position only']['overloads'], design['Position only']['rollouts']) == (4, 47)
+    assert (design['Tracking error']['overloads'], design['Tracking error']['rollouts']) == (6, 55)
+    assert (design['Position history']['overloads'], design['Position history']['rollouts']) == (0, 10)
+    history_rec = next(r for r in overloads['records'] if r['key'] == 'history_s1')
+    assert f"{history_rec['within_session_fisher_p']:.2f}" == '0.03'
+    assert 'generated/overload_table.tex' in tex and (generated / 'overload_table.tex').exists()
+    overload_tex = (generated / 'overload_table.tex').read_text()
+    assert '& Position only & 7 & 3 & 0 & 1' in overload_tex and '& Position history & 10 & 0 & 1 & 0' in overload_tex
+    for q in (f"{design['Position only']['overloads']} of {design['Position only']['rollouts']} position-only",
+              f"{design['Tracking error']['overloads']} of {design['Tracking error']['rollouts']} tracking-error",
+              f"{design['Position history']['overloads']} of {design['Position history']['rollouts']} position-history",
+              f"{by_arm[('history_s1', 'delta_s1')]['overloads']} of {by_arm[('history_s1', 'delta_s1')]['rollouts']} tracking-error rollouts and "
+              f"{by_arm[('history_s1', 'ghist_s1')]['overloads']} of {by_arm[('history_s1', 'ghist_s1')]['rollouts']} position-history rollouts",
+              f"Fisher exact $p={history_rec['within_session_fisher_p']:.2f}$"):
+        assert q.lower() in flat.lower(), f'overload statistic not found in manuscript text: {q}'
     runtime = supp['runtime']
     assert runtime['recorded'] == 91 and [g['n'] for g in runtime['groups']] == [20, 20, 20, 19, 6, 6]
     runtime_tex = (generated / 'runtime_table.tex').read_text()

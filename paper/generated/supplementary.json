@@ -1513,6 +1513,148 @@
       }
     ]
   },
+  "overloads": {
+    "records": [
+      {
+        "key": "seed0",
+        "label": "Tracking error vs.\\ position, seed 0",
+        "source": "real_delta_v3_trials.json",
+        "shutdown_field_recorded": false,
+        "sessions": [
+          "2026-09-05T18:50:04"
+        ],
+        "arms": [
+          {
+            "arm": "base_v2",
+            "design": "Position only",
+            "rollouts": 20,
+            "labeled": 20,
+            "overloads": 0,
+            "other_exits": 0,
+            "missing_outcomes": 0
+          },
+          {
+            "arm": "delta_v3",
+            "design": "Tracking error",
+            "rollouts": 20,
+            "labeled": 20,
+            "overloads": 0,
+            "other_exits": 0,
+            "missing_outcomes": 0
+          }
+        ]
+      },
+      {
+        "key": "seed1",
+        "label": "Tracking error vs.\\ position, seed 1",
+        "source": "real_delta_v3_s1_trials.json",
+        "shutdown_field_recorded": true,
+        "sessions": [
+          "2026-09-06T10:43:56"
+        ],
+        "arms": [
+          {
+            "arm": "base_s1",
+            "design": "Position only",
+            "rollouts": 20,
+            "labeled": 20,
+            "overloads": 1,
+            "other_exits": 0,
+            "missing_outcomes": 0
+          },
+          {
+            "arm": "delta_s1",
+            "design": "Tracking error",
+            "rollouts": 20,
+            "labeled": 20,
+            "overloads": 1,
+            "other_exits": 0,
+            "missing_outcomes": 0
+          }
+        ]
+      },
+      {
+        "key": "seed2",
+        "label": "Tracking error vs.\\ position, seed 2 (interrupted)",
+        "source": "real_delta_v3_s2_trials.json",
+        "shutdown_field_recorded": true,
+        "sessions": [
+          "2026-09-06T16:55:44"
+        ],
+        "arms": [
+          {
+            "arm": "base_s2",
+            "design": "Position only",
+            "rollouts": 7,
+            "labeled": 6,
+            "overloads": 3,
+            "other_exits": 0,
+            "missing_outcomes": 1
+          },
+          {
+            "arm": "delta_s2",
+            "design": "Tracking error",
+            "rollouts": 6,
+            "labeled": 6,
+            "overloads": 1,
+            "other_exits": 0,
+            "missing_outcomes": 0
+          }
+        ]
+      },
+      {
+        "key": "history_s1",
+        "label": "Tracking error vs.\\ position history, seed 1 (interrupted)",
+        "source": "real_history_control_s1_trials.json",
+        "shutdown_field_recorded": true,
+        "sessions": [
+          "2026-09-07T13:18:02",
+          "2026-09-07T14:10:08"
+        ],
+        "arms": [
+          {
+            "arm": "delta_s1",
+            "design": "Tracking error",
+            "rollouts": 9,
+            "labeled": 9,
+            "overloads": 4,
+            "other_exits": 0,
+            "missing_outcomes": 0
+          },
+          {
+            "arm": "ghist_s1",
+            "design": "Position history",
+            "rollouts": 10,
+            "labeled": 10,
+            "overloads": 0,
+            "other_exits": 1,
+            "missing_outcomes": 0
+          }
+        ],
+        "within_session_fisher_p": 0.032507739938080496
+      }
+    ],
+    "by_design": {
+      "Position only": {
+        "rollouts": 47,
+        "overloads": 4,
+        "other_exits": 0,
+        "missing_outcomes": 1
+      },
+      "Tracking error": {
+        "rollouts": 55,
+        "overloads": 6,
+        "other_exits": 0,
+        "missing_outcomes": 0
+      },
+      "Position history": {
+        "rollouts": 10,
+        "overloads": 0,
+        "other_exits": 1,
+        "missing_outcomes": 0
+      }
+    }
+  },
   "thresholds": {
     "closed_below": 5.0,
     "reopened_above": 8.0

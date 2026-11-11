@@ -31,6 +31,7 @@ from pathlib import Path
 
 import numpy as np
 from history_records import collect_history
+from overload_records import collect_overloads, overload_table
 from scipy import stats
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -807,10 +808,12 @@ def main():
     runtime_table(runtime)
     demo = demonstrations()
     timing_figure(trials, demo)
+    overloads = collect_overloads(ROOT / "results/hardware")
+    (GEN / "overload_table.tex").write_text(overload_table(overloads))
     out = dict(hardware=hw, power=power, corpus=corp, measurement=meas, simulation=sim,
                plant=plant(), demonstrations=demo, training=learning_curves(),
                earlier_comparison=earlier_comparison(), sensitivity=sensitivity(),
-               history_control=history_control(), runtime=runtime,
+               history_control=history_control(), runtime=runtime, overloads=overloads,
                thresholds=dict(closed_below=CLOSED, reopened_above=REOPENED))
     (GEN / "supplementary.json").write_text(json.dumps(out, indent=2, default=float) + "\n")
     print(json.dumps(dict(stratified=hw["stratified"], seed_level=hw["seed_level"],

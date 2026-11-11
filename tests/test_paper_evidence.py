@@ -10,6 +10,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "paper"))
 import split_submission  # noqa: E402
 from history_records import collect_history  # noqa: E402
+from overload_records import collect_overloads  # noqa: E402
 from supplementary_analysis import timestamp_summary  # noqa: E402
 
 
@@ -132,3 +133,36 @@ def test_split_accepts_reference_heading_with_or_without_line_numbers(monkeypatc
     )
     assert split_submission.main("not-created.pdf") == 0
     assert len(commands) == 3
+
+
+def test_overloads_count_unlabeled_pending_rollout_and_separate_other_exits(tmp_path):
+    """A rollout whose outcome was never entered stays a rollout with a missing outcome, and a
+    non-overload exit is not an overload."""
+    session = "2026-09-06T16:55:44"
+    rows = []
+    for trial, arm in enumerate(("base_s2", "delta_s2") * 2):
+        rows.append(dict(session=session, trial=trial, pair=trial // 2, arm=arm, success=False,
+                         shutdown_error=trial == 1))
+    stem = "real_delta_v3_s2_trials"
+    (tmp_path / f"{stem}.json").write_text(json.dumps(rows))
+    (tmp_path / f"{stem}_x_01_incident.json").write_text(json.dumps(dict(
+        session=session, trial=1, arm="delta_s2", returncode=1, rollout_complete=True)))
+    (tmp_path / f"{stem}_pending.json").write_text(json.dumps(dict(
+        session=session, trial=4, arm="base_s2", returncode=-6, rollout_complete=True)))
+    for spec in ("real_delta_v3_trials.json", "real_delta_v3_s1_trials.json", "real_history_control_s1_trials.json"):
+        (tmp_path / spec).write_text("[]")
+    seed2 = next(r for r in collect_overloads(tmp_path)["records"] if r["key"] == "seed2")
+    base, delta = seed2["arms"]
+    assert (base["rollouts"], base["labeled"], base["overloads"], base["missing_outcomes"]) == (3, 2, 1, 1)
+    assert (delta["rollouts"], delta["overloads"], delta["other_exits"]) == (2, 0, 1)
+
+
+def test_overloads_fail_closed_when_flags_and_incidents_disagree(tmp_path):
+    session = "s"
+    rows = [dict(session=session, trial=0, pair=0, arm="base_s1", success=False, shutdown_error=True),
+            dict(session=session, trial=1, pair=0, arm="delta_s1", success=False, shutdown_error=False)]
+    (tmp_path / "real_delta_v3_s1_trials.json").write_text(json.dumps(rows))
+    for spec in ("real_delta_v3_trials.json", "real_delta_v3_s2_trials.json", "real_history_control_s1_trials.json"):
+        (tmp_path / spec).write_text("[]")
+    with pytest.raises(ValueError, match="flagged rows"):
+        collect_overloads(tmp_path)

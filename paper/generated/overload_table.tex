@@ -1,0 +1,21 @@
+\begin{tabular}{llrrrr}
+\toprule
+Evaluation record & Policy & Rollouts & Overload at shutdown & Other failed exit & Outcome missing \\
+\midrule
+Tracking error vs.\ position, seed 0 & Position only & 20 & 0 & 0 & 0 \\
+ & Tracking error & 20 & 0 & 0 & 0 \\
+\addlinespace
+Tracking error vs.\ position, seed 1 & Position only & 20 & 1 & 0 & 0 \\
+ & Tracking error & 20 & 1 & 0 & 0 \\
+\addlinespace
+Tracking error vs.\ position, seed 2 (interrupted) & Position only & 7 & 3 & 0 & 1 \\
+ & Tracking error & 6 & 1 & 0 & 0 \\
+\addlinespace
+Tracking error vs.\ position history, seed 1 (interrupted) & Tracking error & 9 & 4 & 0 & 0 \\
+ & Position history & 10 & 0 & 1 & 0 \\
+\midrule
+All records & Position only & 47 & 4 & 0 & 1 \\
+All records & Tracking error & 55 & 6 & 0 & 0 \\
+All records & Position history & 10 & 0 & 1 & 0 \\
+\bottomrule
+\end{tabular}

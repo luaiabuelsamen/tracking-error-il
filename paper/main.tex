@@ -194,7 +194,10 @@ variation for fixed checkpoints, not variation over training seeds; with 20
 pairs the exact test has power 0.17 under seed 0's discordance structure and
 0.97 under seed 1's (Appendix~\ref{app:protocol}). A third evaluation was
 interrupted by recurring gripper faults after six all-failure pairs
-(Appendix~\ref{app:protocol}).
+(Appendix~\ref{app:protocol}). Counted by policy over every hardware record
+(Table~\ref{tab:overloads}), the gripper overload at shutdown struck 4 of 47
+position-only, 6 of 55 tracking-error and 0 of 10 position-history rollouts,
+so it is a property of the bench rather than of one observation design.
 
 The checkpoints read the channel: zeroing the tracking-error input offline
 moves the predicted jaw command by 12.6 to 13.0 units on frames where the
@@ -368,6 +371,37 @@ against three of 20 and one of 20 in seed 0 and two of 20 and none of 19 in
 seed 1 (Table~\ref{tab:traces}), which is consistent with a gripper fault
 rather than a policy difference, although the traces cannot prove it.
 Trial-level detail is in the supplementary evaluation records.
+
+\textbf{Gripper overloads by policy.} Table~\ref{tab:overloads} counts, for
+every hardware evaluation record, the rollouts of each policy that ended with
+the servo library's gripper-overload error while torque was being disabled
+(process abort), those that failed for another reason, and those whose outcome
+was never entered. Every such rollout had completed its control horizon. The
+seed-0 record predates the shutdown-status field; its runner wrote the
+trajectory only after torque release, so a fault would have left a missing
+trajectory, and all 40 are present. The 2026-09-04 residual comparison
+predates the field as well and is not tabulated. Across all records the fault
+occurred in 4 of 47 position-only, 6 of 55 tracking-error and 0 of 10
+position-history rollouts. Within the interrupted history session it struck 4
+of 9 tracking-error rollouts and 0 of 10 position-history rollouts (post hoc
+Fisher exact $p=0.03$); the tracking-error policy is the one that closes and
+holds the jaw to the end of the horizon (Table~\ref{tab:traces}), so the
+pattern is consistent with the fault being raised when torque is released
+from a stalled, loaded jaw, but the servo's condition also changed over that
+session, and no diagnosis has been made.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Gripper overload incidents per policy. Rollouts counts labeled
+outcomes plus any completed rollout whose outcome was not entered. Overload:
+the servo library raised its overload error while torque was being disabled
+after a completed horizon. Other failed exit: a non-overload process failure
+(one logging fault). Generated from the trial records and incident files under
+\texttt{results/hardware/}.}
+\label{tab:overloads}
+\resizebox{\linewidth}{!}{\input{generated/overload_table.tex}}
+\end{table}
 
 \section{Exploratory trajectory analysis}
 \label{app:traces}
