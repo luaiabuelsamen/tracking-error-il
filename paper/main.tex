@@ -32,11 +32,13 @@ The ACT configuration studied here exposes one timestep of measured
 joint positions to the policy. We show that appending the servo tracking
 error, the difference between the last applied position command and the
 current measured position, changes what a policy can learn at a
-50-demonstration budget. On a physical SO-101, ACT policies with tracking
-error place the object in 23 of 40 paired trials against 6 of 40 for
-position-only policies (post-hoc stratified exact test $p=0.0005$), after a
-fixed demonstration replay, in both completed training seeds (9 vs 5 and
-14 vs 1). In simulation over five seeds, placement rises from
+50-demonstration budget. On a physical SO-101, after a fixed demonstration
+replay, three training seeds were trained and evaluated in paired trials.
+Tracking error wins each of the two completed 20-pair comparisons, 9 vs 5
+(exact McNemar $p=0.29$) and 14 vs 1 ($p=0.001$); the third evaluation was
+interrupted by a gripper fault after six pairs. Pooled, the completed seeds
+place 23 of 40 against 6 of 40 (post hoc stratified exact test $p=0.0005$).
+In simulation over five seeds, placement rises from
 6.2\% to 21.8\%, and a position-history control recovers most of that gain,
 consistent with a benefit from temporal information without establishing a
 preferred representation. The signal requires no added sensor:
@@ -74,9 +76,11 @@ We answer with three experiments. A simulation grid sets explicit tracking
 error against action history, position history, and a compensated residual
 (tracking error minus a fitted free-motion term) under identical data and
 training budgets. A hardware study trains ACT on 50 human demonstrations on
-one SO-101 and evaluates 40 paired trials across two training seeds. A corpus study asks, on 546 archived episodes, whether the same signal can
-serve as an outcome label. Tracking error wins both hardware comparisons, 9
-vs 5 and 14 vs 1 of 20. In simulation, position history recovers most of the
+one SO-101 at three training seeds and evaluates each seed in paired trials;
+two evaluations reached their 20-pair budget and the third was interrupted by
+a gripper fault. A corpus study asks, on 546 archived episodes, whether the
+same signal can serve as an outcome label. Tracking error wins both completed
+hardware comparisons, 9 vs 5 and 14 vs 1 of 20. In simulation, position history recovers most of the
 mean gain, with substantial uncertainty in their difference. The contribution
 is a controlled observation-design study: tracking error improves this hardware
 comparison, while temporal controls limit a feature-specific interpretation.
@@ -179,17 +183,20 @@ scripted replay, from a showcase rollout that is not included in any count.}
 \label{fig:real}
 \end{figure}
 
-\textbf{Hardware: 23 of 40 against 6 of 40 at 50 demonstrations.}
-Table~\ref{tab:hardware} reports each training seed as its own paired
-comparison. Tracking error improves placement by 20 percentage points for seed
-0 and by 65 points for seed 1. Exact two-sided McNemar tests use only the
-discordant pairs: seed 0 has six pairs favouring tracking error and two
-favouring the base ($p=0.29$), seed 1 fourteen and one ($p=0.001$). Pooling
-the two seeds gives 23 of 40 placements against 6 of 40, with 20 discordant
-pairs favouring tracking error against 3 (stratified exact test $p=0.0005$);
-the conditional odds ratio is \input{generated/odds_ratio.tex}\unskip. The
-equal-weight mean is 42.5 points over the completed seeds; the
-stratified test and odds ratio are post hoc. These tests describe trial-to-trial
+\textbf{Hardware: tracking error wins each completed paired comparison.}
+Three seeds were trained with the frozen recipe; seeds 0 and 1 completed
+their 20-pair budgets and seed 2 was interrupted. Table~\ref{tab:hardware}
+reports each completed seed as its own paired comparison, which is the
+registered analysis. Tracking error improves placement by 20 percentage points
+for seed 0 and by 65 points for seed 1. Exact two-sided McNemar tests use only
+the discordant pairs: seed 0 has six pairs favouring tracking error and two
+favouring the base ($p=0.29$), seed 1 fourteen and one ($p=0.001$). Seed 0
+alone does not meet the registered criterion; seed 1 does. As a post hoc
+summary, pooling the two completed seeds gives 23 of 40 placements against 6
+of 40, with 20 discordant pairs favouring tracking error against 3
+(stratified exact test $p=0.0005$); the conditional odds ratio is
+\input{generated/odds_ratio.tex}\unskip, and the equal-weight mean is 42.5
+points over the completed seeds. These tests describe trial-to-trial
 variation for fixed checkpoints, not variation over training seeds; with 20
 pairs the exact test has power 0.17 under seed 0's discordance structure and
 0.97 under seed 1's (Appendix~\ref{app:protocol}). A third evaluation was
@@ -260,8 +267,9 @@ the policy's observation-update rate. Report actuator torque and current
 limits, since they can determine where telemetry saturates. Appendix~\ref{app:reporting}
 provides a filled reporting table and the study's analysis-plan provenance.
 
-Three limits bound the claim. The two hardware seeds gave a 20-point and a
-65-point improvement and two seeds cannot bound that spread. The matched position-history control is registered, and its first hardware
+Three limits bound the claim. Three hardware seeds were trained; the two
+completed evaluations gave a 20-point and a 65-point improvement, the third
+was interrupted, and two completed seeds cannot bound that spread. The matched position-history control is registered, and its first hardware
 session was interrupted by a gripper servo fault (Appendix~\ref{app:history}), so the hardware result establishes the
 value of the channel, not its superiority over history.
 The hardware task never requires staying under a force threshold, so nothing

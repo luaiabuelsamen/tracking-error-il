@@ -35,9 +35,12 @@ not one of the evaluated trials and its outcome is not in any count below.*
 | hardware, seed 1, 20 paired trials | 1/20 | 14/20 | exact McNemar p = 0.001 |
 | hardware, seed 2 | 0/6 | 0/6 | interrupted by recurring servo overload faults |
 
-On the arm, tracking error places 23 of 40 paired trials against 6 of 40 for
-position-only policies (stratified exact test p = 0.0005), replicated across
-two training seeds, though the size of the effect differs between seeds. In
+On the arm, three training seeds were trained and evaluated in paired trials.
+Tracking error wins each of the two completed 20-pair comparisons, 9 vs 5
+(exact McNemar p = 0.29) and 14 vs 1 (p = 0.001); the third evaluation was
+interrupted by a gripper fault after six pairs. Pooled, the completed seeds
+place 23 of 40 against 6 of 40 (post hoc stratified exact test p = 0.0005),
+though the size of the effect differs between seeds. In
 simulation a position-history input recovers most of the gain, so the finding
 is consistent with a benefit from temporal information; it does not establish
 which representation is preferable. Tracking error can be reconstructed when
