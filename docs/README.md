@@ -7,6 +7,8 @@
 | `hardware/preregistration_2026-09-05_tracking_error.md` | frozen decision rule for the seed-0 tracking-error comparison, written before training or evaluation |
 | `hardware/replication_plan_2026-09-05.md` | plan for seeds 1 and 2, written after seed 0 and before those seeds were trained |
 | `hardware/preregistration_2026-09-07_history_control.md` | frozen plan for the matched position-history control: checkpoints, comparisons, decision rule; written before training |
+| `reviews/corl2026_webp.md` | CoRL 2026 WEBP reviews (digest until the verbatim text is pasted) and the numbered list of requested changes that `revision_2026-11.md` works through |
+| `revision_2026-11.md` | November 2026 revision plan: arXiv v1 text fixes, then the two hardware items, then arXiv v2 |
 | `hardware/diagnostics.md` | seed-0 paired result and trajectory audit; trial-level record of the seed-1 and seed-2 interruptions |
 | `analysis_plans/2026-08-16_corpus.md` | original corpus protocol recovered unchanged from repository history, including its secondary AUC prediction |
 | `analysis_plans/2026-08-17_simulation.md` | original simulation design note; three tracking-error results were already known when it was written |
