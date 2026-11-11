@@ -18,7 +18,8 @@ for cell in "${CELLS[@]}"; do
 done
 # The GPU is shared with other sessions on this device: refuse if it is already loaded.
 if command -v tegrastats >/dev/null; then
-  load=$(timeout 4 tegrastats --interval 1000 2>/dev/null | head -2 | sed -n 's/.*GR3D_FREQ \([0-9]*\)%.*/\1/p' | sort -n | tail -1)
+  # read until the timeout ends tegrastats; piping into head would SIGPIPE it under pipefail
+  load=$( (timeout 3 tegrastats --interval 1000 2>/dev/null || true) | sed -n 's/.*GR3D_FREQ \([0-9]*\)%.*/\1/p' | sort -n | tail -1)
   if [[ -n "${load:-}" && "$load" -gt 15 ]]; then
     echo "GPU already at ${load}% (another session's job?); not starting the queue" >&2
     exit 1
