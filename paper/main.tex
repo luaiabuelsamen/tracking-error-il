@@ -93,15 +93,29 @@ NeuralActuator~\citep{dou2026neuralactuator} fits an actuator model on the
 SO-101 from command, position, tracking error, and the load register and feeds
 its estimated force to a policy. We use the raw command--position difference
 with no model and make correspondingly weaker claims about force. Force-aware imitation on sensed arms finds that how the signal is presented
-matters~\citep{liu2025forcemimic,yu2025forcevla}.
+matters~\citep{liu2025forcemimic,yu2025forcevla}. Outside manipulation,
+Aractingi et al.~\citep{aractingi2023solo12} give a Solo12 locomotion policy
+the joint target errors of its last three control steps as an observation,
+noting that the error is related to torque and implicitly carries the feet's
+contact state. That quantity is our $\delta_t$; there it enters a
+reinforcement-learned controller as a short history, whereas we ask whether a
+single step of it changes what behavior cloning learns from 50 demonstrations,
+and we test it against the position history it would otherwise be confounded
+with.
 
 Wong et al.~\citep{wong2026beyond} show that leader--follower discrepancies in
 teleoperation carry interaction cues: removing them from ACT's action labels
 degrades force-critical phases, while torque proxies restore contact-aware
-behavior, and Xu et al.~\citep{xu2026mindgap} condition policies on command--state
-history with latency-aware trajectory inpainting. We study a single-step
-discrepancy input to ACT with fixed command targets and execution settings,
-including temporal controls and a telemetry-saturation audit. Adding the feature also adds access to the
+behavior. Xu et al.~\citep{xu2026mindgap} condition a policy on both the
+leader command and the follower's executed state, so that their mismatch,
+which they attribute to contact, latency, payload and operator compensation,
+informs the predicted commands, with latency-adaptive inpainting for action
+chunking and an analysis of when long histories confound rather than help.
+Their mismatch is between operator intent and execution over a history; ours
+is the follower's own single-step command--position error, with fixed command
+targets and execution settings, and we add the temporal controls and a
+telemetry-saturation audit that let a reader separate the channel from
+history. Adding the feature also adds access to the
 previous command, and history that helps under partial observability can
 equally support a shortcut that copies the previous
 action~\citep{wen2020copycat,wen2021keyframe,mark2026bpp}. We therefore compare several temporal observations rather than reading any

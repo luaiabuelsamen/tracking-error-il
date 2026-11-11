@@ -36,8 +36,12 @@ The cited works were checked against primary records during the rewrite:
 - Wong et al.: https://arxiv.org/abs/2607.14578
 - ACT: https://arxiv.org/abs/2304.13705
 - Copycat agents: https://arxiv.org/abs/2010.14876
+- Solo12 (Aractingi et al., Sci. Rep. 13:11945, 2023): https://doi.org/10.1038/s41598-023-38259-7
+- Mind the Gap (Xu et al.): https://arxiv.org/abs/2602.08776
 
-Target venue: the CoRL 2026 workshop *Everything Beneath the Policy*
+Submitted to the CoRL 2026 workshop *Everything Beneath the Policy* (reviews in
+`docs/reviews/corl2026_webp.md`); the revised full-length version is the arXiv preprint built by
+`scripts/paper/make_arxiv.sh`.
 (4 pages excluding references, double blind, OpenReview, deadline
 October 9, 2026, 11:59 p.m. Central). Main text ends on page 4 in both build
 modes; references and appendices follow. The workshop permits concurrent
