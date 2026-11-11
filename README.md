@@ -299,7 +299,7 @@ policy command the arm.
 
 ```bibtex
 @misc{abuelsamen2026trackingerror,
-  title  = {Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms},
+  title  = {Tracking Error as an Observation for Behavior Cloning},
   author = {Abuelsamen, Luai},
   year   = {2026},
   note   = {Preprint. Code and evaluation records: https://github.com/luaiabuelsamen/tracking-error-il}

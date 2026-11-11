@@ -10,17 +10,18 @@ Everything here is prepared. The upload needs your account, so that step is your
 
 Built by `scripts/paper/make_arxiv.sh`, which stages a flat copy, rewrites the one figure path that
 would not survive arXiv's single root, includes `main.bbl` so no bibtex run is needed, and then
-**compiles the staged copy in isolation** to prove the tarball is complete. Last verified build: 15
-pages, zero undefined references or citations.
+**compiles the staged copy in isolation** to prove the tarball is complete. Last verified build
+(2026-11-10, after the CoRL review items 3 to 6 in `docs/reviews/corl2026_webp.md`): 16 pages, zero
+undefined references or citations.
 
 ## Title
 
 Tracking Error as an Observation for Behavior Cloning
 
-Changed from "... on Low-Cost Arms". The evidence is from an SO-101 and the abstract says so in its
-second sentence; the signal itself exists on any position-controlled actuator that logs both the
-command and the measured position, so the old title understated the scope and invited dismissal. Revert
-with one sed if you disagree.
+Changed from "... on Low-Cost Arms" on 2026-09-11. The evidence is from an SO-101 and the abstract says
+so; the signal itself exists on any position-controlled actuator that logs both the command and the
+measured position, so the old title understated the scope and invited dismissal. `CITATION.cff` and the
+README citation were brought in line on 2026-11-10. Revert with one sed if you disagree.
 
 ## Abstract
 
@@ -38,7 +39,7 @@ does not restrict a later conference submission.
 
 ## Comments field
 
-Suggested: `15 pages including supplement. Code and data: <repository URL if you make it public>.`
+Suggested: `16 pages including supplement. Code and evaluation records: https://github.com/luaiabuelsamen/tracking-error-il`
 
 ## arXiv and the workshop are not a choice between two
 
@@ -48,7 +49,7 @@ They are two artifacts from one source, and both are already built:
 |---|---|---|
 | CoRL workshop | `paper/main_anon_paper.pdf` | 4 pages of body, references on 5-6, anonymous |
 | CoRL workshop | `paper/main_anon_supplement.pdf` | pages 7-15, the appendix |
-| arXiv | `dist/arxiv-submission.tar.gz` | the full 15 pages with authors |
+| arXiv | `dist/arxiv-submission.tar.gz` | the full 16 pages with authors, revised after the reviews |
 
 Verified: zero occurrences of the author name, institution or email in the anonymous copy.
 
@@ -80,9 +81,19 @@ is within the call's own terms. One email to the organisers settles it either wa
 | "one task, one arm" | Conceded; the simulation sweep over five seeds is the only breadth claimed |
 | "did anything you predicted fail?" | Yes, and it is in the abstract: the preregistered grasp-onset prediction fails at pooled d = -0.39 |
 
+## What changed for this version (2026-11-10)
+
+Reviewer bA2d's text items from the CoRL 2026 WEBP decision (`docs/reviews/corl2026_webp.md`): three
+seeds stated and the per-seed paired tests lead the hardware paragraph (item 4); the interrupted
+position-history session, the simulation seat token and the residual's hardware failure are in the main
+results (item 3); Solo12 is cited and contrasted and the Mind the Gap contrast is explicit (item 5); a
+generated table of gripper overloads per policy (item 6). The two hardware items are Phase B of
+`docs/revision_2026-11.md` and go into arXiv v2.
+
 ## Honest summary of what this is
 
-A controlled observation-design study with a large paired hardware effect (23 of 40 against 6 of 40,
-p = 0.0005), reproduced in simulation across five seeds, whose own control narrows the mechanism claim,
-and which reports a registered prediction that failed. It is not a method paper and does not claim force
-regulation, superiority over hardware position history, or transfer across tasks.
+A controlled observation-design study with a large paired hardware effect in each completed seed (9 vs 5
+and 14 vs 1 of 20; pooled 23 of 40 against 6 of 40, post hoc p = 0.0005), reproduced in simulation across
+five seeds, whose own control narrows the mechanism claim, and which reports a registered prediction
+that failed. It is not a method paper and does not claim force regulation, superiority over hardware
+position history, or transfer across tasks.

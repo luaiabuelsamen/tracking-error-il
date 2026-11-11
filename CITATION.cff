@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code or these evaluation records, please cite the preprint."
-title: "Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms"
+title: "Tracking Error as an Observation for Behavior Cloning"
 type: software
 authors:
   - family-names: Abuelsamen
@@ -19,7 +19,7 @@ keywords:
   - observation design
 preferred-citation:
   type: article
-  title: "Tracking Error as an Observation for Behavior Cloning on Low-Cost Arms"
+  title: "Tracking Error as an Observation for Behavior Cloning"
   authors:
     - family-names: Abuelsamen
       given-names: Luai
